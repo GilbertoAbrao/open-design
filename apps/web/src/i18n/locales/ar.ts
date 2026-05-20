@@ -720,6 +720,7 @@ export const ar: Dict = {
   'chat.conversationsAria': 'سجل المحادثات',
   'chat.newConversation': 'محادثة جديدة',
   'chat.newConversationsTitle': 'محادثة جديدة',
+  'chat.resumeConversation': 'استئناف في محادثة جديدة',
   'chat.conversationsHeading': 'المحادثات',
   'chat.new': 'جديد',
   'chat.emptyConversations': 'لا توجد محادثات بعد.',

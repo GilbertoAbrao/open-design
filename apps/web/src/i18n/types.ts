@@ -1473,6 +1473,7 @@ export interface Dict {
   'chat.conversationsAria': string;
   'chat.newConversation': string;
   'chat.newConversationsTitle': string;
+  'chat.resumeConversation': string;
   'chat.conversationsHeading': string;
   'chat.new': string;
   'chat.emptyConversations': string;
