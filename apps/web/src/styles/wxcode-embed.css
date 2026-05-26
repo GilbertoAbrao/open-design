@@ -1,0 +1,149 @@
+/* WXCode Studio embed adapter.
+   Keep this file scoped to the host flag so upstream Open Design chrome stays
+   untouched outside the WXCode iframe integration. */
+html[data-od-host='wxcode'] {
+  color-scheme: dark;
+  --bg: #09090b;
+  --bg-app: #09090b;
+  --bg-panel: #111113;
+  --bg-subtle: #18181b;
+  --bg-muted: #242427;
+  --bg-elevated: #17171a;
+  --border: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.16);
+  --border-soft: rgba(255, 255, 255, 0.06);
+  --text: #e4e4e7;
+  --text-strong: #fafafa;
+  --text-muted: #a1a1aa;
+  --text-soft: #71717a;
+  --text-faint: #52525b;
+  --accent: #c86644;
+  --accent-strong: #e4a187;
+  --accent-soft: rgba(200, 102, 68, 0.18);
+  --accent-tint: rgba(200, 102, 68, 0.12);
+  --accent-hover: #d97855;
+  --shadow-xs: none;
+  --shadow-sm: none;
+  --shadow-md: 0 18px 42px rgba(0, 0, 0, 0.32);
+  --shadow-lg: 0 28px 72px rgba(0, 0, 0, 0.42);
+}
+
+html[data-od-host='wxcode'],
+html[data-od-host='wxcode'] body {
+  background: #09090b;
+}
+
+html[data-od-host='wxcode'] .workspace-shell,
+html[data-od-host='wxcode'] .workspace-shell__body,
+html[data-od-host='wxcode'] .app,
+html[data-od-host='wxcode'] .entry-shell {
+  background:
+    radial-gradient(80% 140% at 44% -50%, rgba(200, 102, 68, 0.12), transparent 58%),
+    #09090b;
+}
+
+html[data-od-host='wxcode'] .workspace-tabs-chrome.app-chrome-header {
+  height: 36px;
+  min-height: 36px;
+  padding: 0 12px;
+  background: rgba(12, 12, 14, 0.96);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 -1px 0 rgba(200, 102, 68, 0.1);
+}
+
+html[data-od-host='wxcode'] .workspace-tab {
+  height: 24px;
+  flex: 0 1 180px;
+  width: auto;
+  max-width: 220px;
+  grid-template-columns: minmax(0, 1fr);
+  border-color: rgba(255, 255, 255, 0.07);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+html[data-od-host='wxcode'] .workspace-tab.is-active {
+  color: #fafafa;
+  border-color: rgba(200, 102, 68, 0.38);
+  background: rgba(200, 102, 68, 0.12);
+  box-shadow: inset 0 0 0 1px rgba(200, 102, 68, 0.08);
+}
+
+html[data-od-host='wxcode'] .workspace-tab__main {
+  padding-inline: 9px;
+}
+
+html[data-od-host='wxcode'] .app > .app-chrome-header {
+  height: 40px;
+  min-height: 40px;
+  padding: 0 14px 0 16px;
+  background: rgba(17, 17, 19, 0.94);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 -1px 0 rgba(200, 102, 68, 0.1);
+}
+
+html[data-od-host='wxcode'] .app-project-title .title {
+  color: #fafafa;
+  font-size: 13px;
+  letter-spacing: 0;
+}
+
+html[data-od-host='wxcode'] .app-project-title .meta {
+  color: #71717a;
+}
+
+html[data-od-host='wxcode'] .project-ds-picker-trigger {
+  height: 28px;
+  border-color: rgba(200, 102, 68, 0.24);
+  background: rgba(200, 102, 68, 0.08);
+  color: #d4d4d8;
+  border-radius: 7px;
+}
+
+html[data-od-host='wxcode'] .project-ds-picker-trigger:hover {
+  border-color: rgba(200, 102, 68, 0.42);
+  background: rgba(200, 102, 68, 0.14);
+}
+
+html[data-od-host='wxcode'] .split,
+html[data-od-host='wxcode'] .split-chat-slot,
+html[data-od-host='wxcode'] .workspace,
+html[data-od-host='wxcode'] .ws-tabs-shell,
+html[data-od-host='wxcode'] .viewer {
+  background: rgba(9, 9, 11, 0.96);
+}
+
+html[data-od-host='wxcode'] .split-chat-slot,
+html[data-od-host='wxcode'] .entry-side {
+  border-right-color: rgba(255, 255, 255, 0.08);
+}
+
+html[data-od-host='wxcode'] .ws-tabs-shell {
+  height: 40px;
+  border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+
+html[data-od-host='wxcode'] .ws-tab.design-files-tab,
+html[data-od-host='wxcode'] .ws-tab.active {
+  background: rgba(200, 102, 68, 0.1);
+  color: #fafafa;
+}
+
+html[data-od-host='wxcode'] .viewer-toolbar {
+  border-bottom-color: rgba(255, 255, 255, 0.08);
+  background: rgba(17, 17, 19, 0.92);
+}
+
+html[data-od-host='wxcode'] .workspace-tabs-actions,
+html[data-od-host='wxcode'] .workspace-tab__close,
+html[data-od-host='wxcode'] .app-chrome-back,
+html[data-od-host='wxcode'] .app-chrome-file-actions,
+html[data-od-host='wxcode'] .app-chrome-actions,
+html[data-od-host='wxcode'] .project-instructions-toggle {
+  display: none !important;
+}
+
+html[data-od-host='wxcode'] .app-chrome-file-actions:not(:empty) + .app-chrome-actions {
+  margin-left: 0;
+  padding-left: 0;
+  border-left: 0;
+}
