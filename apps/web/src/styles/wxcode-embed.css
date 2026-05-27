@@ -22,6 +22,8 @@ html[data-od-host='wxcode'] {
   --accent-soft: rgba(200, 102, 68, 0.18);
   --accent-tint: rgba(200, 102, 68, 0.12);
   --accent-hover: #d97855;
+  --sans: var(--font-geist-sans), 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --mono: var(--font-geist-mono), 'Geist Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   --shadow-xs: none;
   --shadow-sm: none;
   --shadow-md: 0 18px 42px rgba(0, 0, 0, 0.32);
@@ -31,6 +33,16 @@ html[data-od-host='wxcode'] {
 html[data-od-host='wxcode'],
 html[data-od-host='wxcode'] body {
   background: #09090b;
+  font-family: var(--sans);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+html[data-od-host='wxcode'] button,
+html[data-od-host='wxcode'] input,
+html[data-od-host='wxcode'] textarea,
+html[data-od-host='wxcode'] select {
+  font-family: var(--sans);
 }
 
 html[data-od-host='wxcode'] .workspace-shell,
@@ -42,13 +54,12 @@ html[data-od-host='wxcode'] .entry-shell {
     #09090b;
 }
 
+html[data-od-host='wxcode'] .workspace-shell {
+  grid-template-rows: minmax(0, 1fr);
+}
+
 html[data-od-host='wxcode'] .workspace-tabs-chrome.app-chrome-header {
-  height: 36px;
-  min-height: 36px;
-  padding: 0 12px;
-  background: rgba(12, 12, 14, 0.96);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: inset 0 -1px 0 rgba(200, 102, 68, 0.1);
+  display: none !important;
 }
 
 html[data-od-host='wxcode'] .workspace-tab {
@@ -83,7 +94,7 @@ html[data-od-host='wxcode'] .app > .app-chrome-header {
 
 html[data-od-host='wxcode'] .app-project-title .title {
   color: #fafafa;
-  font-size: 13px;
+  font-size: 14px;
   letter-spacing: 0;
 }
 
@@ -97,6 +108,7 @@ html[data-od-host='wxcode'] .project-ds-picker-trigger {
   background: rgba(200, 102, 68, 0.08);
   color: #d4d4d8;
   border-radius: 7px;
+  font-size: 13px;
 }
 
 html[data-od-host='wxcode'] .project-ds-picker-trigger:hover {
@@ -163,6 +175,27 @@ html[data-od-host='wxcode'] .split.split-chat-right.is-resizing-chat > .split-re
 html[data-od-host='wxcode'] .ws-tabs-shell {
   height: 40px;
   border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+
+html[data-od-host='wxcode'] .chat-active-conversation-title,
+html[data-od-host='wxcode'] .chat-header-tab,
+html[data-od-host='wxcode'] .ws-tab,
+html[data-od-host='wxcode'] .viewer-toolbar {
+  font-size: 13.5px;
+}
+
+html[data-od-host='wxcode'] .msg.user .user-text,
+html[data-od-host='wxcode'] .msg.assistant .prose-block,
+html[data-od-host='wxcode'] .composer textarea {
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+html[data-od-host='wxcode'] .msg .role,
+html[data-od-host='wxcode'] .status-pill,
+html[data-od-host='wxcode'] .op-waiting,
+html[data-od-host='wxcode'] .composer-send {
+  font-size: 12.5px;
 }
 
 html[data-od-host='wxcode'] .ws-tab.design-files-tab,
