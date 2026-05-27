@@ -251,6 +251,13 @@ interface DesignSystemReviewDetails {
   agentTask?: DesignSystemReviewAgentTask;
 }
 
+function isWxcodeEmbedHost(): boolean {
+  return (
+    typeof document !== 'undefined' &&
+    document.documentElement.getAttribute('data-od-host') === 'wxcode'
+  );
+}
+
 function workspacePanelMinWidthForSplit(splitWidth: number): number {
   if (!Number.isFinite(splitWidth) || splitWidth <= 0) return MIN_WORKSPACE_PANEL_WIDTH;
   return splitWidth < MIN_NORMAL_SPLIT_WIDTH ? 0 : MIN_WORKSPACE_PANEL_WIDTH;
@@ -437,8 +444,11 @@ function appendLiveArtifactEventItem(
   return next.length > 50 ? next.slice(next.length - 50) : next;
 }
 
-export function projectSplitClassName(workspaceFocused: boolean): string {
-  return workspaceFocused ? 'split split-focus' : 'split';
+export function projectSplitClassName(workspaceFocused: boolean, chatDockRight = false): string {
+  return [
+    workspaceFocused ? 'split split-focus' : 'split',
+    chatDockRight && !workspaceFocused ? 'split-chat-right' : '',
+  ].filter(Boolean).join(' ');
 }
 
 function shouldFetchElevenLabsVoiceOptions(project: Project): boolean {
@@ -621,6 +631,7 @@ export function ProjectView({
   const [chatPanelMaxWidth, setChatPanelMaxWidth] = useState(MAX_CHAT_PANEL_WIDTH);
   const [workspacePanelMinWidth, setWorkspacePanelMinWidth] = useState(MIN_WORKSPACE_PANEL_WIDTH);
   const [resizingChatPanel, setResizingChatPanel] = useState(false);
+  const [chatDockRight, setChatDockRight] = useState(isWxcodeEmbedHost);
   const splitRef = useRef<HTMLDivElement | null>(null);
   const chatPanelWidthRef = useRef(chatPanelWidth);
   const preferredChatPanelWidthRef = useRef(chatPanelWidth);
@@ -630,6 +641,7 @@ export function ProjectView({
     startClientX: number;
     startWidth: number;
     isRtl: boolean;
+    chatDockRight: boolean;
     hasMoved: boolean;
   } | null>(null);
   const pointerCleanupRef = useRef<(() => void) | null>(null);
@@ -648,6 +660,10 @@ export function ProjectView({
   // tab still focuses it.
   const [openRequest, setOpenRequest] = useState<{ name: string; nonce: number } | null>(null);
   const abortRef = useRef<AbortController | null>(null);
+
+  useEffect(() => {
+    setChatDockRight(isWxcodeEmbedHost());
+  }, []);
   const cancelRef = useRef<AbortController | null>(null);
   const streamingConversationIdRef = useRef<string | null>(null);
   const [queuedChatSends, setQueuedChatSends] = useState<QueuedChatSend[]>([]);
@@ -3732,7 +3748,9 @@ export function ProjectView({
       const delta = clientX - state.startClientX;
       if (delta === 0 && !state.hasMoved) return;
       state.hasMoved = true;
-      const rawWidth = state.startWidth + (state.isRtl ? -delta : delta);
+      const directionMultiplier = state.isRtl ? -1 : 1;
+      const dockMultiplier = state.chatDockRight ? -1 : 1;
+      const rawWidth = state.startWidth + directionMultiplier * dockMultiplier * delta;
       applyChatPanelWidth(rawWidth);
     };
 
@@ -3750,6 +3768,7 @@ export function ProjectView({
       startClientX: event.clientX,
       startWidth: chatPanelWidthRef.current,
       isRtl: window.getComputedStyle(split).direction === 'rtl',
+      chatDockRight,
       hasMoved: false,
     };
 
@@ -3783,7 +3802,7 @@ export function ProjectView({
     window.addEventListener('pointerup', handlePointerEnd);
     window.addEventListener('pointercancel', handlePointerCancel);
     window.addEventListener('blur', handlePointerCancel);
-  }, [applyChatPanelWidth, finishChatPanelResize, renderPreferredChatPanelWidth]);
+  }, [applyChatPanelWidth, chatDockRight, finishChatPanelResize, renderPreferredChatPanelWidth]);
 
   const handleChatResizeBlur = useCallback(() => {
     if (!pointerCleanupRef.current) return;
@@ -3796,10 +3815,11 @@ export function ProjectView({
     let nextWidth: number | null = null;
     const split = splitRef.current;
     const isRtl = split ? window.getComputedStyle(split).direction === 'rtl' : false;
+    const arrowLeftMultiplier = (isRtl ? 1 : -1) * (chatDockRight ? -1 : 1);
     if (event.key === 'ArrowLeft') {
-      nextWidth = chatPanelWidthRef.current + (isRtl ? 1 : -1) * CHAT_PANEL_KEYBOARD_STEP;
+      nextWidth = chatPanelWidthRef.current + arrowLeftMultiplier * CHAT_PANEL_KEYBOARD_STEP;
     } else if (event.key === 'ArrowRight') {
-      nextWidth = chatPanelWidthRef.current + (isRtl ? -1 : 1) * CHAT_PANEL_KEYBOARD_STEP;
+      nextWidth = chatPanelWidthRef.current - arrowLeftMultiplier * CHAT_PANEL_KEYBOARD_STEP;
     } else if (event.key === 'Home') {
       nextWidth = MIN_CHAT_PANEL_WIDTH;
     } else if (event.key === 'End') {
@@ -3809,7 +3829,7 @@ export function ProjectView({
     event.preventDefault();
     const next = applyChatPanelWidth(nextWidth);
     saveChatPanelWidth(next);
-  }, [applyChatPanelWidth]);
+  }, [applyChatPanelWidth, chatDockRight]);
 
   // Hand the pending prompt to ChatPane exactly once per project. The local
   // project-scoped snapshot survives the conversation-id remount, while the
@@ -4231,14 +4251,16 @@ export function ProjectView({
       <div
         ref={splitRef}
         className={[
-          projectSplitClassName(workspaceFocused),
+          projectSplitClassName(workspaceFocused, chatDockRight),
           resizingChatPanel && !workspaceFocused ? 'is-resizing-chat' : '',
         ].filter(Boolean).join(' ')}
         style={workspaceFocused
           ? undefined
           : {
               gridTemplateColumns:
-                `${chatPanelWidth}px ${SPLIT_RESIZE_HANDLE_WIDTH}px ${workspacePanelTrack}`,
+                chatDockRight
+                  ? `${workspacePanelTrack} ${SPLIT_RESIZE_HANDLE_WIDTH}px ${chatPanelWidth}px`
+                  : `${chatPanelWidth}px ${SPLIT_RESIZE_HANDLE_WIDTH}px ${workspacePanelTrack}`,
             }}
       >
         <div className="split-chat-slot" hidden={workspaceFocused}>

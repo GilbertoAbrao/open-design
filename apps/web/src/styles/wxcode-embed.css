@@ -117,6 +117,49 @@ html[data-od-host='wxcode'] .entry-side {
   border-right-color: rgba(255, 255, 255, 0.08);
 }
 
+html[data-od-host='wxcode'] .split.split-chat-right > .workspace {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+html[data-od-host='wxcode'] .split.split-chat-right > .split-resize-handle {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+html[data-od-host='wxcode'] .split.split-chat-right > .split-chat-slot {
+  grid-column: 3;
+  grid-row: 1;
+  border-right: 0;
+  border-left: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+html[data-od-host='wxcode'] .split.split-chat-right > .split-resize-handle {
+  background:
+    linear-gradient(
+      90deg,
+      transparent 0,
+      transparent 3px,
+      rgba(255, 255, 255, 0.08) 3px,
+      rgba(255, 255, 255, 0.08) 4px,
+      transparent 4px
+    );
+}
+
+html[data-od-host='wxcode'] .split.split-chat-right > .split-resize-handle:hover,
+html[data-od-host='wxcode'] .split.split-chat-right > .split-resize-handle:focus-visible,
+html[data-od-host='wxcode'] .split.split-chat-right.is-resizing-chat > .split-resize-handle {
+  background:
+    linear-gradient(
+      90deg,
+      rgba(200, 102, 68, 0.12) 0,
+      rgba(200, 102, 68, 0.12) 3px,
+      #c86644 3px,
+      #c86644 4px,
+      rgba(200, 102, 68, 0.12) 4px
+    );
+}
+
 html[data-od-host='wxcode'] .ws-tabs-shell {
   height: 40px;
   border-bottom-color: rgba(255, 255, 255, 0.08);
