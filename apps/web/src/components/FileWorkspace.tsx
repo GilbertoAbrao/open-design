@@ -106,6 +106,8 @@ interface Props {
   onUseDesignSystem?: (id: string, title: string) => void;
   onConnectRepo?: () => void;
   githubConnected?: boolean;
+  wxcodePreviewUrl?: string | null;
+  wxcodePreviewScroll?: { x: number; y: number } | null;
 }
 
 interface SketchState {
@@ -121,6 +123,7 @@ interface SketchState {
 
 const DESIGN_FILES_TAB = '__design_files__';
 const DESIGN_SYSTEM_TAB = '__design_system__';
+const WXCODE_PREVIEW_TAB = '__wxcode_live_preview__';
 type TabDropEdge = 'before' | 'after';
 type DesignSystemReviewDecision =
   NonNullable<ProjectMetadata['designSystemReview']>[string]['decision'];
@@ -222,6 +225,8 @@ export function FileWorkspace({
   onUseDesignSystem,
   onConnectRepo,
   githubConnected,
+  wxcodePreviewUrl = null,
+  wxcodePreviewScroll = null,
 }: Props) {
   const t = useT();
   const analytics = useAnalytics();
@@ -273,6 +278,10 @@ export function FileWorkspace({
     setActiveTab(tabsState.active ?? defaultRootTab);
   }, [tabsState.active, defaultRootTab]);
 
+  useEffect(() => {
+    if (wxcodePreviewUrl) setActiveTab(WXCODE_PREVIEW_TAB);
+  }, [wxcodePreviewUrl]);
+
   function setPersistedActive(name: string | null) {
     setActiveTab(name ?? defaultRootTab);
     onTabsStateChange({ tabs: persistedTabs, active: name });
@@ -288,7 +297,7 @@ export function FileWorkspace({
   // back to the last remaining tab. Skip transient activeTab values
   // (DESIGN_FILES_TAB, pending sketches) since those aren't in persistedTabs.
   useEffect(() => {
-    if (activeTab === DESIGN_FILES_TAB || activeTab === DESIGN_SYSTEM_TAB) return;
+    if (activeTab === DESIGN_FILES_TAB || activeTab === DESIGN_SYSTEM_TAB || activeTab === WXCODE_PREVIEW_TAB) return;
     if (sketches[activeTab] && !sketches[activeTab]!.persisted) return;
     if (!persistedTabs.includes(activeTab)) {
       setPersistedActive(persistedTabs[persistedTabs.length - 1] ?? null);
@@ -495,7 +504,7 @@ export function FileWorkspace({
   // The Design Files entry is already sticky-pinned, so we only scroll
   // for real workspace tabs. Issue #775.
   useEffect(() => {
-    if (activeTab === DESIGN_FILES_TAB || activeTab === DESIGN_SYSTEM_TAB) return;
+    if (activeTab === DESIGN_FILES_TAB || activeTab === DESIGN_SYSTEM_TAB || activeTab === WXCODE_PREVIEW_TAB) return;
     const tabBar = tabsBarRef.current;
     if (!tabBar) return;
     const el = tabBar.querySelector<HTMLElement>('.ws-tab.active');
@@ -763,7 +772,7 @@ export function FileWorkspace({
   }
 
   const activeFile = useMemo<ProjectFile | null>(() => {
-    if (activeTab === DESIGN_FILES_TAB || activeTab === DESIGN_SYSTEM_TAB) return null;
+    if (activeTab === DESIGN_FILES_TAB || activeTab === DESIGN_SYSTEM_TAB || activeTab === WXCODE_PREVIEW_TAB) return null;
     const onDisk = visibleFiles.find((f) => f.name === activeTab);
     if (onDisk) return onDisk;
     if (isSketchName(activeTab) && sketches[activeTab]) {
@@ -779,7 +788,7 @@ export function FileWorkspace({
   }, [activeTab, visibleFiles, sketches]);
 
   const activeLiveArtifact = useMemo<LiveArtifactWorkspaceEntry | null>(() => {
-    if (activeTab === DESIGN_FILES_TAB || activeTab === DESIGN_SYSTEM_TAB) return null;
+    if (activeTab === DESIGN_FILES_TAB || activeTab === DESIGN_SYSTEM_TAB || activeTab === WXCODE_PREVIEW_TAB) return null;
     return liveArtifactEntries.find((entry) => entry.tabId === activeTab) ?? null;
   }, [activeTab, liveArtifactEntries]);
 
@@ -850,6 +859,23 @@ export function FileWorkspace({
                 <Icon name="blocks" size={13} />
               </span>
               <span className="ws-tab-label">Design System</span>
+            </button>
+          ) : null}
+          {wxcodePreviewUrl ? (
+            <button
+              type="button"
+              className={`ws-tab wxcode-preview-tab ${activeTab === WXCODE_PREVIEW_TAB ? 'active' : ''}`}
+              role="tab"
+              aria-selected={activeTab === WXCODE_PREVIEW_TAB}
+              tabIndex={0}
+              data-testid="wxcode-live-preview-tab"
+              onClick={() => setActiveTab(WXCODE_PREVIEW_TAB)}
+              title="Live Preview"
+            >
+              <span className="tab-icon" aria-hidden>
+                <Icon name="external-link" size={13} />
+              </span>
+              <span className="ws-tab-label">Live Preview</span>
             </button>
           ) : null}
           <button
@@ -949,7 +975,12 @@ export function FileWorkspace({
             </button>
           </div>
         ) : null}
-        {activeTab === DESIGN_SYSTEM_TAB && designSystemProject ? (
+        {activeTab === WXCODE_PREVIEW_TAB && wxcodePreviewUrl ? (
+          <WxcodeLivePreviewViewer
+            url={wxcodePreviewUrl}
+            scroll={wxcodePreviewScroll}
+          />
+        ) : activeTab === DESIGN_SYSTEM_TAB && designSystemProject ? (
           <DesignSystemProjectPanel
             projectId={projectId}
             system={designSystemProject}
@@ -2456,7 +2487,54 @@ function DesignSystemInlinePreview({
   return <img src={`${url}?v=${Math.round(file.mtime)}`} alt={file.name} />;
 }
 
+function WxcodeLivePreviewViewer({
+  url,
+  scroll,
+}: {
+  url: string;
+  scroll?: { x: number; y: number } | null;
+}) {
+  const iframeRef = useRef<HTMLIFrameElement | null>(null);
 
+  useEffect(() => {
+    const frame = iframeRef.current;
+    if (!frame || !scroll) return;
+    const sendRestore = () => {
+      frame.contentWindow?.postMessage({
+        type: 'wxcode:preview-restore',
+        scrollX: scroll.x,
+        scrollY: scroll.y,
+      }, '*');
+    };
+    const timer = window.setTimeout(sendRestore, 250);
+    return () => window.clearTimeout(timer);
+  }, [url, scroll]);
+
+  return (
+    <div className="wxcode-live-preview-viewer" data-testid="wxcode-live-preview-viewer">
+      <div className="wxcode-live-preview-toolbar">
+        <span className="wxcode-live-preview-url">{url}</span>
+        <a href={url} target="_blank" rel="noreferrer" className="icon-only" title="Open preview in new tab">
+          <Icon name="external-link" size={13} />
+        </a>
+      </div>
+      <iframe
+        ref={iframeRef}
+        title="WXCode Live Preview"
+        src={url}
+        sandbox="allow-scripts allow-forms allow-popups allow-downloads allow-same-origin"
+        onLoad={() => {
+          if (!scroll) return;
+          iframeRef.current?.contentWindow?.postMessage({
+            type: 'wxcode:preview-restore',
+            scrollX: scroll.x,
+            scrollY: scroll.y,
+          }, '*');
+        }}
+      />
+    </div>
+  );
+}
 
 function Tab({
   label,

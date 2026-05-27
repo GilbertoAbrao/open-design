@@ -251,11 +251,37 @@ interface DesignSystemReviewDetails {
   agentTask?: DesignSystemReviewAgentTask;
 }
 
+interface WxcodePreviewContext {
+  url: string;
+  path: string | null;
+  scrollX: number;
+  scrollY: number;
+}
+
 function isWxcodeEmbedHost(): boolean {
   return (
     typeof document !== 'undefined' &&
     document.documentElement.getAttribute('data-od-host') === 'wxcode'
   );
+}
+
+function readWxcodePreviewContext(): WxcodePreviewContext | null {
+  if (typeof window === 'undefined') return null;
+  const params = new URLSearchParams(window.location.search);
+  const rawUrl = params.get('previewUrl');
+  if (!rawUrl) return null;
+  try {
+    const url = new URL(rawUrl);
+    if (url.protocol !== 'http:' && url.protocol !== 'https:') return null;
+    return {
+      url: url.toString(),
+      path: params.get('previewPath'),
+      scrollX: Number(params.get('previewScrollX') || 0) || 0,
+      scrollY: Number(params.get('previewScrollY') || 0) || 0,
+    };
+  } catch {
+    return null;
+  }
 }
 
 function workspacePanelMinWidthForSplit(splitWidth: number): number {
@@ -513,6 +539,7 @@ export function ProjectView({
 }: Props) {
   const { locale, t } = useI18n();
   const analytics = useAnalytics();
+  const wxcodePreviewContext = useMemo(() => readWxcodePreviewContext(), []);
   // P0 page_view page_name=chat_panel — fire once per project mount.
   // ProjectView outlives conversation switches (ChatPane is keyed by
   // activeConversationId so it remounts when the user switches chats,
@@ -4393,6 +4420,8 @@ export function ProjectView({
           onDesignSystemReviewDecision={persistDesignSystemReviewDecision}
           onConnectRepo={handleConnectRepo}
           githubConnected={githubConnected}
+          wxcodePreviewUrl={wxcodePreviewContext?.url ?? null}
+          wxcodePreviewScroll={wxcodePreviewContext ? { x: wxcodePreviewContext.scrollX, y: wxcodePreviewContext.scrollY } : null}
         />
       </div>
       {projectActionsToast ? (
