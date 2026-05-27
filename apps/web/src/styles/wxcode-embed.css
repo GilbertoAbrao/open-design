@@ -22,8 +22,8 @@ html[data-od-host='wxcode'] {
   --accent-soft: rgba(200, 102, 68, 0.18);
   --accent-tint: rgba(200, 102, 68, 0.12);
   --accent-hover: #d97855;
-  --sans: var(--font-geist-sans), 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --mono: var(--font-geist-mono), 'Geist Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --sans: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --mono: 'Geist Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   --shadow-xs: none;
   --shadow-sm: none;
   --shadow-md: 0 18px 42px rgba(0, 0, 0, 0.32);
@@ -36,6 +36,11 @@ html[data-od-host='wxcode'] body {
   font-family: var(--sans);
   font-size: 14px;
   line-height: 1.55;
+}
+
+html[data-od-host='wxcode'] body {
+  --sans: var(--font-geist-sans), 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --mono: var(--font-geist-mono), 'Geist Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
 
 html[data-od-host='wxcode'] button,
