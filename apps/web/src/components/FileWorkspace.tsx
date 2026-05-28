@@ -375,6 +375,20 @@ export function FileWorkspace({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [openRequest]);
 
+  useEffect(() => {
+    const entryFile = wxcodePreviewEntryFile?.trim().replace(/^\/+/, '');
+    if (!wxcodePreviewUrl || !wxcodePreviewPreferSourceFile || !entryFile) return;
+    if (tabsState.active || persistedTabs.includes(entryFile)) return;
+    onTabsStateChange({ tabs: [...persistedTabs, entryFile], active: entryFile });
+  }, [
+    onTabsStateChange,
+    persistedTabs,
+    tabsState.active,
+    wxcodePreviewEntryFile,
+    wxcodePreviewPreferSourceFile,
+    wxcodePreviewUrl,
+  ]);
+
   function openFile(name: string) {
     setUploadError(null);
     if (shouldRouteWxcodeFileTabToLivePreview(name, wxcodePreviewUrl, wxcodePreviewEntryFile, {

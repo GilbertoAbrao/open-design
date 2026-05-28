@@ -256,6 +256,7 @@ interface WxcodePreviewContext {
   path: string | null;
   scrollX: number;
   scrollY: number;
+  preferSourceFile: boolean;
 }
 
 function isWxcodeEmbedHost(): boolean {
@@ -278,6 +279,7 @@ function readWxcodePreviewContext(): WxcodePreviewContext | null {
       path: params.get('previewPath'),
       scrollX: Number(params.get('previewScrollX') || 0) || 0,
       scrollY: Number(params.get('previewScrollY') || 0) || 0,
+      preferSourceFile: params.get('wxcodePreviewPreferSourceFile') === '1',
     };
   } catch {
     return null;
@@ -4422,7 +4424,9 @@ export function ProjectView({
           githubConnected={githubConnected}
           wxcodePreviewUrl={wxcodePreviewContext?.url ?? null}
           wxcodePreviewEntryFile={project.metadata?.entryFile ?? null}
-          wxcodePreviewPreferSourceFile={Boolean(wxcodePreviewContext && routeFileName)}
+          wxcodePreviewPreferSourceFile={Boolean(
+            wxcodePreviewContext && (routeFileName || wxcodePreviewContext.preferSourceFile),
+          )}
           wxcodePreviewScroll={wxcodePreviewContext ? { x: wxcodePreviewContext.scrollX, y: wxcodePreviewContext.scrollY } : null}
         />
       </div>

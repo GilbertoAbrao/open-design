@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { act } from 'react';
+import { act, useState } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
@@ -232,6 +232,48 @@ describe('FileWorkspace upload input', () => {
 
     expect(screen.getByTestId('wxcode-live-preview-tab')).toBeTruthy();
     await waitFor(() => {
+      expect(screen.getByTestId('palette-tweaks-toggle')).toBeTruthy();
+      expect(screen.getByTestId('draw-overlay-toggle')).toBeTruthy();
+      expect(screen.getByTestId('board-mode-toggle')).toBeTruthy();
+      expect(screen.getByTestId('inspect-mode-toggle')).toBeTruthy();
+      expect(screen.getByTestId('manual-edit-mode-toggle')).toBeTruthy();
+    });
+    expect(screen.queryByTestId('wxcode-live-preview-viewer')).toBeNull();
+  });
+
+  it('opens the WXCode entry file when the embed requests source mode without persisted tabs', async () => {
+    mockedFetchProjectFileText.mockResolvedValueOnce('<!doctype html><html><body><h1>Dashboard</h1></body></html>');
+    const onTabsStateChange = vi.fn();
+
+    function WorkspaceWithTabsState() {
+      const [tabsState, setTabsState] = useState({ tabs: [] as string[], active: null as string | null });
+      return (
+        <FileWorkspace
+          projectId="project-1"
+          projectKind="prototype"
+          files={[workspaceFile('app/templates/index.html')]}
+          liveArtifacts={[]}
+          onRefreshFiles={vi.fn()}
+          isDeck={false}
+          tabsState={tabsState}
+          onTabsStateChange={(next) => {
+            onTabsStateChange(next);
+            setTabsState(next);
+          }}
+          wxcodePreviewUrl="https://example.preview.wxcode.ai/"
+          wxcodePreviewEntryFile="app/templates/index.html"
+          wxcodePreviewPreferSourceFile
+        />
+      );
+    }
+
+    render(<WorkspaceWithTabsState />);
+
+    await waitFor(() => {
+      expect(onTabsStateChange).toHaveBeenCalledWith({
+        tabs: ['app/templates/index.html'],
+        active: 'app/templates/index.html',
+      });
       expect(screen.getByTestId('palette-tweaks-toggle')).toBeTruthy();
       expect(screen.getByTestId('draw-overlay-toggle')).toBeTruthy();
       expect(screen.getByTestId('board-mode-toggle')).toBeTruthy();
