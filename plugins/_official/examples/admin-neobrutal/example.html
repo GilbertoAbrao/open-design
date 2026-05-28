@@ -1,0 +1,864 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Studio OS — Atelier Mosaic</title>
+<style>
+  :root {
+    --ink: #000000;
+    --coral: #F5A86E;
+    --lime: #8FD14F;
+    --cream: #FFF5E6;
+    --paper: #ffffff;
+    --border: 2px solid #000000;
+    --shadow: 4px 4px 0 #000000;
+    --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    --font-ui: system-ui, -apple-system, sans-serif;
+  }
+
+  *, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    font-family: var(--font-ui);
+    background: var(--paper);
+    color: var(--ink);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── LAYOUT SHELL ── */
+  .shell {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+  }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    width: 220px;
+    min-width: 220px;
+    border-right: 3px solid var(--ink);
+    display: flex;
+    flex-direction: column;
+    background: var(--paper);
+  }
+
+  .sidebar-brand {
+    background: var(--coral);
+    border-bottom: 3px solid var(--ink);
+    padding: 18px 16px;
+  }
+
+  .sidebar-brand .studio-name {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    opacity: 0.7;
+  }
+
+  .sidebar-brand .product-name {
+    font-family: var(--font-mono);
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin-top: 2px;
+  }
+
+  .sidebar-nav {
+    list-style: none;
+    padding: 12px 0;
+    flex: 1;
+  }
+
+  .sidebar-nav li a {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 16px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    text-decoration: none;
+    color: var(--ink);
+    border-left: 3px solid transparent;
+    transition: background 0.05s;
+  }
+
+  .sidebar-nav li a .glyph {
+    font-size: 14px;
+    width: 16px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+
+  .sidebar-nav li.active a {
+    background: var(--lime);
+    border-left-color: var(--ink);
+    box-shadow: 4px 0 0 var(--ink) inset;
+  }
+
+  .sidebar-nav li a:hover:not(.active a) {
+    background: var(--cream);
+  }
+
+  .sidebar-footer {
+    border-top: 2px solid var(--ink);
+    padding: 12px 16px;
+  }
+
+  .sidebar-footer .user-block {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .avatar-sm {
+    width: 32px;
+    height: 32px;
+    background: var(--coral);
+    border: 2px solid var(--ink);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  .user-meta .user-name {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  .user-meta .user-role {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    opacity: 0.6;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  /* ── MAIN COLUMN ── */
+  .main-col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* ── TOP BAR ── */
+  .topbar {
+    border-bottom: 3px solid var(--ink);
+    padding: 12px 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--paper);
+  }
+
+  .topbar-title {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    flex-shrink: 0;
+  }
+
+  .search-slab {
+    flex: 1;
+    max-width: 360px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--cream);
+    border: 3px solid var(--ink);
+    padding: 6px 12px;
+  }
+
+  .search-slab svg {
+    flex-shrink: 0;
+    opacity: 0.5;
+  }
+
+  .search-slab input {
+    border: none;
+    background: transparent;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--ink);
+    outline: none;
+    width: 100%;
+  }
+
+  .search-slab input::placeholder {
+    opacity: 0.5;
+  }
+
+  .topbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-left: auto;
+  }
+
+  .btn-new {
+    background: var(--lime);
+    border: 2px solid var(--ink);
+    box-shadow: var(--shadow);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 7px 14px;
+    cursor: pointer;
+    color: var(--ink);
+  }
+
+  .btn-new:hover {
+    transform: translate(-1px, -1px);
+    box-shadow: 5px 5px 0 var(--ink);
+  }
+
+  .btn-new:active {
+    transform: translate(2px, 2px);
+    box-shadow: 2px 2px 0 var(--ink);
+  }
+
+  .topbar-avatar {
+    width: 36px;
+    height: 36px;
+    background: var(--coral);
+    border: 2px solid var(--ink);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  /* ── CONTENT AREA ── */
+  .content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px;
+    background: var(--paper);
+  }
+
+  /* ── STAT TILES ── */
+  .stat-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .stat-tile {
+    background: var(--cream);
+    border: 3px solid var(--ink);
+    box-shadow: var(--shadow);
+    padding: 18px 16px 14px;
+  }
+
+  .stat-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    opacity: 0.6;
+    margin-bottom: 8px;
+  }
+
+  .stat-value {
+    font-family: var(--font-mono);
+    font-size: 36px;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -0.03em;
+    margin-bottom: 8px;
+  }
+
+  .stat-delta {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 700;
+  }
+
+  .stat-delta.up { color: #2a7a00; }
+  .stat-delta.down { color: #c00; }
+
+  .stat-delta svg { flex-shrink: 0; }
+
+  .stat-tile:nth-child(1) { border-top: 6px solid var(--coral); }
+  .stat-tile:nth-child(2) { border-top: 6px solid var(--lime); }
+  .stat-tile:nth-child(3) { border-top: 6px solid #B8A4FF; }
+  .stat-tile:nth-child(4) { border-top: 6px solid #FDE74C; }
+
+  /* ── MAIN GRID ── */
+  .main-grid {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 16px;
+    align-items: start;
+  }
+
+  /* ── TABLE PANEL ── */
+  .panel {
+    border: 3px solid var(--ink);
+    box-shadow: var(--shadow);
+  }
+
+  .panel-header {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .panel-title {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .panel-meta {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    opacity: 0.6;
+    letter-spacing: 0.06em;
+  }
+
+  .project-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--font-mono);
+    font-size: 12px;
+  }
+
+  .project-table thead tr {
+    background: var(--cream);
+    border-bottom: 2px solid var(--ink);
+  }
+
+  .project-table thead th {
+    padding: 9px 14px;
+    text-align: left;
+    font-weight: 700;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .project-table tbody tr:nth-child(odd) {
+    background: var(--cream);
+  }
+
+  .project-table tbody tr:nth-child(even) {
+    background: var(--paper);
+  }
+
+  .project-table tbody tr:hover {
+    background: #FFE5CC;
+  }
+
+  .project-table tbody td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--ink);
+    vertical-align: middle;
+  }
+
+  .project-table tbody tr:last-child td {
+    border-bottom: none;
+  }
+
+  .status-pill {
+    display: inline-block;
+    padding: 2px 8px;
+    border: 2px solid var(--ink);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .pill-active   { background: var(--lime); }
+  .pill-review   { background: var(--coral); }
+  .pill-hold     { background: #FDE74C; }
+  .pill-done     { background: #D0D0D0; }
+  .pill-draft    { background: #B8A4FF; }
+
+  .due-date {
+    color: var(--ink);
+    opacity: 0.7;
+  }
+
+  .due-overdue {
+    color: #c00;
+    font-weight: 700;
+    opacity: 1;
+  }
+
+  /* ── ACTIVITY FEED ── */
+  .activity-feed {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .activity-card {
+    background: var(--cream);
+    border: 2px solid var(--ink);
+    border-top: none;
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .activity-card:first-child {
+    border-top: 2px solid var(--ink);
+  }
+
+  .activity-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .activity-icon {
+    width: 24px;
+    height: 24px;
+    flex-shrink: 0;
+    border: 2px solid var(--ink);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .activity-icon.deploy  { background: var(--lime); }
+  .activity-icon.comment { background: var(--coral); }
+  .activity-icon.invoice { background: #FDE74C; }
+  .activity-icon.client  { background: #B8A4FF; }
+  .activity-icon.upload  { background: #90E0EF; }
+  .activity-icon.flag    { background: var(--lime); }
+
+  .activity-body {
+    flex: 1;
+  }
+
+  .activity-event {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1.4;
+  }
+
+  .activity-sub {
+    font-family: var(--font-ui);
+    font-size: 11px;
+    opacity: 0.65;
+    margin-top: 2px;
+    line-height: 1.4;
+  }
+
+  .activity-time {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    opacity: 0.55;
+    white-space: nowrap;
+    flex-shrink: 0;
+    padding-top: 2px;
+  }
+
+  /* ── FOOTER ── */
+  .footer {
+    border-top: 3px solid var(--ink);
+    background: var(--ink);
+    color: var(--paper);
+    padding: 10px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .footer-meta {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    opacity: 0.7;
+    display: flex;
+    gap: 20px;
+  }
+
+  .footer-link {
+    background: var(--coral);
+    color: var(--ink);
+    border: 2px solid var(--paper);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    text-decoration: none;
+  }
+
+  /* ── SECTION LABEL ── */
+  .section-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    opacity: 0.5;
+    margin-bottom: 10px;
+  }
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR + MAIN SHELL -->
+<div class="shell">
+
+  <!-- ── SIDEBAR ── -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="studio-name">Atelier Mosaic</div>
+      <div class="product-name">Studio OS</div>
+    </div>
+
+    <ul class="sidebar-nav">
+      <li class="active">
+        <a href="#">
+          <span class="glyph">&gt;</span>
+          Dashboard
+        </a>
+      </li>
+      <li>
+        <a href="#">
+          <span class="glyph">#</span>
+          Projects
+        </a>
+      </li>
+      <li>
+        <a href="#">
+          <span class="glyph">*</span>
+          Clients
+        </a>
+      </li>
+      <li>
+        <a href="#">
+          <span class="glyph">+</span>
+          Invoices
+        </a>
+      </li>
+      <li>
+        <a href="#">
+          <span class="glyph">%</span>
+          Time Logs
+        </a>
+      </li>
+      <li>
+        <a href="#">
+          <span class="glyph">@</span>
+          Settings
+        </a>
+      </li>
+    </ul>
+
+    <div class="sidebar-footer">
+      <div class="user-block">
+        <div class="avatar-sm">LC</div>
+        <div class="user-meta">
+          <div class="user-name">Lena Chai</div>
+          <div class="user-role">Studio Lead</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ── MAIN COLUMN ── -->
+  <div class="main-col">
+
+    <!-- TOP BAR -->
+    <header class="topbar">
+      <span class="topbar-title">Dashboard</span>
+      <div class="search-slab">
+        <!-- search icon -->
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="6.5" cy="6.5" r="4.5" stroke="#000" stroke-width="1.5"/>
+          <line x1="10" y1="10" x2="14" y2="14" stroke="#000" stroke-width="1.5" stroke-linecap="square"/>
+        </svg>
+        <input type="text" placeholder="Search projects, clients, invoices…">
+      </div>
+      <div class="topbar-actions">
+        <button class="btn-new">+ New</button>
+        <div class="topbar-avatar">LC</div>
+      </div>
+    </header>
+
+    <!-- CONTENT -->
+    <main class="content">
+
+      <!-- STAT TILES -->
+      <div class="stat-row">
+        <div class="stat-tile">
+          <div class="stat-label">Projects Live</div>
+          <div class="stat-value">14</div>
+          <div class="stat-delta up">
+            <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><polyline points="1,8 5,2 9,8" stroke="#2a7a00" stroke-width="1.5" stroke-linejoin="miter"/></svg>
+            +3 this month
+          </div>
+        </div>
+        <div class="stat-tile">
+          <div class="stat-label">Billable Hours</div>
+          <div class="stat-value">382</div>
+          <div class="stat-delta up">
+            <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><polyline points="1,8 5,2 9,8" stroke="#2a7a00" stroke-width="1.5" stroke-linejoin="miter"/></svg>
+            +47 vs last month
+          </div>
+        </div>
+        <div class="stat-tile">
+          <div class="stat-label">Open Invoices</div>
+          <div class="stat-value">07</div>
+          <div class="stat-delta down">
+            <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><polyline points="1,2 5,8 9,2" stroke="#c00" stroke-width="1.5" stroke-linejoin="miter"/></svg>
+            €42,500 outstanding
+          </div>
+        </div>
+        <div class="stat-tile">
+          <div class="stat-label">Client NPS</div>
+          <div class="stat-value">72</div>
+          <div class="stat-delta up">
+            <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><polyline points="1,8 5,2 9,8" stroke="#2a7a00" stroke-width="1.5" stroke-linejoin="miter"/></svg>
+            +8 pts from Q1
+          </div>
+        </div>
+      </div>
+
+      <!-- MAIN 2-COL GRID -->
+      <div class="main-grid">
+
+        <!-- PROJECT TABLE -->
+        <div>
+          <div class="section-label">Active Projects</div>
+          <div class="panel">
+            <div class="panel-header">
+              <span class="panel-title">Project Tracker</span>
+              <span class="panel-meta">8 of 14 shown</span>
+            </div>
+            <table class="project-table">
+              <thead>
+                <tr>
+                  <th>Project</th>
+                  <th>Client</th>
+                  <th>Owner</th>
+                  <th>Status</th>
+                  <th>Due</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Brand Identity Relaunch</td>
+                  <td>Vanta Supply Co.</td>
+                  <td>LC</td>
+                  <td><span class="status-pill pill-active">Active</span></td>
+                  <td class="due-date">Jun 12</td>
+                </tr>
+                <tr>
+                  <td>Annual Report 2024</td>
+                  <td>Helix Foundation</td>
+                  <td>MO</td>
+                  <td><span class="status-pill pill-review">In Review</span></td>
+                  <td class="due-overdue">Jun 02 !</td>
+                </tr>
+                <tr>
+                  <td>Campaign — Summer Drop</td>
+                  <td>Maru Sportswear</td>
+                  <td>RB</td>
+                  <td><span class="status-pill pill-active">Active</span></td>
+                  <td class="due-date">Jul 01</td>
+                </tr>
+                <tr>
+                  <td>Website Redesign v3</td>
+                  <td>Crest Architecture</td>
+                  <td>LC</td>
+                  <td><span class="status-pill pill-hold">On Hold</span></td>
+                  <td class="due-date">Aug 15</td>
+                </tr>
+                <tr>
+                  <td>Motion Titles Package</td>
+                  <td>Novo Films</td>
+                  <td>PK</td>
+                  <td><span class="status-pill pill-active">Active</span></td>
+                  <td class="due-date">Jun 28</td>
+                </tr>
+                <tr>
+                  <td>Packaging System</td>
+                  <td>Seed & Stone Foods</td>
+                  <td>MO</td>
+                  <td><span class="status-pill pill-draft">Draft</span></td>
+                  <td class="due-date">Sep 03</td>
+                </tr>
+                <tr>
+                  <td>UX Audit + Prototype</td>
+                  <td>Foro Digital Bank</td>
+                  <td>RB</td>
+                  <td><span class="status-pill pill-review">In Review</span></td>
+                  <td class="due-date">Jun 19</td>
+                </tr>
+                <tr>
+                  <td>Retail Signage System</td>
+                  <td>Bloom Home Goods</td>
+                  <td>PK</td>
+                  <td><span class="status-pill pill-done">Done</span></td>
+                  <td class="due-date">May 30</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- ACTIVITY FEED -->
+        <div>
+          <div class="section-label">Recent Activity</div>
+          <div class="panel">
+            <div class="panel-header">
+              <span class="panel-title">Activity Feed</span>
+              <span class="panel-meta">last 48h</span>
+            </div>
+            <div class="activity-feed">
+              <div class="activity-card">
+                <div class="activity-top">
+                  <div class="activity-icon deploy">
+                    <!-- deploy icon -->
+                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><polyline points="7,1 7,9" stroke="#000" stroke-width="1.5" stroke-linecap="square"/><polyline points="4,5 7,1 10,5" stroke="#000" stroke-width="1.5" stroke-linejoin="miter" stroke-linecap="square"/><polyline points="1,10 1,13 13,13 13,10" stroke="#000" stroke-width="1.5" stroke-linecap="square"/></svg>
+                  </div>
+                  <div class="activity-body">
+                    <div class="activity-event">Website Redesign v3 deployed to staging</div>
+                    <div class="activity-sub">Lena Chai · Crest Architecture</div>
+                  </div>
+                  <div class="activity-time">09:14</div>
+                </div>
+              </div>
+              <div class="activity-card">
+                <div class="activity-top">
+                  <div class="activity-icon comment">
+                    <!-- comment icon -->
+                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1" y="1" width="12" height="9" stroke="#000" stroke-width="1.5"/><polyline points="3,12 3,10 7,10" stroke="#000" stroke-width="1.5" stroke-linejoin="miter" stroke-linecap="square"/></svg>
+                  </div>
+                  <div class="activity-body">
+                    <div class="activity-event">Feedback added on Annual Report cover</div>
+                    <div class="activity-sub">Marcus Obi · 3 new comments</div>
+                  </div>
+                  <div class="activity-time">08:47</div>
+                </div>
+              </div>
+              <div class="activity-card">
+                <div class="activity-top">
+                  <div class="activity-icon invoice">
+                    <!-- invoice icon -->
+                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="2" y="1" width="10" height="12" stroke="#000" stroke-width="1.5"/><line x1="4" y1="5" x2="10" y2="5" stroke="#000" stroke-width="1.5" stroke-linecap="square"/><line x1="4" y1="8" x2="8" y2="8" stroke="#000" stroke-width="1.5" stroke-linecap="square"/></svg>
+                  </div>
+                  <div class="activity-body">
+                    <div class="activity-event">Invoice #INV-0041 paid</div>
+                    <div class="activity-sub">Novo Films · €8,400 received</div>
+                  </div>
+                  <div class="activity-time">Yesterday</div>
+                </div>
+              </div>
+              <div class="activity-card">
+                <div class="activity-top">
+                  <div class="activity-icon client">
+                    <!-- client icon -->
+                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="4" r="3" stroke="#000" stroke-width="1.5"/><path d="M1 13c0-3.314 2.686-6 6-6s6 2.686 6 6" stroke="#000" stroke-width="1.5" stroke-linecap="square"/></svg>
+                  </div>
+                  <div class="activity-body">
+                    <div class="activity-event">New client onboarded</div>
+                    <div class="activity-sub">Seed & Stone Foods · Packaging brief received</div>
+                  </div>
+                  <div class="activity-time">Yesterday</div>
+                </div>
+              </div>
+              <div class="activity-card">
+                <div class="activity-top">
+                  <div class="activity-icon upload">
+                    <!-- upload icon -->
+                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><polyline points="7,9 7,1" stroke="#000" stroke-width="1.5" stroke-linecap="square"/><polyline points="4,5 7,1 10,5" stroke="#000" stroke-width="1.5" stroke-linejoin="miter" stroke-linecap="square"/><polyline points="1,10 1,13 13,13 13,10" stroke="#000" stroke-width="1.5" stroke-linecap="square"/></svg>
+                  </div>
+                  <div class="activity-body">
+                    <div class="activity-event">Asset pack uploaded</div>
+                    <div class="activity-sub">Rosa Birch · Summer Drop / 34 files</div>
+                  </div>
+                  <div class="activity-time">Mon</div>
+                </div>
+              </div>
+              <div class="activity-card">
+                <div class="activity-top">
+                  <div class="activity-icon flag">
+                    <!-- milestone icon -->
+                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><line x1="3" y1="1" x2="3" y2="13" stroke="#000" stroke-width="1.5" stroke-linecap="square"/><polyline points="3,1 11,4 3,7" stroke="#000" stroke-width="1.5" stroke-linejoin="miter" stroke-linecap="square" fill="none"/></svg>
+                  </div>
+                  <div class="activity-body">
+                    <div class="activity-event">Milestone reached: Brand Guidelines v2 approved</div>
+                    <div class="activity-sub">Vanta Supply Co. · Phase 2 unlocked</div>
+                  </div>
+                  <div class="activity-time">Mon</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <!-- /main-grid -->
+
+    </main>
+    <!-- /content -->
+
+    <!-- FOOTER -->
+    <footer class="footer">
+      <div class="footer-meta">
+        <span>Studio OS v1.4.2</span>
+        <span>Build #20240527</span>
+        <span>ENV: production</span>
+        <span>© Atelier Mosaic 2024</span>
+      </div>
+      <a href="#" class="footer-link">Support</a>
+    </footer>
+
+  </div>
+  <!-- /main-col -->
+
+</div>
+<!-- /shell -->
+
+</body>
+</html>

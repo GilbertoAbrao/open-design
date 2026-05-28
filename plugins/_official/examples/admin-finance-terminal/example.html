@@ -1,0 +1,915 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MERIDIAN CAPITAL — TREASURY DESK</title>
+<style>
+  :root {
+    --bg: #0E0E0E;
+    --panel: #1A1A1A;
+    --ink: #ffffff;
+    --ink-dim: #888888;
+    --amber: #FFB800;
+    --green: #00C851;
+    --grid: #2a2a2a;
+    --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+    --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    line-height: 1.4;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  /* ── LAYOUT SHELL ── */
+  .shell {
+    display: grid;
+    grid-template-rows: 32px 24px 1fr 36px;
+    height: 100vh;
+    width: 100vw;
+  }
+
+  /* ── STATUS BAR ── */
+  .statusbar {
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    border-bottom: 1px solid var(--grid);
+    background: var(--panel);
+    gap: 20px;
+    flex-shrink: 0;
+  }
+  .statusbar .logo {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    color: var(--amber);
+    white-space: nowrap;
+  }
+  .statusbar .sep { color: var(--grid); }
+  .statusbar .meta {
+    font-size: 11px;
+    color: var(--ink-dim);
+    white-space: nowrap;
+  }
+  .statusbar .chip {
+    font-size: 10px;
+    padding: 1px 6px;
+    border: 1px solid var(--grid);
+    color: var(--ink-dim);
+    letter-spacing: 0.08em;
+  }
+  .statusbar .chip.live {
+    border-color: var(--green);
+    color: var(--green);
+  }
+  .statusbar .latency {
+    font-size: 11px;
+    color: var(--green);
+  }
+  .statusbar .spacer { flex: 1; }
+  .statusbar .hint {
+    font-family: var(--font-sans);
+    font-size: 11px;
+    color: var(--ink-dim);
+  }
+  .statusbar .clock {
+    font-size: 12px;
+    color: var(--amber);
+    letter-spacing: 0.05em;
+  }
+
+  /* ── TICKER STRIP ── */
+  .ticker {
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid var(--grid);
+    background: #111111;
+    overflow: hidden;
+    padding: 0 8px;
+    gap: 0;
+  }
+  .ticker-label {
+    font-size: 10px;
+    color: var(--amber);
+    letter-spacing: 0.1em;
+    padding-right: 12px;
+    border-right: 1px solid var(--grid);
+    margin-right: 4px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .ticker-items {
+    display: flex;
+    gap: 0;
+    overflow: hidden;
+    flex: 1;
+  }
+  .ticker-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0 12px;
+    border-right: 1px solid var(--grid);
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .ticker-item .sym {
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    color: var(--ink-dim);
+  }
+  .ticker-item .price {
+    font-size: 11px;
+    color: var(--ink);
+  }
+  .ticker-item .delta { font-size: 10px; }
+  .delta.up { color: var(--green); }
+  .delta.dn { color: var(--amber); }
+
+  /* ── BODY ── */
+  .body {
+    display: grid;
+    grid-template-columns: 200px 1fr 280px;
+    overflow: hidden;
+    min-height: 0;
+  }
+
+  /* ── LEFT RAIL ── */
+  .rail {
+    border-right: 1px solid var(--grid);
+    background: var(--panel);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+  }
+  .rail-header {
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--grid);
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    color: var(--ink-dim);
+  }
+  .rail-item {
+    display: flex;
+    align-items: center;
+    padding: 7px 10px;
+    border-bottom: 1px solid var(--grid);
+    cursor: default;
+    gap: 8px;
+  }
+  .rail-item:hover { background: #222222; }
+  .rail-item.active { background: #1f1a00; border-left: 2px solid var(--amber); }
+  .rail-item .fkey {
+    font-size: 10px;
+    color: var(--amber);
+    width: 22px;
+    flex-shrink: 0;
+  }
+  .rail-item .label {
+    flex: 1;
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    color: var(--ink);
+  }
+  .rail-item.active .label { color: var(--amber); }
+  .rail-item .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--grid);
+    flex-shrink: 0;
+  }
+  .rail-item.active .dot { background: var(--amber); }
+  .rail-item.ok .dot { background: var(--green); }
+  .rail-footer {
+    margin-top: auto;
+    padding: 8px 10px;
+    border-top: 1px solid var(--grid);
+    font-size: 10px;
+    color: var(--ink-dim);
+  }
+
+  /* ── CENTER ── */
+  .center {
+    display: grid;
+    grid-template-rows: 1fr 200px;
+    overflow: hidden;
+    min-height: 0;
+  }
+
+  /* ── PANEL generic ── */
+  .panel {
+    border-right: 1px solid var(--grid);
+    border-bottom: 1px solid var(--grid);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-height: 0;
+  }
+  .panel-header {
+    display: flex;
+    align-items: center;
+    padding: 0 10px;
+    height: 28px;
+    border-bottom: 1px solid var(--grid);
+    background: var(--panel);
+    flex-shrink: 0;
+    gap: 10px;
+  }
+  .panel-title {
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    color: var(--amber);
+  }
+  .panel-meta {
+    font-size: 10px;
+    color: var(--ink-dim);
+  }
+  .panel-badge {
+    margin-left: auto;
+    font-size: 10px;
+    padding: 1px 6px;
+    border: 1px solid var(--grid);
+    color: var(--ink-dim);
+    letter-spacing: 0.06em;
+  }
+  .panel-badge.amber { border-color: var(--amber); color: var(--amber); }
+
+  /* ── TABLE ── */
+  .tbl-wrap {
+    overflow-y: auto;
+    flex: 1;
+    min-height: 0;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 11px;
+  }
+  thead tr {
+    background: var(--panel);
+    position: sticky;
+    top: 0;
+    z-index: 1;
+  }
+  thead th {
+    padding: 5px 8px;
+    text-align: right;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    color: var(--ink-dim);
+    border-bottom: 1px solid var(--grid);
+    font-weight: 400;
+  }
+  thead th:first-child { text-align: left; }
+  tbody tr { border-bottom: 1px solid var(--grid); }
+  tbody tr:nth-child(odd) { background: rgba(255,255,255,0.018); }
+  tbody tr:hover { background: rgba(255,184,0,0.06); }
+  tbody td {
+    padding: 5px 8px;
+    text-align: right;
+    color: var(--ink);
+    font-size: 11px;
+  }
+  tbody td:first-child { text-align: left; }
+  .sym-cell { color: var(--amber); letter-spacing: 0.04em; }
+  .pos { color: var(--green); }
+  .neg { color: var(--amber); }
+  .neutral { color: var(--ink-dim); }
+
+  /* ── ACTIVITY LOG ── */
+  .log-table thead th { text-align: left; }
+  .log-table tbody td { text-align: left; }
+  .log-table .act-fill { color: var(--green); }
+  .log-table .act-cancel { color: var(--amber); }
+  .log-table .act-mod { color: #888; }
+  .log-table .ts { color: var(--ink-dim); }
+
+  /* ── RIGHT PANEL ── */
+  .right {
+    display: grid;
+    grid-template-rows: 1fr 220px;
+    overflow: hidden;
+    min-height: 0;
+    border-right: none;
+  }
+
+  /* ── PNL BLOCK ── */
+  .pnl-block {
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    overflow: hidden;
+  }
+  .pnl-period {
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    color: var(--ink-dim);
+  }
+  .pnl-value {
+    font-size: 28px;
+    letter-spacing: -0.02em;
+    color: var(--green);
+    line-height: 1;
+  }
+  .pnl-value.neg { color: var(--amber); }
+  .pnl-sub {
+    display: flex;
+    gap: 16px;
+    font-size: 11px;
+  }
+  .pnl-sub span { color: var(--ink-dim); }
+  .pnl-sub strong { color: var(--ink); font-weight: 400; }
+  .sparkline-wrap {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    gap: 4px;
+  }
+  .sparkline-label {
+    font-size: 10px;
+    color: var(--ink-dim);
+    letter-spacing: 0.06em;
+  }
+  svg.spark {
+    width: 100%;
+    height: 48px;
+    display: block;
+  }
+
+  /* ── RISK GAUGES ── */
+  .risk-block {
+    padding: 10px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    border-top: 1px solid var(--grid);
+    overflow-y: auto;
+  }
+  .risk-header {
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    color: var(--amber);
+    margin-bottom: -4px;
+  }
+  .gauge-row { display: flex; flex-direction: column; gap: 3px; }
+  .gauge-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+  }
+  .gauge-name {
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    color: var(--ink-dim);
+  }
+  .gauge-val {
+    font-size: 12px;
+    color: var(--ink);
+  }
+  .gauge-val.warn { color: var(--amber); }
+  .gauge-track {
+    height: 6px;
+    background: var(--grid);
+    position: relative;
+  }
+  .gauge-fill {
+    height: 100%;
+    background: var(--green);
+  }
+  .gauge-fill.warn { background: var(--amber); }
+  .gauge-fill.danger { background: #ff4444; }
+
+  /* ── COMMAND LINE ── */
+  .cmdline {
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    border-top: 1px solid var(--grid);
+    background: var(--panel);
+    gap: 10px;
+    flex-shrink: 0;
+  }
+  .cmd-prompt {
+    color: var(--amber);
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+  }
+  .cmd-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--ink);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    caret-color: var(--amber);
+  }
+  .cmd-hints {
+    display: flex;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+  .cmd-hint {
+    font-size: 10px;
+    padding: 1px 7px;
+    border: 1px solid var(--grid);
+    color: var(--ink-dim);
+    letter-spacing: 0.04em;
+    cursor: default;
+  }
+  .cmd-hint:hover { border-color: var(--amber); color: var(--amber); }
+  .cmd-sep {
+    color: var(--grid);
+    font-size: 11px;
+  }
+
+  /* ── scrollbar ── */
+  ::-webkit-scrollbar { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--grid); }
+  ::-webkit-scrollbar-thumb:hover { background: #444; }
+
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+  .blink { animation: blink 1s step-end infinite; }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- STATUS BAR -->
+  <header class="statusbar">
+    <span class="logo">MERIDIAN CAPITAL</span>
+    <span class="sep">|</span>
+    <span class="meta">TREASURY DESK</span>
+    <span class="sep">|</span>
+    <span class="chip live">LIVE</span>
+    <span class="chip">SID-2026-0527-T1</span>
+    <span class="sep">|</span>
+    <span class="latency">LAT 2ms</span>
+    <span class="sep">|</span>
+    <span class="meta">USER: G.ABRAO</span>
+    <div class="spacer"></div>
+    <span class="hint">F1 HELP</span>
+    <span class="sep">|</span>
+    <span class="clock" id="clock">08:47:33</span>
+  </header>
+
+  <!-- TICKER STRIP -->
+  <div class="ticker">
+    <span class="ticker-label">MKT</span>
+    <div class="ticker-items">
+      <div class="ticker-item">
+        <span class="sym">EUR/USD</span>
+        <span class="price">1.0847</span>
+        <span class="delta up">+0.0012</span>
+      </div>
+      <div class="ticker-item">
+        <span class="sym">GBP/USD</span>
+        <span class="price">1.2703</span>
+        <span class="delta dn">-0.0031</span>
+      </div>
+      <div class="ticker-item">
+        <span class="sym">USD/JPY</span>
+        <span class="price">156.820</span>
+        <span class="delta up">+0.440</span>
+      </div>
+      <div class="ticker-item">
+        <span class="sym">BTC/USDT</span>
+        <span class="price">68,412.50</span>
+        <span class="delta up">+1,240.00</span>
+      </div>
+      <div class="ticker-item">
+        <span class="sym">ETH/USDT</span>
+        <span class="price">3,641.20</span>
+        <span class="delta dn">-84.50</span>
+      </div>
+      <div class="ticker-item">
+        <span class="sym">SPX</span>
+        <span class="price">5,284.10</span>
+        <span class="delta up">+18.30</span>
+      </div>
+      <div class="ticker-item">
+        <span class="sym">NDX</span>
+        <span class="price">18,742.60</span>
+        <span class="delta up">+62.40</span>
+      </div>
+      <div class="ticker-item">
+        <span class="sym">10Y</span>
+        <span class="price">4.312%</span>
+        <span class="delta dn">-0.008</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- BODY -->
+  <div class="body">
+
+    <!-- LEFT RAIL -->
+    <nav class="rail">
+      <div class="rail-header">MODULES</div>
+      <div class="rail-item">
+        <span class="fkey">F1</span>
+        <span class="label">HELP</span>
+        <span class="dot"></span>
+      </div>
+      <div class="rail-item ok">
+        <span class="fkey">F2</span>
+        <span class="label">BLOTTER</span>
+        <span class="dot"></span>
+      </div>
+      <div class="rail-item active">
+        <span class="fkey">F3</span>
+        <span class="label">POSITIONS</span>
+        <span class="dot"></span>
+      </div>
+      <div class="rail-item ok">
+        <span class="fkey">F4</span>
+        <span class="label">RISK</span>
+        <span class="dot"></span>
+      </div>
+      <div class="rail-item">
+        <span class="fkey">F5</span>
+        <span class="label">NEWS</span>
+        <span class="dot"></span>
+      </div>
+      <div class="rail-item">
+        <span class="fkey">F6</span>
+        <span class="label">ALERTS</span>
+        <span class="dot"></span>
+      </div>
+      <div class="rail-item ok">
+        <span class="fkey">F7</span>
+        <span class="label">SETTLE</span>
+        <span class="dot"></span>
+      </div>
+      <div class="rail-item">
+        <span class="fkey">F8</span>
+        <span class="label">ADMIN</span>
+        <span class="dot"></span>
+      </div>
+      <div class="rail-footer">v4.12.1 / PROD</div>
+    </nav>
+
+    <!-- CENTER COLUMN -->
+    <div class="center">
+
+      <!-- POSITIONS TABLE -->
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title">POSITIONS</span>
+          <span class="panel-meta">AS OF 08:47:33 UTC</span>
+          <span class="panel-badge amber">10 OPEN</span>
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>SYMBOL</th>
+                <th>QTY</th>
+                <th>AVG COST</th>
+                <th>LAST</th>
+                <th>P&amp;L $</th>
+                <th>P&amp;L %</th>
+                <th>WEIGHT</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="sym-cell">EUR/USD</td>
+                <td>+5,000,000</td>
+                <td>1.0835</td>
+                <td>1.0847</td>
+                <td class="pos">+6,000</td>
+                <td class="pos">+0.11%</td>
+                <td>12.4%</td>
+              </tr>
+              <tr>
+                <td class="sym-cell">GBP/USD</td>
+                <td>-2,500,000</td>
+                <td>1.2740</td>
+                <td>1.2703</td>
+                <td class="pos">+9,250</td>
+                <td class="pos">+0.29%</td>
+                <td>8.1%</td>
+              </tr>
+              <tr>
+                <td class="sym-cell">USD/JPY</td>
+                <td>+3,000,000</td>
+                <td>155.410</td>
+                <td>156.820</td>
+                <td class="pos">+27,180</td>
+                <td class="pos">+0.91%</td>
+                <td>9.7%</td>
+              </tr>
+              <tr>
+                <td class="sym-cell">BTC/USDT</td>
+                <td>+48.20</td>
+                <td>64,820.00</td>
+                <td>68,412.50</td>
+                <td class="pos">+173,138</td>
+                <td class="pos">+5.55%</td>
+                <td>18.3%</td>
+              </tr>
+              <tr>
+                <td class="sym-cell">ETH/USDT</td>
+                <td>+820.00</td>
+                <td>3,714.40</td>
+                <td>3,641.20</td>
+                <td class="neg">-60,024</td>
+                <td class="neg">-1.97%</td>
+                <td>11.2%</td>
+              </tr>
+              <tr>
+                <td class="sym-cell">SPX FUT</td>
+                <td>+200</td>
+                <td>5,261.00</td>
+                <td>5,284.10</td>
+                <td class="pos">+46,200</td>
+                <td class="pos">+0.44%</td>
+                <td>14.6%</td>
+              </tr>
+              <tr>
+                <td class="sym-cell">NDX FUT</td>
+                <td>+50</td>
+                <td>18,680.00</td>
+                <td>18,742.60</td>
+                <td class="pos">+3,130</td>
+                <td class="pos">+0.33%</td>
+                <td>5.9%</td>
+              </tr>
+              <tr>
+                <td class="sym-cell">AAPL</td>
+                <td>+12,500</td>
+                <td>188.20</td>
+                <td>192.44</td>
+                <td class="pos">+53,000</td>
+                <td class="pos">+2.25%</td>
+                <td>7.3%</td>
+              </tr>
+              <tr>
+                <td class="sym-cell">MSFT</td>
+                <td>+4,800</td>
+                <td>415.30</td>
+                <td>409.72</td>
+                <td class="neg">-26,784</td>
+                <td class="neg">-1.34%</td>
+                <td>6.2%</td>
+              </tr>
+              <tr>
+                <td class="sym-cell">10Y UST</td>
+                <td>+50,000,000</td>
+                <td>98.812</td>
+                <td>98.740</td>
+                <td class="neg">-36,000</td>
+                <td class="neg">-0.07%</td>
+                <td>6.3%</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ACTIVITY LOG -->
+      <div class="panel" style="border-right:none;">
+        <div class="panel-header">
+          <span class="panel-title">ACTIVITY LOG</span>
+          <span class="panel-meta">TODAY / ALL VENUES</span>
+          <span class="panel-badge">8 EVENTS</span>
+        </div>
+        <div class="tbl-wrap">
+          <table class="log-table">
+            <thead>
+              <tr>
+                <th>TIME</th>
+                <th>ACTION</th>
+                <th>INSTRUMENT</th>
+                <th>QTY</th>
+                <th>PRICE</th>
+                <th>VENUE</th>
+                <th>STATUS</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="ts">08:44:11</td>
+                <td class="act-fill">FILL</td>
+                <td>EUR/USD</td>
+                <td>+2,000,000</td>
+                <td>1.0843</td>
+                <td>EBS</td>
+                <td class="pos">DONE</td>
+              </tr>
+              <tr>
+                <td class="ts">08:41:07</td>
+                <td class="act-mod">MOD</td>
+                <td>BTC/USDT</td>
+                <td>+10.00</td>
+                <td>68,100.00</td>
+                <td>CME-CF</td>
+                <td class="neutral">PENDING</td>
+              </tr>
+              <tr>
+                <td class="ts">08:38:52</td>
+                <td class="act-fill">FILL</td>
+                <td>SPX FUT JUN26</td>
+                <td>+50</td>
+                <td>5,259.50</td>
+                <td>CME</td>
+                <td class="pos">DONE</td>
+              </tr>
+              <tr>
+                <td class="ts">08:34:19</td>
+                <td class="act-cancel">CANCEL</td>
+                <td>ETH/USDT</td>
+                <td>-200.00</td>
+                <td>3,680.00</td>
+                <td>CBOE DX</td>
+                <td class="neg">CXLD</td>
+              </tr>
+              <tr>
+                <td class="ts">08:29:45</td>
+                <td class="act-fill">FILL</td>
+                <td>AAPL</td>
+                <td>+2,500</td>
+                <td>191.88</td>
+                <td>NASDAQ</td>
+                <td class="pos">DONE</td>
+              </tr>
+              <tr>
+                <td class="ts">08:22:03</td>
+                <td class="act-fill">FILL</td>
+                <td>GBP/USD</td>
+                <td>-1,000,000</td>
+                <td>1.2744</td>
+                <td>FXall</td>
+                <td class="pos">DONE</td>
+              </tr>
+              <tr>
+                <td class="ts">08:17:30</td>
+                <td class="act-mod">MOD</td>
+                <td>10Y UST</td>
+                <td>+10,000,000</td>
+                <td>98.828</td>
+                <td>BrokerTec</td>
+                <td class="neutral">PENDING</td>
+              </tr>
+              <tr>
+                <td class="ts">08:01:14</td>
+                <td class="act-fill">FILL</td>
+                <td>USD/JPY</td>
+                <td>+1,000,000</td>
+                <td>155.220</td>
+                <td>EBS</td>
+                <td class="pos">DONE</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT COLUMN -->
+    <div class="right panel" style="border-right:none; border-bottom:none;">
+
+      <!-- P&L BLOCK -->
+      <div class="panel" style="border-right:none;">
+        <div class="panel-header">
+          <span class="panel-title">P&amp;L</span>
+          <span class="panel-meta">TODAY</span>
+          <span class="panel-badge amber">SESSION OPEN</span>
+        </div>
+        <div class="pnl-block">
+          <div class="pnl-period">TODAY / USD</div>
+          <div class="pnl-value">+$128,430</div>
+          <div class="pnl-sub">
+            <div><span>MTD </span><strong class="pos">+$841,200</strong></div>
+            <div><span>YTD </span><strong class="pos">+$4,210,800</strong></div>
+          </div>
+          <div class="pnl-sub">
+            <div><span>REALIZED </span><strong>+$195,100</strong></div>
+            <div><span>UNRLZD </span><strong class="neg">-$66,670</strong></div>
+          </div>
+          <div class="sparkline-wrap">
+            <div class="sparkline-label">INTRADAY P&amp;L (08:00–NOW)</div>
+            <svg class="spark" viewBox="0 0 252 48" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+              <!-- baseline grid lines -->
+              <line x1="0" y1="24" x2="252" y2="24" stroke="#2a2a2a" stroke-width="1"/>
+              <!-- sparkline path: 24 bars from open to current -->
+              <polyline
+                points="0,38 11,36 22,34 33,30 44,28 55,32 66,29 77,25 88,22 99,20 110,23 121,19 132,15 143,17 154,13 165,10 176,12 187,9 198,11 209,8 220,7 231,10 242,9 252,6"
+                fill="none"
+                stroke="#00C851"
+                stroke-width="1.5"
+                stroke-linejoin="round"
+              />
+              <!-- zero line marker -->
+              <line x1="0" y1="42" x2="252" y2="42" stroke="#2a2a2a" stroke-width="1" stroke-dasharray="2,3"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- RISK GAUGES -->
+      <div class="panel" style="border-right:none; border-bottom:none;">
+        <div class="panel-header">
+          <span class="panel-title">RISK</span>
+          <span class="panel-meta">REAL-TIME</span>
+          <span class="panel-badge">WITHIN LIMITS</span>
+        </div>
+        <div class="risk-block">
+          <div class="gauge-row">
+            <div class="gauge-meta">
+              <span class="gauge-name">VAR (99% 1D)</span>
+              <span class="gauge-val">1.8%</span>
+            </div>
+            <div class="gauge-track">
+              <div class="gauge-fill" style="width:36%"></div>
+            </div>
+          </div>
+          <div class="gauge-row">
+            <div class="gauge-meta">
+              <span class="gauge-name">EXPOSURE / NAV</span>
+              <span class="gauge-val warn">42%</span>
+            </div>
+            <div class="gauge-track">
+              <div class="gauge-fill warn" style="width:42%"></div>
+            </div>
+          </div>
+          <div class="gauge-row">
+            <div class="gauge-meta">
+              <span class="gauge-name">LEVERAGE</span>
+              <span class="gauge-val">1.6x</span>
+            </div>
+            <div class="gauge-track">
+              <div class="gauge-fill" style="width:32%"></div>
+            </div>
+          </div>
+          <div class="gauge-row">
+            <div class="gauge-meta">
+              <span class="gauge-name">MAX DRAWDOWN</span>
+              <span class="gauge-val warn">-0.7%</span>
+            </div>
+            <div class="gauge-track">
+              <div class="gauge-fill warn" style="width:14%"></div>
+            </div>
+          </div>
+          <div class="gauge-row">
+            <div class="gauge-meta">
+              <span class="gauge-name">CONCENTRATION TOP3</span>
+              <span class="gauge-val">38%</span>
+            </div>
+            <div class="gauge-track">
+              <div class="gauge-fill" style="width:38%"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- COMMAND LINE -->
+  <div class="cmdline">
+    <span class="cmd-prompt">CMD&gt;<span class="blink">_</span></span>
+    <input class="cmd-input" type="text" placeholder="TYPE COMMAND OR USE HINT CHIPS..." spellcheck="false" autocomplete="off">
+    <div class="cmd-hints">
+      <span class="cmd-hint">POS AAPL</span>
+      <span class="cmd-hint">RISK TODAY</span>
+      <span class="cmd-hint">BLOT EUR</span>
+      <span class="cmd-hint">PNL MTD</span>
+      <span class="cmd-hint">SETTLE F7</span>
+    </div>
+    <span class="cmd-sep">|</span>
+    <span style="font-size:10px;color:var(--ink-dim);">TAB COMPLETE &nbsp; ESC CLEAR</span>
+  </div>
+
+</div>
+
+<script>
+  (function() {
+    function pad(n) { return String(n).padStart(2, '0'); }
+    function tick() {
+      var d = new Date();
+      var s = pad(d.getUTCHours()) + ':' + pad(d.getUTCMinutes()) + ':' + pad(d.getUTCSeconds());
+      var el = document.getElementById('clock');
+      if (el) el.textContent = s;
+    }
+    tick();
+    setInterval(tick, 1000);
+  })();
+</script>
+</body>
+</html>

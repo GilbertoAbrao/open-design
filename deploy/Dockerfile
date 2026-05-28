@@ -88,6 +88,13 @@ COPY --chown=open-design:open-design assets/community-pets ./assets/community-pe
 # via the same registry path third-party plugins use.
 COPY --chown=open-design:open-design plugins/_official ./plugins/_official
 
+# Marketplace registry seeds. The daemon's registry seed loop walks
+# plugins/registry/<id>/open-design-marketplace.json on boot and
+# pre-registers each as a marketplace source (community, official,
+# wxcode). Without this the deployed daemon ships with no pre-registered
+# sources and tenants would have to paste catalog URLs by hand.
+COPY --chown=open-design:open-design plugins/registry ./plugins/registry
+
 RUN mkdir -p /app/.od && \
     chown -R open-design:open-design /app
 

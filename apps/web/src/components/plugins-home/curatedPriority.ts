@@ -7,6 +7,11 @@
 import type { InstalledPluginRecord } from '@open-design/contracts';
 
 const CURATED_PROTOTYPE_PLUGIN_IDS = [
+  'example-admin-saas-bestseller',
+  'example-admin-glassmorphism',
+  'example-admin-neobrutal',
+  'example-admin-finance-terminal',
+  'example-admin-ai-copilot',
   'example-open-design-landing',
   'example-kanban-board',
   'example-social-carousel',

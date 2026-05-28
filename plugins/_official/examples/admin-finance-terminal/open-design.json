@@ -1,0 +1,91 @@
+{
+  "$schema": "https://open-design.ai/schemas/plugin.v1.json",
+  "specVersion": "1.0.0",
+  "name": "example-admin-finance-terminal",
+  "title": "Finance Terminal Admin",
+  "version": "0.1.0",
+  "description": "Bloomberg-Terminal-style institutional admin: pure-black canvas, amber accents, dense monospace data tables, multi-panel grid for scanning 50+ data points without scrolling. Use for trading desks, treasury, risk, ops control rooms.",
+  "license": "MIT",
+  "author": {
+    "name": "Open Design",
+    "url": "https://github.com/nexu-io"
+  },
+  "homepage": "https://github.com/nexu-io/open-design/tree/main/plugins/_official/examples/admin-finance-terminal",
+  "tags": [
+    "example",
+    "first-party",
+    "wxcode-plugin",
+    "wxcode",
+    "prototype",
+    "operations",
+    "web",
+    "admin",
+    "dense-data",
+    "finance",
+    "dark-mode",
+    "monospace",
+    "trading-terminal"
+  ],
+  "compat": {
+    "agentSkills": [
+      {
+        "path": "./SKILL.md"
+      }
+    ]
+  },
+  "od": {
+    "kind": "scenario",
+    "taskKind": "new-generation",
+    "mode": "prototype",
+    "scenario": "operations",
+    "surface": "web",
+    "preview": {
+      "type": "html",
+      "entry": "./example.html"
+    },
+    "useCase": {
+      "query": {
+        "en": "Give me a Bloomberg-Terminal-style admin for a treasury desk \u2014 black background, amber accents, monospace, dense tables, ticker, P&L panel, risk gauges.",
+        "zh-CN": "\u4f7f\u7528\u8fd9\u4e2a\u63d2\u4ef6\u5b8c\u6210\u4ee5\u4e0b\u4efb\u52a1\uff1aGive me a Bloomberg-Terminal-style admin for a treasury desk \u2014 black background, amber accents, monospace, dense tables, ticker, P&L panel, risk gauges."
+      },
+      "exampleOutputs": [
+        {
+          "path": "./example.html",
+          "title": "Finance Terminal Admin"
+        }
+      ]
+    },
+    "context": {
+      "skills": [
+        {
+          "path": "./SKILL.md"
+        }
+      ],
+      "designSystem": {
+        "primary": true
+      },
+      "craft": [
+        "pixel-discipline",
+        "state-coverage"
+      ],
+      "assets": [
+        "./example.html"
+      ]
+    },
+    "pipeline": {
+      "stages": [
+        {
+          "id": "generate",
+          "atoms": [
+            "file-write",
+            "live-artifact"
+          ]
+        }
+      ]
+    },
+    "capabilities": [
+      "prompt:inject",
+      "fs:write"
+    ]
+  }
+}

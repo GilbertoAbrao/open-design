@@ -1,0 +1,181 @@
+{
+  "$schema": "https://open-design.ai/schemas/marketplace.v1.json",
+  "specVersion": "1.0.0",
+  "name": "wxcode-design-plugins",
+  "version": "0.1.0",
+  "owner": {
+    "name": "WXCode",
+    "url": "https://github.com/GilbertoAbrao/wxcode-design-plugins"
+  },
+  "metadata": {
+    "description": "WXCode-curated admin / dashboard / cockpit plugins. Pre-registered marketplace source seeded by the daemon; entries install from the wxcode-design-plugins repo.",
+    "version": "0.1.0",
+    "updatedAt": "2026-05-28T14:05:21Z"
+  },
+  "plugins": [
+    {
+      "name": "wxcode/admin-ai-copilot",
+      "title": "AI Copilot Admin",
+      "version": "0.1.0",
+      "source": "github:GilbertoAbrao/wxcode-design-plugins@main/plugins/admin-ai-copilot",
+      "publisher": {
+        "id": "wxcode",
+        "github": "GilbertoAbrao",
+        "url": "https://github.com/GilbertoAbrao/wxcode-design-plugins"
+      },
+      "homepage": "https://github.com/GilbertoAbrao/wxcode-design-plugins/tree/main/plugins/admin-ai-copilot",
+      "license": "MIT",
+      "capabilitiesSummary": [
+        "prompt:inject",
+        "fs:write"
+      ],
+      "tags": [
+        "wxcode-plugin",
+        "wxcode",
+        "first-party",
+        "prototype",
+        "operations",
+        "web",
+        "admin",
+        "ai-agent",
+        "copilot",
+        "command-palette",
+        "chat-driven",
+        "split-pane"
+      ],
+      "description": "Admin dashboard with a permanent AI copilot rail. Deterministic widget canvas on the left, conversational agent on the right, Cmd+K command palette, inline suggestion chips, tool-call cards. The 2025 pattern for agentic admin UIs.",
+      "mode": "prototype"
+    },
+    {
+      "name": "wxcode/admin-finance-terminal",
+      "title": "Finance Terminal Admin",
+      "version": "0.1.0",
+      "source": "github:GilbertoAbrao/wxcode-design-plugins@main/plugins/admin-finance-terminal",
+      "publisher": {
+        "id": "wxcode",
+        "github": "GilbertoAbrao",
+        "url": "https://github.com/GilbertoAbrao/wxcode-design-plugins"
+      },
+      "homepage": "https://github.com/GilbertoAbrao/wxcode-design-plugins/tree/main/plugins/admin-finance-terminal",
+      "license": "MIT",
+      "capabilitiesSummary": [
+        "prompt:inject",
+        "fs:write"
+      ],
+      "tags": [
+        "wxcode-plugin",
+        "wxcode",
+        "first-party",
+        "prototype",
+        "operations",
+        "web",
+        "admin",
+        "dense-data",
+        "finance",
+        "dark-mode",
+        "monospace",
+        "trading-terminal"
+      ],
+      "description": "Bloomberg-Terminal-style institutional admin: pure-black canvas, amber accents, dense monospace data tables, multi-panel grid for scanning 50+ data points without scrolling. Use for trading desks, treasury, risk, ops control rooms.",
+      "mode": "prototype"
+    },
+    {
+      "name": "wxcode/admin-glassmorphism",
+      "title": "Glassmorphism Admin",
+      "version": "0.1.0",
+      "source": "github:GilbertoAbrao/wxcode-design-plugins@main/plugins/admin-glassmorphism",
+      "publisher": {
+        "id": "wxcode",
+        "github": "GilbertoAbrao",
+        "url": "https://github.com/GilbertoAbrao/wxcode-design-plugins"
+      },
+      "homepage": "https://github.com/GilbertoAbrao/wxcode-design-plugins/tree/main/plugins/admin-glassmorphism",
+      "license": "MIT",
+      "capabilitiesSummary": [
+        "prompt:inject",
+        "fs:write"
+      ],
+      "tags": [
+        "wxcode-plugin",
+        "wxcode",
+        "first-party",
+        "prototype",
+        "operations",
+        "web",
+        "admin",
+        "glassmorphism",
+        "dark-mode",
+        "frosted-glass",
+        "modern"
+      ],
+      "description": "Dark-mode admin built on frosted glass panels \u2014 translucent surfaces with backdrop blur over a soft colored aurora gradient, cyan accent, hairline white-alpha borders. Modern alternative to flat-card SaaS admins.",
+      "mode": "prototype"
+    },
+    {
+      "name": "wxcode/admin-neobrutal",
+      "title": "Neobrutalist Admin",
+      "version": "0.1.0",
+      "source": "github:GilbertoAbrao/wxcode-design-plugins@main/plugins/admin-neobrutal",
+      "publisher": {
+        "id": "wxcode",
+        "github": "GilbertoAbrao",
+        "url": "https://github.com/GilbertoAbrao/wxcode-design-plugins"
+      },
+      "homepage": "https://github.com/GilbertoAbrao/wxcode-design-plugins/tree/main/plugins/admin-neobrutal",
+      "license": "MIT",
+      "capabilitiesSummary": [
+        "prompt:inject",
+        "fs:write"
+      ],
+      "tags": [
+        "wxcode-plugin",
+        "wxcode",
+        "first-party",
+        "prototype",
+        "operations",
+        "web",
+        "admin",
+        "neobrutalism",
+        "bold-borders",
+        "high-contrast",
+        "pastel-blocks"
+      ],
+      "description": "A neo-brutalist admin dashboard \u2014 thick black borders, hard 4px offset shadows, vibrant pastel blocks (coral / lime / cream), monospaced numerics. Use when the brief asks for an admin with personality: 'brutalist admin', 'pastel dashboard', 'bold borders', 'flat blocks'.",
+      "mode": "prototype"
+    },
+    {
+      "name": "wxcode/admin-saas-bestseller",
+      "title": "SaaS Admin Bestseller",
+      "version": "0.1.0",
+      "source": "github:GilbertoAbrao/wxcode-design-plugins@main/plugins/admin-saas-bestseller",
+      "publisher": {
+        "id": "wxcode",
+        "github": "GilbertoAbrao",
+        "url": "https://github.com/GilbertoAbrao/wxcode-design-plugins"
+      },
+      "homepage": "https://github.com/GilbertoAbrao/wxcode-design-plugins/tree/main/plugins/admin-saas-bestseller",
+      "license": "MIT",
+      "capabilitiesSummary": [
+        "prompt:inject",
+        "fs:write"
+      ],
+      "tags": [
+        "wxcode-plugin",
+        "wxcode",
+        "first-party",
+        "prototype",
+        "operations",
+        "web",
+        "admin",
+        "saas-admin",
+        "enterprise",
+        "best-seller",
+        "light-mode",
+        "clean-cards",
+        "polished"
+      ],
+      "description": "The market-leading SaaS admin archetype \u2014 polished light-mode dashboard with collapsible sidebar, breadcrumb topbar, 4 stat tiles, primary chart, recent table, side activity. Modeled after the Metronic / Vuexy / Velzon family that dominates Themeforest's admin category.",
+      "mode": "prototype"
+    }
+  ]
+}

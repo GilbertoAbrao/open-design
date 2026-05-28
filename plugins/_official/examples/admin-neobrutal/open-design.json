@@ -1,0 +1,90 @@
+{
+  "$schema": "https://open-design.ai/schemas/plugin.v1.json",
+  "specVersion": "1.0.0",
+  "name": "example-admin-neobrutal",
+  "title": "Neobrutalist Admin",
+  "version": "0.1.0",
+  "description": "A neo-brutalist admin dashboard \u2014 thick black borders, hard 4px offset shadows, vibrant pastel blocks (coral / lime / cream), monospaced numerics. Use when the brief asks for an admin with personality: 'brutalist admin', 'pastel dashboard', 'bold borders', 'flat blocks'.",
+  "license": "MIT",
+  "author": {
+    "name": "Open Design",
+    "url": "https://github.com/nexu-io"
+  },
+  "homepage": "https://github.com/nexu-io/open-design/tree/main/plugins/_official/examples/admin-neobrutal",
+  "tags": [
+    "example",
+    "first-party",
+    "wxcode-plugin",
+    "wxcode",
+    "prototype",
+    "operations",
+    "web",
+    "admin",
+    "neobrutalism",
+    "bold-borders",
+    "high-contrast",
+    "pastel-blocks"
+  ],
+  "compat": {
+    "agentSkills": [
+      {
+        "path": "./SKILL.md"
+      }
+    ]
+  },
+  "od": {
+    "kind": "scenario",
+    "taskKind": "new-generation",
+    "mode": "prototype",
+    "scenario": "operations",
+    "surface": "web",
+    "preview": {
+      "type": "html",
+      "entry": "./example.html"
+    },
+    "useCase": {
+      "query": {
+        "en": "Build me a neo-brutalist admin panel for a creative studio \u2014 bold black borders, pastel blocks, sidebar, stat tiles, project table, recent activity.",
+        "zh-CN": "\u4f7f\u7528\u8fd9\u4e2a\u63d2\u4ef6\u5b8c\u6210\u4ee5\u4e0b\u4efb\u52a1\uff1aBuild me a neo-brutalist admin panel for a creative studio \u2014 bold black borders, pastel blocks, sidebar, stat tiles, project table, recent activity."
+      },
+      "exampleOutputs": [
+        {
+          "path": "./example.html",
+          "title": "Neobrutalist Admin"
+        }
+      ]
+    },
+    "context": {
+      "skills": [
+        {
+          "path": "./SKILL.md"
+        }
+      ],
+      "designSystem": {
+        "primary": true
+      },
+      "craft": [
+        "pixel-discipline",
+        "state-coverage"
+      ],
+      "assets": [
+        "./example.html"
+      ]
+    },
+    "pipeline": {
+      "stages": [
+        {
+          "id": "generate",
+          "atoms": [
+            "file-write",
+            "live-artifact"
+          ]
+        }
+      ]
+    },
+    "capabilities": [
+      "prompt:inject",
+      "fs:write"
+    ]
+  }
+}

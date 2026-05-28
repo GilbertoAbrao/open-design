@@ -1,0 +1,90 @@
+{
+  "$schema": "https://open-design.ai/schemas/plugin.v1.json",
+  "specVersion": "1.0.0",
+  "name": "example-admin-glassmorphism",
+  "title": "Glassmorphism Admin",
+  "version": "0.1.0",
+  "description": "Dark-mode admin built on frosted glass panels \u2014 translucent surfaces with backdrop blur over a soft colored aurora gradient, cyan accent, hairline white-alpha borders. Modern alternative to flat-card SaaS admins.",
+  "license": "MIT",
+  "author": {
+    "name": "Open Design",
+    "url": "https://github.com/nexu-io"
+  },
+  "homepage": "https://github.com/nexu-io/open-design/tree/main/plugins/_official/examples/admin-glassmorphism",
+  "tags": [
+    "example",
+    "first-party",
+    "wxcode-plugin",
+    "wxcode",
+    "prototype",
+    "operations",
+    "web",
+    "admin",
+    "glassmorphism",
+    "dark-mode",
+    "frosted-glass",
+    "modern"
+  ],
+  "compat": {
+    "agentSkills": [
+      {
+        "path": "./SKILL.md"
+      }
+    ]
+  },
+  "od": {
+    "kind": "scenario",
+    "taskKind": "new-generation",
+    "mode": "prototype",
+    "scenario": "operations",
+    "surface": "web",
+    "preview": {
+      "type": "html",
+      "entry": "./example.html"
+    },
+    "useCase": {
+      "query": {
+        "en": "Make me a glassmorphism admin dashboard for a creator-economy platform \u2014 dark, aurora gradient background, frosted glass panels, cyan accent, KPI tiles, revenue chart, top creators table.",
+        "zh-CN": "\u4f7f\u7528\u8fd9\u4e2a\u63d2\u4ef6\u5b8c\u6210\u4ee5\u4e0b\u4efb\u52a1\uff1aMake me a glassmorphism admin dashboard for a creator-economy platform \u2014 dark, aurora gradient background, frosted glass panels, cyan accent, KPI tiles, revenue chart, top creators table."
+      },
+      "exampleOutputs": [
+        {
+          "path": "./example.html",
+          "title": "Glassmorphism Admin"
+        }
+      ]
+    },
+    "context": {
+      "skills": [
+        {
+          "path": "./SKILL.md"
+        }
+      ],
+      "designSystem": {
+        "primary": true
+      },
+      "craft": [
+        "pixel-discipline",
+        "typographic-rhythm"
+      ],
+      "assets": [
+        "./example.html"
+      ]
+    },
+    "pipeline": {
+      "stages": [
+        {
+          "id": "generate",
+          "atoms": [
+            "file-write",
+            "live-artifact"
+          ]
+        }
+      ]
+    },
+    "capabilities": [
+      "prompt:inject",
+      "fs:write"
+    ]
+  }
+}

@@ -16,6 +16,7 @@ out/
 # the agent's CWD), and artifacts/ (one-off renders). Never commit.
 .od
 .od-e2e
+.od-plugin-forge
 test-results
 playwright-report
 e2e/.od-data

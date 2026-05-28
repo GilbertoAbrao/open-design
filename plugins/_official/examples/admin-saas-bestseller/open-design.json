@@ -1,0 +1,92 @@
+{
+  "$schema": "https://open-design.ai/schemas/plugin.v1.json",
+  "specVersion": "1.0.0",
+  "name": "example-admin-saas-bestseller",
+  "title": "SaaS Admin Bestseller",
+  "version": "0.1.0",
+  "description": "The market-leading SaaS admin archetype \u2014 polished light-mode dashboard with collapsible sidebar, breadcrumb topbar, 4 stat tiles, primary chart, recent table, side activity. Modeled after the Metronic / Vuexy / Velzon family that dominates Themeforest's admin category.",
+  "license": "MIT",
+  "author": {
+    "name": "Open Design",
+    "url": "https://github.com/nexu-io"
+  },
+  "homepage": "https://github.com/nexu-io/open-design/tree/main/plugins/_official/examples/admin-saas-bestseller",
+  "tags": [
+    "example",
+    "first-party",
+    "wxcode-plugin",
+    "wxcode",
+    "prototype",
+    "operations",
+    "web",
+    "admin",
+    "saas-admin",
+    "enterprise",
+    "best-seller",
+    "light-mode",
+    "clean-cards",
+    "polished"
+  ],
+  "compat": {
+    "agentSkills": [
+      {
+        "path": "./SKILL.md"
+      }
+    ]
+  },
+  "od": {
+    "kind": "scenario",
+    "taskKind": "new-generation",
+    "mode": "prototype",
+    "scenario": "operations",
+    "surface": "web",
+    "preview": {
+      "type": "html",
+      "entry": "./example.html"
+    },
+    "useCase": {
+      "query": {
+        "en": "Build me a polished SaaS admin dashboard for a B2B product \u2014 left sidebar, breadcrumb topbar, 4 KPI tiles, revenue chart, recent customers table, activity feed.",
+        "zh-CN": "\u4f7f\u7528\u8fd9\u4e2a\u63d2\u4ef6\u5b8c\u6210\u4ee5\u4e0b\u4efb\u52a1\uff1aBuild me a polished SaaS admin dashboard for a B2B product \u2014 left sidebar, breadcrumb topbar, 4 KPI tiles, revenue chart, recent customers table, activity feed."
+      },
+      "exampleOutputs": [
+        {
+          "path": "./example.html",
+          "title": "SaaS Admin Bestseller"
+        }
+      ]
+    },
+    "context": {
+      "skills": [
+        {
+          "path": "./SKILL.md"
+        }
+      ],
+      "designSystem": {
+        "primary": true
+      },
+      "craft": [
+        "pixel-discipline",
+        "laws-of-ux"
+      ],
+      "assets": [
+        "./example.html"
+      ]
+    },
+    "pipeline": {
+      "stages": [
+        {
+          "id": "generate",
+          "atoms": [
+            "file-write",
+            "live-artifact"
+          ]
+        }
+      ]
+    },
+    "capabilities": [
+      "prompt:inject",
+      "fs:write"
+    ]
+  }
+}

@@ -1,0 +1,1004 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NORTHWIND — Cloud Ops Cockpit</title>
+<style>
+  :root {
+    --bg-deep: #0f1419;
+    --bg-card: #1a2332;
+    --bg-card-hover: #1f2b3e;
+    --bg-rail: #111922;
+    --border: rgba(255,255,255,0.06);
+    --indigo: #6366f1;
+    --indigo-dim: rgba(99,102,241,0.15);
+    --indigo-mid: rgba(99,102,241,0.25);
+    --pink: #ec4899;
+    --pink-dim: rgba(236,72,153,0.15);
+    --green: #22c55e;
+    --red: #ef4444;
+    --yellow: #f59e0b;
+    --text-primary: #f1f5f9;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
+    --radius: 12px;
+    --radius-sm: 8px;
+    --radius-xs: 6px;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; overflow: hidden; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg-deep);
+    color: var(--text-primary);
+    font-size: 13px;
+    line-height: 1.5;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── TOP BAR ── */
+  .topbar {
+    height: 56px;
+    background: var(--bg-rail);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    gap: 16px;
+    flex-shrink: 0;
+    z-index: 10;
+  }
+  .topbar-brand {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: -0.01em;
+    white-space: nowrap;
+  }
+  .brand-icon {
+    width: 28px; height: 28px;
+    background: linear-gradient(135deg, var(--indigo), var(--pink));
+    border-radius: 7px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--text-muted);
+    font-size: 12px;
+  }
+  .breadcrumb span { color: var(--text-secondary); }
+  .breadcrumb-sep { opacity: 0.3; }
+  .cmd-pill {
+    flex: 1;
+    max-width: 480px;
+    margin: 0 auto;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    padding: 0 14px;
+    gap: 8px;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .cmd-pill:hover { border-color: var(--indigo); background: var(--indigo-dim); }
+  .cmd-pill-text { color: var(--text-muted); font-size: 12px; flex: 1; }
+  .cmd-kbd {
+    background: rgba(255,255,255,0.07);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1px 6px;
+    font-size: 11px;
+    color: var(--text-muted);
+    font-family: monospace;
+    white-space: nowrap;
+  }
+  .topbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-left: auto;
+  }
+  .notif-btn {
+    position: relative;
+    width: 32px; height: 32px;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xs);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    color: var(--text-secondary);
+  }
+  .notif-dot {
+    position: absolute;
+    top: 5px; right: 5px;
+    width: 7px; height: 7px;
+    background: var(--pink);
+    border-radius: 50%;
+    border: 2px solid var(--bg-rail);
+  }
+  .avatar {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--indigo), var(--pink));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  /* ── BODY LAYOUT ── */
+  .body-layout {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  /* ── LEFT NAV RAIL ── */
+  .nav-rail {
+    width: 64px;
+    background: var(--bg-rail);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 16px 0;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+  .nav-item {
+    width: 44px; height: 44px;
+    border-radius: var(--radius-sm);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    color: var(--text-muted);
+    transition: all 0.15s;
+    position: relative;
+  }
+  .nav-item:hover { background: rgba(255,255,255,0.05); color: var(--text-secondary); }
+  .nav-item.active {
+    background: var(--indigo-dim);
+    color: var(--indigo);
+    box-shadow: inset 0 0 0 1px rgba(99,102,241,0.3);
+  }
+  .nav-spacer { flex: 1; }
+
+  /* ── CENTER CANVAS ── */
+  .canvas {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  .canvas::-webkit-scrollbar { width: 4px; }
+  .canvas::-webkit-scrollbar-track { background: transparent; }
+  .canvas::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  .greeting { margin-bottom: 4px; }
+  .greeting h1 { font-size: 20px; font-weight: 700; letter-spacing: -0.02em; }
+  .greeting p { color: var(--text-secondary); font-size: 13px; margin-top: 2px; }
+
+  /* KPI tiles */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+  }
+  .kpi-tile {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    position: relative;
+    overflow: hidden;
+  }
+  .kpi-tile::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: var(--indigo);
+    opacity: 0.6;
+  }
+  .kpi-tile.danger::before { background: var(--red); }
+  .kpi-tile.success::before { background: var(--green); }
+  .kpi-tile.warn::before { background: var(--yellow); }
+  .kpi-label {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+  }
+  .kpi-value {
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    line-height: 1;
+  }
+  .kpi-sub {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 6px;
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+  .kpi-delta {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 1px 5px;
+    border-radius: 4px;
+  }
+  .kpi-delta.up { background: rgba(34,197,94,0.15); color: var(--green); }
+  .kpi-delta.down { background: rgba(239,68,68,0.15); color: var(--red); }
+  .kpi-delta.down-good { background: rgba(34,197,94,0.15); color: var(--green); }
+
+  /* Chart card */
+  .chart-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+  }
+  .card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+  .card-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+  .card-meta { font-size: 11px; color: var(--text-muted); }
+  .chart-legend {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 12px;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: var(--text-secondary);
+  }
+  .legend-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+  }
+
+  /* Table */
+  .table-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .table-card .card-header { padding: 16px 20px 0; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  thead th {
+    text-align: left;
+    padding: 10px 20px;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--text-muted);
+    border-bottom: 1px solid var(--border);
+  }
+  tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: background 0.1s;
+  }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: rgba(255,255,255,0.02); }
+  tbody td {
+    padding: 10px 20px;
+    color: var(--text-secondary);
+    font-size: 12px;
+  }
+  tbody td:first-child { color: var(--text-primary); font-family: monospace; font-size: 11px; }
+  .status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .status-pill.healthy { background: rgba(34,197,94,0.12); color: var(--green); }
+  .status-pill.degraded { background: rgba(245,158,11,0.12); color: var(--yellow); }
+  .status-pill.down { background: rgba(239,68,68,0.12); color: var(--red); }
+  .status-pill::before {
+    content: '';
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: currentColor;
+    flex-shrink: 0;
+  }
+
+  /* ── RIGHT COPILOT RAIL ── */
+  .copilot-rail {
+    width: 380px;
+    flex-shrink: 0;
+    background: var(--bg-rail);
+    border-left: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .copilot-header {
+    padding: 16px 16px 12px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+  }
+  .copilot-avatar {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--pink), var(--indigo));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+    position: relative;
+  }
+  .copilot-status-dot {
+    position: absolute;
+    bottom: 0; right: 0;
+    width: 10px; height: 10px;
+    background: var(--green);
+    border-radius: 50%;
+    border: 2px solid var(--bg-rail);
+  }
+  .copilot-meta { flex: 1; }
+  .copilot-name { font-size: 13px; font-weight: 700; }
+  .copilot-label {
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--indigo);
+  }
+  .copilot-model-chip {
+    background: var(--indigo-dim);
+    border: 1px solid rgba(99,102,241,0.3);
+    border-radius: 20px;
+    padding: 2px 8px;
+    font-size: 10px;
+    color: #a5b4fc;
+    font-weight: 600;
+  }
+
+  /* Thread */
+  .copilot-thread {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .copilot-thread::-webkit-scrollbar { width: 3px; }
+  .copilot-thread::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  .msg { display: flex; gap: 8px; align-items: flex-start; }
+  .msg.user { flex-direction: row-reverse; }
+  .msg-avatar {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+  }
+  .msg-avatar.pilot {
+    background: linear-gradient(135deg, var(--pink), var(--indigo));
+  }
+  .msg-avatar.user-av {
+    background: linear-gradient(135deg, #334155, #475569);
+  }
+  .msg-body { flex: 1; max-width: calc(100% - 40px); }
+  .msg-sender { font-size: 10px; color: var(--text-muted); margin-bottom: 4px; font-weight: 600; }
+  .msg.user .msg-sender { text-align: right; }
+  .msg-bubble {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 10px 12px;
+    font-size: 12px;
+    line-height: 1.6;
+    color: var(--text-secondary);
+  }
+  .msg.user .msg-bubble {
+    background: var(--indigo-dim);
+    border-color: rgba(99,102,241,0.25);
+    color: var(--text-primary);
+  }
+  .msg-bubble strong { color: var(--text-primary); }
+  .msg-bubble code {
+    background: rgba(255,255,255,0.06);
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-family: monospace;
+    font-size: 11px;
+    color: #a5b4fc;
+  }
+
+  /* Tool call card */
+  .tool-card {
+    background: rgba(99,102,241,0.07);
+    border: 1px solid rgba(99,102,241,0.2);
+    border-left: 2px solid var(--indigo);
+    border-radius: var(--radius-sm);
+    padding: 10px 12px;
+    margin-top: 8px;
+    font-size: 11px;
+  }
+  .tool-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+  .tool-name {
+    font-family: monospace;
+    font-size: 11px;
+    color: var(--indigo);
+    font-weight: 600;
+  }
+  .tool-status {
+    font-size: 10px;
+    color: var(--green);
+    background: rgba(34,197,94,0.1);
+    padding: 1px 6px;
+    border-radius: 20px;
+    white-space: nowrap;
+  }
+  .tool-args {
+    font-family: monospace;
+    font-size: 10px;
+    color: var(--text-muted);
+    line-height: 1.6;
+  }
+  .tool-args span { color: #94a3b8; }
+  .tool-result {
+    margin-top: 6px;
+    padding-top: 6px;
+    border-top: 1px solid var(--border);
+    font-size: 10px;
+    color: var(--text-muted);
+  }
+
+  /* Mini chart artifact */
+  .artifact-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 12px;
+    margin-top: 8px;
+  }
+  .artifact-label {
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+    font-weight: 600;
+    margin-bottom: 10px;
+  }
+
+  /* Suggestion chips */
+  .chip-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 10px;
+  }
+  .chip {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 5px 10px;
+    font-size: 11px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .chip:hover {
+    border-color: var(--indigo);
+    background: var(--indigo-dim);
+    color: var(--text-primary);
+  }
+
+  /* Composer */
+  .composer {
+    border-top: 1px solid var(--border);
+    padding: 12px;
+    flex-shrink: 0;
+  }
+  .composer-tools {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 8px;
+  }
+  .composer-tool-chip {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 3px 8px;
+    font-size: 10px;
+    color: var(--text-muted);
+    cursor: pointer;
+  }
+  .composer-tool-chip:hover { border-color: var(--indigo); color: #a5b4fc; }
+  .composer-input-row {
+    display: flex;
+    gap: 8px;
+    align-items: flex-end;
+  }
+  .composer-textarea {
+    flex: 1;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 8px 12px;
+    color: var(--text-primary);
+    font-family: inherit;
+    font-size: 12px;
+    resize: none;
+    height: 36px;
+    min-height: 36px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .composer-textarea::placeholder { color: var(--text-muted); }
+  .composer-textarea:focus { border-color: var(--indigo); }
+  .composer-send {
+    width: 36px; height: 36px;
+    background: var(--indigo);
+    border: none;
+    border-radius: var(--radius-sm);
+    color: #fff;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    transition: opacity 0.15s;
+  }
+  .composer-send:hover { opacity: 0.85; }
+
+  /* ── BOTTOM STATUS BAR ── */
+  .statusbar {
+    height: 32px;
+    background: var(--bg-rail);
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    gap: 20px;
+    flex-shrink: 0;
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+  .statusbar-agent {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .status-led {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--green);
+    flex-shrink: 0;
+  }
+  .statusbar-sep {
+    width: 1px;
+    height: 14px;
+    background: var(--border);
+  }
+  .statusbar-spacer { flex: 1; }
+  .model-chip {
+    background: var(--indigo-dim);
+    border: 1px solid rgba(99,102,241,0.25);
+    border-radius: 20px;
+    padding: 1px 7px;
+    font-size: 10px;
+    color: #a5b4fc;
+    font-weight: 600;
+  }
+
+  /* SVG icons */
+  svg { display: block; }
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<header class="topbar">
+  <div class="topbar-brand">
+    <div class="brand-icon">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+        <path d="M3 4l5-2 5 2v4l-5 4-5-4V4z" stroke="#fff" stroke-width="1.2" stroke-linejoin="round" fill="none"/>
+        <circle cx="8" cy="8" r="1.5" fill="#fff"/>
+      </svg>
+    </div>
+    NORTHWIND
+  </div>
+  <div class="breadcrumb">
+    <span>Cloud Ops</span>
+    <span class="breadcrumb-sep">/</span>
+    <span style="color:var(--text-muted)">Overview</span>
+  </div>
+  <div class="cmd-pill">
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="5" stroke="currentColor" stroke-width="1.4"/><path d="M11 11l3 3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+    <span class="cmd-pill-text">Ask Pilot or jump to a deploy, host, or incident</span>
+    <span class="cmd-kbd">⌘K</span>
+  </div>
+  <div class="topbar-actions">
+    <button class="notif-btn" title="Notifications">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 2a4 4 0 014 4v3l1 1H3l1-1V6a4 4 0 014-4z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" fill="none"/><path d="M6.5 13a1.5 1.5 0 003 0" stroke="currentColor" stroke-width="1.3"/></svg>
+      <span class="notif-dot"></span>
+    </button>
+    <div class="avatar">JR</div>
+  </div>
+</header>
+
+<!-- BODY -->
+<div class="body-layout">
+
+  <!-- LEFT NAV RAIL -->
+  <nav class="nav-rail">
+    <div class="nav-item active" title="Overview">
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><rect x="2" y="2" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.3"/><rect x="10" y="2" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.3"/><rect x="2" y="10" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.3"/><rect x="10" y="10" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.3"/></svg>
+    </div>
+    <div class="nav-item" title="Deploys">
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 2l4 4H5l4-4z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" fill="none"/><path d="M9 6v7M5 14l4-1 4 1" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+    </div>
+    <div class="nav-item" title="Hosts">
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><rect x="2" y="4" width="14" height="4" rx="1.5" stroke="currentColor" stroke-width="1.3"/><rect x="2" y="10" width="14" height="4" rx="1.5" stroke="currentColor" stroke-width="1.3"/><circle cx="5" cy="6" r="1" fill="currentColor"/><circle cx="5" cy="12" r="1" fill="currentColor"/></svg>
+    </div>
+    <div class="nav-item" title="Incidents">
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 2l7 13H2L9 2z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" fill="none"/><path d="M9 8v3M9 13.5v.1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+    </div>
+    <div class="nav-item" title="Costs">
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="7" stroke="currentColor" stroke-width="1.3"/><path d="M9 5v1.5M9 11.5V13M6.5 10a2.5 2.5 0 005 0c0-1.5-1-2-2.5-2.5S6.5 7 6.5 6a2 2 0 014 0" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+    </div>
+    <div class="nav-item" title="Audit">
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M4 3h10a1 1 0 011 1v10a1 1 0 01-1 1H4a1 1 0 01-1-1V4a1 1 0 011-1z" stroke="currentColor" stroke-width="1.3"/><path d="M6 7h6M6 10h4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+    </div>
+    <div class="nav-spacer"></div>
+    <div class="nav-item" title="Settings">
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="2.5" stroke="currentColor" stroke-width="1.3"/><path d="M9 2v1.5M9 14.5V16M2 9h1.5M14.5 9H16M3.9 3.9l1.1 1.1M13 13l1.1 1.1M3.9 14.1l1.1-1.1M13 5l1.1-1.1" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+    </div>
+  </nav>
+
+  <!-- CENTER CANVAS -->
+  <main class="canvas">
+    <div class="greeting">
+      <h1>Good morning, Jamie</h1>
+      <p>Fleet status as of 09:41 UTC — 3 open incidents require attention</p>
+    </div>
+
+    <!-- KPI tiles -->
+    <div class="kpi-grid">
+      <div class="kpi-tile success">
+        <div class="kpi-label">Healthy Hosts</div>
+        <div class="kpi-value">1,284</div>
+        <div class="kpi-sub">
+          <span class="kpi-delta up">98.6%</span>
+          of 1,302 total
+        </div>
+      </div>
+      <div class="kpi-tile danger">
+        <div class="kpi-label">Open Incidents</div>
+        <div class="kpi-value" style="color:var(--red)">3</div>
+        <div class="kpi-sub">
+          <span class="kpi-delta down">−2</span>
+          vs yesterday
+        </div>
+      </div>
+      <div class="kpi-tile">
+        <div class="kpi-label">Today Deploys</div>
+        <div class="kpi-value">18</div>
+        <div class="kpi-sub">
+          <span class="kpi-delta up">+4</span>
+          vs yesterday
+        </div>
+      </div>
+      <div class="kpi-tile success">
+        <div class="kpi-label">Avg MTTR</div>
+        <div class="kpi-value">12m</div>
+        <div class="kpi-sub">
+          <span class="kpi-delta down-good">−3m</span>
+          7-day avg
+        </div>
+      </div>
+    </div>
+
+    <!-- Chart card: 24h latency -->
+    <div class="chart-card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">24-Hour p99 Latency</div>
+          <div class="card-meta">All fleets · Last 24h · 10-min buckets</div>
+        </div>
+        <div style="display:flex;gap:6px">
+          <div style="background:var(--bg-deep);border:1px solid var(--border);border-radius:6px;padding:3px 10px;font-size:11px;color:var(--text-muted)">24h</div>
+          <div style="background:var(--indigo-dim);border:1px solid rgba(99,102,241,0.3);border-radius:6px;padding:3px 10px;font-size:11px;color:#a5b4fc">p99</div>
+        </div>
+      </div>
+      <div class="chart-legend">
+        <div class="legend-item"><div class="legend-dot" style="background:var(--indigo)"></div>p99 latency</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--pink)"></div>checkout-api-eu spike</div>
+      </div>
+      <!-- 24h latency SVG chart -->
+      <svg width="100%" height="120" viewBox="0 0 700 120" preserveAspectRatio="none" style="display:block">
+        <defs>
+          <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#6366f1" stop-opacity="0.3"/>
+            <stop offset="100%" stop-color="#6366f1" stop-opacity="0"/>
+          </linearGradient>
+        </defs>
+        <!-- grid lines -->
+        <line x1="0" y1="0" x2="700" y2="0" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+        <line x1="0" y1="30" x2="700" y2="30" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+        <line x1="0" y1="60" x2="700" y2="60" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+        <line x1="0" y1="90" x2="700" y2="90" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+        <line x1="0" y1="120" x2="700" y2="120" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+        <!-- labels -->
+        <text x="0" y="115" fill="#475569" font-size="9">00:00</text>
+        <text x="170" y="115" fill="#475569" font-size="9">06:00</text>
+        <text x="345" y="115" fill="#475569" font-size="9">12:00</text>
+        <text x="515" y="115" fill="#475569" font-size="9">18:00</text>
+        <text x="670" y="115" fill="#475569" font-size="9">now</text>
+        <!-- area fill -->
+        <path d="M0,80 L30,75 L60,72 L90,78 L120,70 L150,68 L180,73 L210,65 L240,60 L270,62 L300,58 L330,55 L360,50 L390,45 L420,20 L450,18 L480,40 L510,52 L540,58 L570,55 L600,50 L630,48 L660,45 L700,42 L700,108 L0,108 Z" fill="url(#chartGrad)"/>
+        <!-- main line -->
+        <path d="M0,80 L30,75 L60,72 L90,78 L120,70 L150,68 L180,73 L210,65 L240,60 L270,62 L300,58 L330,55 L360,50 L390,45 L420,20 L450,18 L480,40 L510,52 L540,58 L570,55 L600,50 L630,48 L660,45 L700,42" fill="none" stroke="#6366f1" stroke-width="2" stroke-linejoin="round"/>
+        <!-- spike highlight -->
+        <line x1="420" y1="0" x2="420" y2="108" stroke="var(--pink)" stroke-width="1" stroke-dasharray="3,3" opacity="0.5"/>
+        <circle cx="420" cy="20" r="4" fill="var(--pink)"/>
+        <text x="425" y="18" fill="#ec4899" font-size="9" font-weight="600">842ms peak</text>
+      </svg>
+    </div>
+
+    <!-- Records table -->
+    <div class="table-card">
+      <div class="card-header">
+        <div class="card-title">Host Fleet — Live</div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div style="font-size:11px;color:var(--text-muted)">1,302 hosts · updated 12s ago</div>
+          <div style="background:var(--bg-deep);border:1px solid var(--border);border-radius:6px;padding:3px 10px;font-size:11px;color:var(--text-muted);cursor:pointer">Filter</div>
+        </div>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Host ID</th>
+            <th>Region</th>
+            <th>Fleet</th>
+            <th>CPU</th>
+            <th>Mem</th>
+            <th>Last Deploy</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>nw-eu-001</td>
+            <td>eu-west-1</td>
+            <td>checkout-api-eu</td>
+            <td><span style="color:var(--red)">91%</span></td>
+            <td>74%</td>
+            <td>09:12 UTC</td>
+            <td><span class="status-pill degraded">Degraded</span></td>
+          </tr>
+          <tr>
+            <td>nw-us-112</td>
+            <td>us-east-1</td>
+            <td>api-gateway</td>
+            <td>44%</td>
+            <td>58%</td>
+            <td>08:55 UTC</td>
+            <td><span class="status-pill healthy">Healthy</span></td>
+          </tr>
+          <tr>
+            <td>nw-eu-034</td>
+            <td>eu-central-1</td>
+            <td>checkout-api-eu</td>
+            <td><span style="color:var(--red)">88%</span></td>
+            <td>81%</td>
+            <td>09:12 UTC</td>
+            <td><span class="status-pill degraded">Degraded</span></td>
+          </tr>
+          <tr>
+            <td>nw-ap-007</td>
+            <td>ap-southeast-1</td>
+            <td>search-indexer</td>
+            <td>23%</td>
+            <td>42%</td>
+            <td>07:30 UTC</td>
+            <td><span class="status-pill healthy">Healthy</span></td>
+          </tr>
+          <tr>
+            <td>nw-us-089</td>
+            <td>us-west-2</td>
+            <td>worker-jobs</td>
+            <td>61%</td>
+            <td>55%</td>
+            <td>06:18 UTC</td>
+            <td><span class="status-pill healthy">Healthy</span></td>
+          </tr>
+          <tr>
+            <td>nw-eu-078</td>
+            <td>eu-west-2</td>
+            <td>data-pipeline</td>
+            <td>0%</td>
+            <td>12%</td>
+            <td>Yesterday</td>
+            <td><span class="status-pill down">Down</span></td>
+          </tr>
+          <tr>
+            <td>nw-us-203</td>
+            <td>us-east-1</td>
+            <td>media-cdn</td>
+            <td>18%</td>
+            <td>38%</td>
+            <td>08:02 UTC</td>
+            <td><span class="status-pill healthy">Healthy</span></td>
+          </tr>
+          <tr>
+            <td>nw-ap-041</td>
+            <td>ap-northeast-1</td>
+            <td>auth-service</td>
+            <td>32%</td>
+            <td>48%</td>
+            <td>08:44 UTC</td>
+            <td><span class="status-pill healthy">Healthy</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+
+  <!-- RIGHT COPILOT RAIL -->
+  <aside class="copilot-rail">
+    <div class="copilot-header">
+      <div class="copilot-avatar">
+        ✦
+        <span class="copilot-status-dot"></span>
+      </div>
+      <div class="copilot-meta">
+        <div class="copilot-label">Copilot</div>
+        <div class="copilot-name">Pilot</div>
+      </div>
+      <span class="copilot-model-chip">sonnet-4-6</span>
+    </div>
+
+    <div class="copilot-thread">
+      <!-- Turn 1: user -->
+      <div class="msg user">
+        <div class="msg-avatar user-av">JR</div>
+        <div class="msg-body">
+          <div class="msg-sender">You</div>
+          <div class="msg-bubble">Which fleet is driving the p99 spike right now?</div>
+        </div>
+      </div>
+
+      <!-- Turn 2: Pilot answer + tool card -->
+      <div class="msg">
+        <div class="msg-avatar pilot">✦</div>
+        <div class="msg-body">
+          <div class="msg-sender">Pilot</div>
+          <div class="msg-bubble">
+            The spike is coming from <strong>checkout-api-eu</strong>. Its p99 hit <strong>842ms</strong> at 09:20 UTC, well above the 200ms SLO. Two hosts in that fleet (<code>nw-eu-001</code> and <code>nw-eu-034</code>) are showing CPU saturation above 88%. The last deploy to this fleet was at <strong>09:12 UTC</strong> — likely the culprit.
+            <div class="tool-card">
+              <div class="tool-card-header">
+                <span class="tool-name">query_latency_by_fleet</span>
+                <span class="tool-status">ran in 218ms · 6 rows</span>
+              </div>
+              <div class="tool-args">
+                <span>window=</span>"15m"&nbsp;&nbsp;<span>agg=</span>"p99"
+              </div>
+              <div class="tool-result">6 fleets returned · sorted by p99 desc</div>
+            </div>
+          </div>
+
+          <!-- mini chart artifact -->
+          <div class="artifact-card">
+            <div class="artifact-label">p99 by Fleet — last 15m</div>
+            <svg width="100%" height="80" viewBox="0 0 300 80" preserveAspectRatio="xMidYMid meet">
+              <!-- bars -->
+              <!-- checkout-api-eu highlighted -->
+              <rect x="10" y="8" width="32" height="56" rx="3" fill="var(--indigo)" opacity="0.9"/>
+              <text x="26" y="6" text-anchor="middle" fill="#a5b4fc" font-size="8" font-weight="700">842ms</text>
+              <rect x="60" y="28" width="32" height="36" rx="3" fill="rgba(99,102,241,0.3)"/>
+              <text x="76" y="26" text-anchor="middle" fill="#64748b" font-size="8">412ms</text>
+              <rect x="110" y="36" width="32" height="28" rx="3" fill="rgba(99,102,241,0.3)"/>
+              <text x="126" y="34" text-anchor="middle" fill="#64748b" font-size="8">310ms</text>
+              <rect x="160" y="44" width="32" height="20" rx="3" fill="rgba(99,102,241,0.3)"/>
+              <text x="176" y="42" text-anchor="middle" fill="#64748b" font-size="8">218ms</text>
+              <rect x="210" y="50" width="32" height="14" rx="3" fill="rgba(99,102,241,0.3)"/>
+              <text x="226" y="48" text-anchor="middle" fill="#64748b" font-size="8">158ms</text>
+              <rect x="260" y="54" width="32" height="10" rx="3" fill="rgba(99,102,241,0.3)"/>
+              <text x="276" y="52" text-anchor="middle" fill="#64748b" font-size="8">112ms</text>
+              <!-- labels -->
+              <text x="26" y="78" text-anchor="middle" fill="#6366f1" font-size="7.5" font-weight="600">checkout-api-eu</text>
+              <text x="76" y="78" text-anchor="middle" fill="#475569" font-size="7.5">api-gateway</text>
+              <text x="126" y="78" text-anchor="middle" fill="#475569" font-size="7.5">auth-svc</text>
+              <text x="176" y="78" text-anchor="middle" fill="#475569" font-size="7.5">media-cdn</text>
+              <text x="226" y="78" text-anchor="middle" fill="#475569" font-size="7.5">worker-jobs</text>
+              <text x="276" y="78" text-anchor="middle" fill="#475569" font-size="7.5">search-idx</text>
+            </svg>
+          </div>
+
+          <!-- suggestion chips -->
+          <div class="chip-row">
+            <div class="chip">Roll back checkout-api-eu</div>
+            <div class="chip">Open incident</div>
+            <div class="chip">Page on-call</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Composer -->
+    <div class="composer">
+      <div class="composer-tools">
+        <span class="composer-tool-chip">@deploys</span>
+        <span class="composer-tool-chip">@hosts</span>
+        <span class="composer-tool-chip">@logs</span>
+      </div>
+      <div class="composer-input-row">
+        <textarea class="composer-textarea" placeholder="Reply to Pilot..."></textarea>
+        <button class="composer-send" title="Send">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M14 8L2 2l3 6-3 6 12-6z" fill="#fff"/></svg>
+        </button>
+      </div>
+    </div>
+  </aside>
+
+</div>
+
+<!-- BOTTOM STATUS BAR -->
+<footer class="statusbar">
+  <div class="statusbar-agent">
+    <div class="status-led"></div>
+    <span><strong style="color:var(--text-secondary)">Pilot</strong> · idle</span>
+  </div>
+  <div class="statusbar-sep"></div>
+  <span>$0.043 today</span>
+  <div class="statusbar-sep"></div>
+  <span>p50 1.2s</span>
+  <div class="statusbar-spacer"></div>
+  <span>3 incidents open</span>
+  <div class="statusbar-sep"></div>
+  <span class="model-chip">sonnet-4-6</span>
+</footer>
+
+</body>
+</html>
