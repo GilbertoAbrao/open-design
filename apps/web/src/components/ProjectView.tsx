@@ -4422,6 +4422,7 @@ export function ProjectView({
           githubConnected={githubConnected}
           wxcodePreviewUrl={wxcodePreviewContext?.url ?? null}
           wxcodePreviewEntryFile={project.metadata?.entryFile ?? null}
+          wxcodePreviewPreferSourceFile={Boolean(wxcodePreviewContext && routeFileName)}
           wxcodePreviewScroll={wxcodePreviewContext ? { x: wxcodePreviewContext.scrollX, y: wxcodePreviewContext.scrollY } : null}
         />
       </div>

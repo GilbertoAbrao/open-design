@@ -208,6 +208,39 @@ describe('FileWorkspace upload input', () => {
     expect(markup).not.toContain('accept=');
   });
 
+  it('keeps the WXCode entry file active so the design toolbar is available', async () => {
+    mockedFetchProjectFileText.mockResolvedValueOnce('<!doctype html><html><body><h1>Dashboard</h1></body></html>');
+
+    render(
+      <FileWorkspace
+        projectId="project-1"
+        projectKind="prototype"
+        files={[workspaceFile('app/templates/index.html')]}
+        liveArtifacts={[]}
+        onRefreshFiles={vi.fn()}
+        isDeck={false}
+        tabsState={{
+          tabs: ['app/templates/index.html'],
+          active: 'app/templates/index.html',
+        }}
+        onTabsStateChange={vi.fn()}
+        wxcodePreviewUrl="https://example.preview.wxcode.ai/"
+        wxcodePreviewEntryFile="app/templates/index.html"
+        wxcodePreviewPreferSourceFile
+      />,
+    );
+
+    expect(screen.getByTestId('wxcode-live-preview-tab')).toBeTruthy();
+    await waitFor(() => {
+      expect(screen.getByTestId('palette-tweaks-toggle')).toBeTruthy();
+      expect(screen.getByTestId('draw-overlay-toggle')).toBeTruthy();
+      expect(screen.getByTestId('board-mode-toggle')).toBeTruthy();
+      expect(screen.getByTestId('inspect-mode-toggle')).toBeTruthy();
+      expect(screen.getByTestId('manual-edit-mode-toggle')).toBeTruthy();
+    });
+    expect(screen.queryByTestId('wxcode-live-preview-viewer')).toBeNull();
+  });
+
   it('hides upload failure details during in-panel preview and restores them after closing preview', async () => {
     mockedUploadProjectFiles.mockRejectedValueOnce(new Error('storage offline'));
 

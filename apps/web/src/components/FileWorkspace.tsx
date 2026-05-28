@@ -61,6 +61,7 @@ import {
 import {
   filterWxcodePreviewBackedTabs,
   isWxcodePreviewBackedFileTab,
+  shouldRouteWxcodeFileTabToLivePreview,
 } from './wxcode-preview-tabs';
 
 interface Props {
@@ -112,6 +113,7 @@ interface Props {
   githubConnected?: boolean;
   wxcodePreviewUrl?: string | null;
   wxcodePreviewEntryFile?: string | null;
+  wxcodePreviewPreferSourceFile?: boolean;
   wxcodePreviewScroll?: { x: number; y: number } | null;
 }
 
@@ -232,6 +234,7 @@ export function FileWorkspace({
   githubConnected,
   wxcodePreviewUrl = null,
   wxcodePreviewEntryFile = null,
+  wxcodePreviewPreferSourceFile = false,
   wxcodePreviewScroll = null,
 }: Props) {
   const t = useT();
@@ -250,8 +253,13 @@ export function FileWorkspace({
   // Persisted tabs come from the parent. Active tab can transiently point
   // at a pending sketch — pending sketches are not in tabsState.tabs.
   const persistedTabs = useMemo(
-    () => filterWxcodePreviewBackedTabs(tabsState.tabs, wxcodePreviewUrl, wxcodePreviewEntryFile),
-    [tabsState.tabs, wxcodePreviewUrl, wxcodePreviewEntryFile],
+    () => filterWxcodePreviewBackedTabs(
+      tabsState.tabs,
+      wxcodePreviewUrl,
+      wxcodePreviewEntryFile,
+      { preferSourceFile: wxcodePreviewPreferSourceFile },
+    ),
+    [tabsState.tabs, wxcodePreviewEntryFile, wxcodePreviewPreferSourceFile, wxcodePreviewUrl],
   );
   const [activeTab, setActiveTab] = useState<string>(
     tabsState.active ?? defaultRootTab,
@@ -284,19 +292,24 @@ export function FileWorkspace({
   // (or on project switch). Fall back to the Design Files browser so a
   // fresh project lands in a useful place.
   useEffect(() => {
-    if (isWxcodePreviewBackedFileTab(tabsState.active, wxcodePreviewUrl, wxcodePreviewEntryFile)) {
+    if (shouldRouteWxcodeFileTabToLivePreview(
+      tabsState.active,
+      wxcodePreviewUrl,
+      wxcodePreviewEntryFile,
+      { preferSourceFile: wxcodePreviewPreferSourceFile },
+    )) {
       setActiveTab(WXCODE_PREVIEW_TAB);
       return;
     }
     setActiveTab(tabsState.active ?? defaultRootTab);
-  }, [tabsState.active, defaultRootTab, wxcodePreviewUrl, wxcodePreviewEntryFile]);
+  }, [tabsState.active, defaultRootTab, wxcodePreviewEntryFile, wxcodePreviewPreferSourceFile, wxcodePreviewUrl]);
 
   useEffect(() => {
-    if (wxcodePreviewUrl) setActiveTab(WXCODE_PREVIEW_TAB);
-  }, [wxcodePreviewUrl]);
+    if (wxcodePreviewUrl && !wxcodePreviewPreferSourceFile) setActiveTab(WXCODE_PREVIEW_TAB);
+  }, [wxcodePreviewPreferSourceFile, wxcodePreviewUrl]);
 
   useEffect(() => {
-    if (!wxcodePreviewUrl) return;
+    if (!wxcodePreviewUrl || wxcodePreviewPreferSourceFile) return;
     const filteredTabs = filterWxcodePreviewBackedTabs(
       tabsState.tabs,
       wxcodePreviewUrl,
@@ -308,10 +321,12 @@ export function FileWorkspace({
     if (filteredTabs.length !== tabsState.tabs.length || active !== tabsState.active) {
       onTabsStateChange({ tabs: filteredTabs, active });
     }
-  }, [onTabsStateChange, tabsState.active, tabsState.tabs, wxcodePreviewEntryFile, wxcodePreviewUrl]);
+  }, [onTabsStateChange, tabsState.active, tabsState.tabs, wxcodePreviewEntryFile, wxcodePreviewPreferSourceFile, wxcodePreviewUrl]);
 
   function setPersistedActive(name: string | null) {
-    if (isWxcodePreviewBackedFileTab(name, wxcodePreviewUrl, wxcodePreviewEntryFile)) {
+    if (shouldRouteWxcodeFileTabToLivePreview(name, wxcodePreviewUrl, wxcodePreviewEntryFile, {
+      preferSourceFile: wxcodePreviewPreferSourceFile,
+    })) {
       setActiveTab(WXCODE_PREVIEW_TAB);
       onTabsStateChange({ tabs: persistedTabs, active: null });
       return;
@@ -345,7 +360,9 @@ export function FileWorkspace({
     if (!openRequest) return;
     const name = openRequest.name;
     if (!name) return;
-    if (isWxcodePreviewBackedFileTab(name, wxcodePreviewUrl, wxcodePreviewEntryFile)) {
+    if (shouldRouteWxcodeFileTabToLivePreview(name, wxcodePreviewUrl, wxcodePreviewEntryFile, {
+      preferSourceFile: wxcodePreviewPreferSourceFile,
+    })) {
       onTabsStateChange({ tabs: persistedTabs, active: null });
       setActiveTab(WXCODE_PREVIEW_TAB);
       return;
@@ -360,7 +377,9 @@ export function FileWorkspace({
 
   function openFile(name: string) {
     setUploadError(null);
-    if (isWxcodePreviewBackedFileTab(name, wxcodePreviewUrl, wxcodePreviewEntryFile)) {
+    if (shouldRouteWxcodeFileTabToLivePreview(name, wxcodePreviewUrl, wxcodePreviewEntryFile, {
+      preferSourceFile: wxcodePreviewPreferSourceFile,
+    })) {
       onTabsStateChange({ tabs: persistedTabs, active: null });
       setActiveTab(WXCODE_PREVIEW_TAB);
       return;
@@ -381,7 +400,9 @@ export function FileWorkspace({
   function openFileReplacing(openName: string, closeName: string) {
     setUploadError(null);
     const withoutClosed = persistedTabs.filter((tabName) => tabName !== closeName);
-    if (isWxcodePreviewBackedFileTab(openName, wxcodePreviewUrl, wxcodePreviewEntryFile)) {
+    if (shouldRouteWxcodeFileTabToLivePreview(openName, wxcodePreviewUrl, wxcodePreviewEntryFile, {
+      preferSourceFile: wxcodePreviewPreferSourceFile,
+    })) {
       onTabsStateChange({ tabs: withoutClosed, active: null });
       setActiveTab(WXCODE_PREVIEW_TAB);
       return;
