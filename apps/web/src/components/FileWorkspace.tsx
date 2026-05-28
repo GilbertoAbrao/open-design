@@ -870,6 +870,23 @@ export function FileWorkspace({
     return null;
   }, [activeTab, visibleFiles, sketches]);
 
+  const wxcodePreviewEntryRecord = useMemo<ProjectFile | null>(() => {
+    const entryFile = wxcodePreviewEntryFile?.trim().replace(/^\/+/, '');
+    if (!wxcodePreviewUrl || !entryFile) return null;
+    const onDisk = visibleFiles.find((file) => file.name === entryFile);
+    if (onDisk) return onDisk;
+    const isHtml = entryFile.endsWith('.html') || entryFile.endsWith('.htm');
+    return {
+      name: entryFile,
+      path: entryFile,
+      type: 'file',
+      size: 0,
+      mtime: 0,
+      kind: isHtml ? 'html' : 'text',
+      mime: isHtml ? 'text/html' : 'text/plain',
+    };
+  }, [visibleFiles, wxcodePreviewEntryFile, wxcodePreviewUrl]);
+
   const activeLiveArtifact = useMemo<LiveArtifactWorkspaceEntry | null>(() => {
     if (activeTab === DESIGN_FILES_TAB || activeTab === DESIGN_SYSTEM_TAB || activeTab === WXCODE_PREVIEW_TAB) return null;
     return liveArtifactEntries.find((entry) => entry.tabId === activeTab) ?? null;
@@ -1059,10 +1076,30 @@ export function FileWorkspace({
           </div>
         ) : null}
         {activeTab === WXCODE_PREVIEW_TAB && wxcodePreviewUrl ? (
-          <WxcodeLivePreviewViewer
-            url={wxcodePreviewUrl}
-            scroll={wxcodePreviewScroll}
-          />
+          wxcodePreviewEntryRecord ? (
+            <FileViewer
+              projectId={projectId}
+              projectKind={projectKind}
+              file={wxcodePreviewEntryRecord}
+              filesRefreshKey={filesRefreshKey}
+              isDeck={isDeck}
+              onExportAsPptx={onExportAsPptx}
+              streaming={streaming}
+              previewComments={previewComments.filter((comment) => comment.filePath === wxcodePreviewEntryRecord.name)}
+              onSavePreviewComment={onSavePreviewComment}
+              onRemovePreviewComment={onRemovePreviewComment}
+              onSendBoardCommentAttachments={onSendBoardCommentAttachments}
+              onFileSaved={onRefreshFiles}
+              onOpenFileReplacing={openFileReplacing}
+              externalPreviewUrl={wxcodePreviewUrl}
+              externalPreviewScroll={wxcodePreviewScroll}
+            />
+          ) : (
+            <WxcodeLivePreviewViewer
+              url={wxcodePreviewUrl}
+              scroll={wxcodePreviewScroll}
+            />
+          )
         ) : activeTab === DESIGN_SYSTEM_TAB && designSystemProject ? (
           <DesignSystemProjectPanel
             projectId={projectId}

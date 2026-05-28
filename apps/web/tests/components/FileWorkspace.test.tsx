@@ -283,6 +283,41 @@ describe('FileWorkspace upload input', () => {
     expect(screen.queryByTestId('wxcode-live-preview-viewer')).toBeNull();
   });
 
+  it('shows the design toolbar on the WXCode Live Preview tab', async () => {
+    mockedFetchProjectFileText.mockResolvedValueOnce('<!doctype html><html><body><h1>Dashboard</h1></body></html>');
+
+    render(
+      <FileWorkspace
+        projectId="project-1"
+        projectKind="prototype"
+        files={[workspaceFile('app/templates/index.html')]}
+        liveArtifacts={[]}
+        onRefreshFiles={vi.fn()}
+        isDeck={false}
+        tabsState={{ tabs: [], active: null }}
+        onTabsStateChange={vi.fn()}
+        wxcodePreviewUrl="https://example.preview.wxcode.ai/"
+        wxcodePreviewEntryFile="app/templates/index.html"
+      />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId('wxcode-live-preview-tab')).toBeTruthy();
+      expect(screen.getByTestId('palette-tweaks-toggle')).toBeTruthy();
+      expect(screen.getByTestId('draw-overlay-toggle')).toBeTruthy();
+      expect(screen.getByTestId('board-mode-toggle')).toBeTruthy();
+      expect(screen.getByTestId('inspect-mode-toggle')).toBeTruthy();
+      expect(screen.getByTestId('manual-edit-mode-toggle')).toBeTruthy();
+    });
+    expect(screen.queryByTestId('wxcode-live-preview-viewer')).toBeNull();
+    const frame = screen.getByTestId('artifact-preview-frame') as HTMLIFrameElement;
+    expect(frame.getAttribute('src')).toContain('https://example.preview.wxcode.ai/');
+
+    fireEvent.click(screen.getByTestId('inspect-mode-toggle'));
+    expect(screen.getByTestId('inspect-mode-toggle').getAttribute('aria-pressed')).toBe('true');
+    expect(frame.getAttribute('src')).toContain('https://example.preview.wxcode.ai/');
+  });
+
   it('hides upload failure details during in-panel preview and restores them after closing preview', async () => {
     mockedUploadProjectFiles.mockRejectedValueOnce(new Error('storage offline'));
 

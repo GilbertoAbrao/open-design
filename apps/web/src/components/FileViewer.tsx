@@ -602,6 +602,8 @@ interface Props {
   projectKind: TrackingProjectKind;
   file: ProjectFile;
   liveHtml?: string;
+  externalPreviewUrl?: string | null;
+  externalPreviewScroll?: { x: number; y: number } | null;
   filesRefreshKey?: number;
   isDeck?: boolean;
   onExportAsPptx?: ((fileName: string) => void) | undefined;
@@ -622,6 +624,8 @@ export function FileViewer({
   projectKind,
   file,
   liveHtml,
+  externalPreviewUrl = null,
+  externalPreviewScroll = null,
   filesRefreshKey = 0,
   isDeck,
   onExportAsPptx,
@@ -660,6 +664,8 @@ export function FileViewer({
         projectKind={projectKind}
         file={file}
         liveHtml={liveHtml}
+        externalPreviewUrl={externalPreviewUrl}
+        externalPreviewScroll={externalPreviewScroll}
         filesRefreshKey={filesRefreshKey}
         isDeck={rendererMatch.renderer.id === 'deck-html'}
         onExportAsPptx={onExportAsPptx}
@@ -3521,6 +3527,8 @@ function HtmlViewer({
   projectKind,
   file,
   liveHtml,
+  externalPreviewUrl = null,
+  externalPreviewScroll = null,
   filesRefreshKey = 0,
   isDeck,
   onExportAsPptx,
@@ -3535,6 +3543,8 @@ function HtmlViewer({
   projectKind: TrackingProjectKind;
   file: ProjectFile;
   liveHtml?: string;
+  externalPreviewUrl?: string | null;
+  externalPreviewScroll?: { x: number; y: number } | null;
   filesRefreshKey?: number;
   isDeck: boolean;
   onExportAsPptx?: ((fileName: string) => void) | undefined;
@@ -3841,6 +3851,14 @@ function HtmlViewer({
       });
     });
   }, []);
+  const restoreExternalPreviewScroll = useCallback((target: HTMLIFrameElement | null = urlPreviewIframeRef.current) => {
+    if (!externalPreviewScroll) return;
+    target?.contentWindow?.postMessage({
+      type: 'wxcode:preview-restore',
+      scrollX: externalPreviewScroll.x,
+      scrollY: externalPreviewScroll.y,
+    }, '*');
+  }, [externalPreviewScroll]);
   const [manualEditTargets, setManualEditTargets] = useState<ManualEditTarget[]>([]);
   const [selectedManualEditTarget, setSelectedManualEditTarget] = useState<ManualEditTarget | null>(null);
   const selectedManualEditTargetIdRef = useRef<string | null>(null);
@@ -3912,6 +3930,10 @@ function HtmlViewer({
   const firstEditModeAvailableSeenForFileRef = useRef<string | null>(null);
   const previewStateKey = `${projectId}:${file.name}`;
   const previewScale = zoom / 100;
+  const externalPreviewBaseUrl = useMemo(
+    () => externalPreviewUrl?.trim() || null,
+    [externalPreviewUrl],
+  );
 
   function deploymentMapForCurrentFile(items: WebDeploymentInfo[]) {
     const next: Partial<Record<WebDeployProviderId, WebDeploymentInfo>> = {};
@@ -4139,22 +4161,26 @@ function HtmlViewer({
     () => source != null && htmlNeedsFocusGuard(source),
     [source],
   );
-  const useUrlLoadPreview = shouldUrlLoadHtmlPreview({
-    mode,
-    isDeck: effectiveDeck,
-    commentMode: boardMode || drawClickSelectionMode,
-    editMode: manualEditMode,
-    urlModeBridge,
-    inspectMode,
-    paletteActive: palettePopoverOpen || selectedPalette !== null,
-    drawMode: drawOverlayOpen,
-    tweaksBridge: tweaksBridgeRequired,
-    forceInline: forceInline || needsSandboxShim,
-    needsFocusGuard,
-  });
+  const useUrlLoadPreview = externalPreviewBaseUrl
+    ? mode === 'preview'
+    : shouldUrlLoadHtmlPreview({
+      mode,
+      isDeck: effectiveDeck,
+      commentMode: boardMode || drawClickSelectionMode,
+      editMode: manualEditMode,
+      urlModeBridge,
+      inspectMode,
+      paletteActive: palettePopoverOpen || selectedPalette !== null,
+      drawMode: drawOverlayOpen,
+      tweaksBridge: tweaksBridgeRequired,
+      forceInline: forceInline || needsSandboxShim,
+      needsFocusGuard,
+    });
   const basePreviewSrcUrl = useMemo(
-    () => `${projectRawUrl(projectId, file.name)}?v=${Math.round(file.mtime)}&r=${reloadKey}`,
-    [projectId, file.name, file.mtime, reloadKey],
+    () => externalPreviewBaseUrl
+      ? externalPreviewSrc(externalPreviewBaseUrl, reloadKey)
+      : `${projectRawUrl(projectId, file.name)}?v=${Math.round(file.mtime)}&r=${reloadKey}`,
+    [externalPreviewBaseUrl, projectId, file.name, file.mtime, reloadKey],
   );
   const [previewSrcUrl, setPreviewSrcUrl] = useState(basePreviewSrcUrl);
   const activePreviewSrcUrl = (
@@ -4188,7 +4214,7 @@ function HtmlViewer({
 
   useEffect(() => {
     if (filesRefreshKey === 0) return;
-    const nextSrc = `${basePreviewSrcUrl}&fr=${filesRefreshKey}`;
+    const nextSrc = withPreviewUrlParam(basePreviewSrcUrl, 'fr', String(filesRefreshKey));
     const timeout = window.setTimeout(() => {
       if (useUrlLoadPreview && urlPreviewIframeRef.current?.contentWindow) {
         urlPreviewIframeRef.current.contentWindow.location.replace(nextSrc);
@@ -4257,6 +4283,17 @@ function HtmlViewer({
   const useLazySrcDocTransport = useUrlLoadPreview || hasLazySrcDocTransport;
   const srcDocTransportContent = useLazySrcDocTransport ? lazySrcDocTransport : srcDoc;
   const urlTransportSrc = useUrlLoadPreview ? activePreviewSrcUrl : 'about:blank';
+  useEffect(() => {
+    if (!externalPreviewBaseUrl || !externalPreviewScroll || !useUrlLoadPreview) return;
+    const timer = window.setTimeout(() => restoreExternalPreviewScroll(), 250);
+    return () => window.clearTimeout(timer);
+  }, [
+    activePreviewSrcUrl,
+    externalPreviewBaseUrl,
+    externalPreviewScroll,
+    restoreExternalPreviewScroll,
+    useUrlLoadPreview,
+  ]);
   const activateSrcDocTransport = useCallback((target: HTMLIFrameElement | null = srcDocPreviewIframeRef.current) => {
     if (!canActivateSrcDocTransport({
       srcDoc,
@@ -6423,7 +6460,9 @@ function HtmlViewer({
                       aria-hidden={useUrlLoadPreview ? undefined : true}
                       tabIndex={useUrlLoadPreview ? 0 : -1}
                       title={file.name}
-                      sandbox="allow-scripts allow-downloads"
+                      sandbox={externalPreviewBaseUrl
+                        ? 'allow-scripts allow-forms allow-popups allow-downloads allow-same-origin'
+                        : 'allow-scripts allow-downloads'}
                       src={urlTransportSrc}
                       onLoad={() => {
                         const frame = urlPreviewIframeRef.current;
@@ -6435,6 +6474,7 @@ function HtmlViewer({
                         }, '*');
                         syncBridgeModes(frame);
                         if (useUrlLoadPreview) restorePreviewScrollPosition();
+                        if (useUrlLoadPreview && externalPreviewBaseUrl) restoreExternalPreviewScroll(frame);
                       }}
                     />
                     <iframe
@@ -7076,6 +7116,22 @@ function HtmlViewer({
 function baseDirFor(fileName: string): string {
   const idx = fileName.lastIndexOf('/');
   return idx >= 0 ? fileName.slice(0, idx + 1) : '';
+}
+
+function withPreviewUrlParam(url: string, key: string, value: string): string {
+  try {
+    const next = new URL(url);
+    next.searchParams.set(key, value);
+    return next.toString();
+  } catch {
+    const separator = url.includes('?') ? '&' : '?';
+    return `${url}${separator}${encodeURIComponent(key)}=${encodeURIComponent(value)}`;
+  }
+}
+
+function externalPreviewSrc(url: string, reloadKey: number): string {
+  if (reloadKey <= 0) return url;
+  return withPreviewUrlParam(url, 'odReload', String(reloadKey));
 }
 
 function toOwnerRelativePath(ownerFileName: string, targetPath: string): string {
