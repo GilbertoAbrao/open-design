@@ -58,6 +58,10 @@ import {
   parseSketchWorkspaceDocument,
   type SketchItem,
 } from './sketch-model';
+import {
+  filterWxcodePreviewBackedTabs,
+  isWxcodePreviewBackedFileTab,
+} from './wxcode-preview-tabs';
 
 interface Props {
   projectId: string;
@@ -107,6 +111,7 @@ interface Props {
   onConnectRepo?: () => void;
   githubConnected?: boolean;
   wxcodePreviewUrl?: string | null;
+  wxcodePreviewEntryFile?: string | null;
   wxcodePreviewScroll?: { x: number; y: number } | null;
 }
 
@@ -226,6 +231,7 @@ export function FileWorkspace({
   onConnectRepo,
   githubConnected,
   wxcodePreviewUrl = null,
+  wxcodePreviewEntryFile = null,
   wxcodePreviewScroll = null,
 }: Props) {
   const t = useT();
@@ -243,7 +249,10 @@ export function FileWorkspace({
   const defaultRootTab = designSystemProject ? DESIGN_SYSTEM_TAB : DESIGN_FILES_TAB;
   // Persisted tabs come from the parent. Active tab can transiently point
   // at a pending sketch — pending sketches are not in tabsState.tabs.
-  const persistedTabs = tabsState.tabs;
+  const persistedTabs = useMemo(
+    () => filterWxcodePreviewBackedTabs(tabsState.tabs, wxcodePreviewUrl, wxcodePreviewEntryFile),
+    [tabsState.tabs, wxcodePreviewUrl, wxcodePreviewEntryFile],
+  );
   const [activeTab, setActiveTab] = useState<string>(
     tabsState.active ?? defaultRootTab,
   );
@@ -275,14 +284,38 @@ export function FileWorkspace({
   // (or on project switch). Fall back to the Design Files browser so a
   // fresh project lands in a useful place.
   useEffect(() => {
+    if (isWxcodePreviewBackedFileTab(tabsState.active, wxcodePreviewUrl, wxcodePreviewEntryFile)) {
+      setActiveTab(WXCODE_PREVIEW_TAB);
+      return;
+    }
     setActiveTab(tabsState.active ?? defaultRootTab);
-  }, [tabsState.active, defaultRootTab]);
+  }, [tabsState.active, defaultRootTab, wxcodePreviewUrl, wxcodePreviewEntryFile]);
 
   useEffect(() => {
     if (wxcodePreviewUrl) setActiveTab(WXCODE_PREVIEW_TAB);
   }, [wxcodePreviewUrl]);
 
+  useEffect(() => {
+    if (!wxcodePreviewUrl) return;
+    const filteredTabs = filterWxcodePreviewBackedTabs(
+      tabsState.tabs,
+      wxcodePreviewUrl,
+      wxcodePreviewEntryFile,
+    );
+    const active = isWxcodePreviewBackedFileTab(tabsState.active, wxcodePreviewUrl, wxcodePreviewEntryFile)
+      ? null
+      : tabsState.active;
+    if (filteredTabs.length !== tabsState.tabs.length || active !== tabsState.active) {
+      onTabsStateChange({ tabs: filteredTabs, active });
+    }
+  }, [onTabsStateChange, tabsState.active, tabsState.tabs, wxcodePreviewEntryFile, wxcodePreviewUrl]);
+
   function setPersistedActive(name: string | null) {
+    if (isWxcodePreviewBackedFileTab(name, wxcodePreviewUrl, wxcodePreviewEntryFile)) {
+      setActiveTab(WXCODE_PREVIEW_TAB);
+      onTabsStateChange({ tabs: persistedTabs, active: null });
+      return;
+    }
     setActiveTab(name ?? defaultRootTab);
     onTabsStateChange({ tabs: persistedTabs, active: name });
   }
@@ -312,6 +345,11 @@ export function FileWorkspace({
     if (!openRequest) return;
     const name = openRequest.name;
     if (!name) return;
+    if (isWxcodePreviewBackedFileTab(name, wxcodePreviewUrl, wxcodePreviewEntryFile)) {
+      onTabsStateChange({ tabs: persistedTabs, active: null });
+      setActiveTab(WXCODE_PREVIEW_TAB);
+      return;
+    }
     onTabsStateChange({
       tabs: persistedTabs.includes(name) ? persistedTabs : [...persistedTabs, name],
       active: name,
@@ -322,6 +360,11 @@ export function FileWorkspace({
 
   function openFile(name: string) {
     setUploadError(null);
+    if (isWxcodePreviewBackedFileTab(name, wxcodePreviewUrl, wxcodePreviewEntryFile)) {
+      onTabsStateChange({ tabs: persistedTabs, active: null });
+      setActiveTab(WXCODE_PREVIEW_TAB);
+      return;
+    }
     onTabsStateChange({
       tabs: persistedTabs.includes(name) ? persistedTabs : [...persistedTabs, name],
       active: name,
@@ -338,6 +381,11 @@ export function FileWorkspace({
   function openFileReplacing(openName: string, closeName: string) {
     setUploadError(null);
     const withoutClosed = persistedTabs.filter((tabName) => tabName !== closeName);
+    if (isWxcodePreviewBackedFileTab(openName, wxcodePreviewUrl, wxcodePreviewEntryFile)) {
+      onTabsStateChange({ tabs: withoutClosed, active: null });
+      setActiveTab(WXCODE_PREVIEW_TAB);
+      return;
+    }
     const nextTabs = withoutClosed.includes(openName)
       ? withoutClosed
       : [...withoutClosed, openName];

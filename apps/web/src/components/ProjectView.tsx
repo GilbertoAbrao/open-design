@@ -4421,6 +4421,7 @@ export function ProjectView({
           onConnectRepo={handleConnectRepo}
           githubConnected={githubConnected}
           wxcodePreviewUrl={wxcodePreviewContext?.url ?? null}
+          wxcodePreviewEntryFile={project.metadata?.entryFile ?? null}
           wxcodePreviewScroll={wxcodePreviewContext ? { x: wxcodePreviewContext.scrollX, y: wxcodePreviewContext.scrollY } : null}
         />
       </div>
