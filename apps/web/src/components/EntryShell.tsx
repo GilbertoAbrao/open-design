@@ -91,6 +91,7 @@ import { NewProjectModal } from './NewProjectModal';
 import { PluginsView } from './PluginsView';
 import type { CreateInput, CreateTab, ImportClaudeDesignOutcome } from './NewProjectPanel';
 import type { PluginLoopSubmit } from './PluginLoopHome';
+import { wxcodeProjectsLabel } from './wxcode-embed';
 import type {
   PluginShareAction,
   PluginShareProjectOutcome,
@@ -665,7 +666,7 @@ export function EntryShell({
               ) : (
                 <div className="entry-section">
                   <header className="entry-section__head">
-                    <h1 className="entry-section__title">{t('entry.navProjects')}</h1>
+                    <h1 className="entry-section__title">{wxcodeProjectsLabel(t('entry.navProjects'))}</h1>
                   </header>
                   <DesignsTab
                     projects={projects}

@@ -24,6 +24,14 @@ export function isWxcodeEmbedHost(): boolean {
 }
 
 /**
+ * WXCode exposes Open Design projects as reusable Design prototypes. Keep the
+ * upstream label unchanged outside the WXCode iframe.
+ */
+export function wxcodeProjectsLabel(defaultLabel: string): string {
+  return isWxcodeEmbedHost() ? 'Prototypes' : defaultLabel;
+}
+
+/**
  * Sandbox attribute for the URL-load preview iframe. An external WXCode preview
  * is a trusted same-origin app surface that needs forms/popups/same-origin;
  * everything else keeps the locked-down default. Returning a constant string

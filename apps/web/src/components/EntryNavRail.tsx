@@ -11,6 +11,7 @@
 import type { ReactNode } from 'react';
 import { EntryHelpMenu } from './EntryHelpMenu';
 import { Icon } from './Icon';
+import { wxcodeProjectsLabel } from './wxcode-embed';
 import { useT } from '../i18n';
 
 export type EntryView =
@@ -57,6 +58,7 @@ export function EntryNavRail({ view, onViewChange, onNewProject }: Props) {
   const t = useT();
   const brandLabel = t('app.brand');
   const homeLabel = t('entry.navHome');
+  const projectsLabel = wxcodeProjectsLabel(t('entry.navProjects'));
   const isHome = view === 'home';
 
   return (
@@ -97,8 +99,8 @@ export function EntryNavRail({ view, onViewChange, onNewProject }: Props) {
         </NavButton>
         <NavButton
           active={view === 'projects'}
-          ariaLabel={t('entry.navProjects')}
-          tooltip={t('entry.navProjects')}
+          ariaLabel={projectsLabel}
+          tooltip={projectsLabel}
           onClick={() => onViewChange('projects')}
           testId="entry-nav-projects"
         >

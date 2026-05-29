@@ -4,6 +4,7 @@ import { useT } from '../i18n';
 import { navigate, type EntryHomeView, type Route } from '../router';
 import type { Project } from '../types';
 import { Icon, type IconName } from './Icon';
+import { wxcodeProjectsLabel } from './wxcode-embed';
 
 type WorkspaceChromeTab =
   | {
@@ -764,10 +765,11 @@ function displayTabFor(
       tab,
     };
   }
+  const projectsLabel = wxcodeProjectsLabel(t('entry.navProjects'));
   const entryTitle: Record<EntryHomeView, string> = {
     home: t('entry.navHome'),
     onboarding: t('settings.welcomeTitle'),
-    projects: t('entry.navProjects'),
+    projects: projectsLabel,
     tasks: t('entry.navTasks'),
     plugins: t('entry.navPlugins'),
     'design-systems': t('entry.navDesignSystems'),
