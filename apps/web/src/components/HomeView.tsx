@@ -67,6 +67,7 @@ import {
   PLUGIN_AUTHORING_PROMPT_TEMPLATE,
   type HomePromptHandoff,
 } from './home-hero/plugin-authoring';
+import { isWxcodeEmbedHost } from './wxcode-embed';
 import { PluginDetailsModal } from './PluginDetailsModal';
 import { PluginsHomeSection } from './PluginsHomeSection';
 import type { PluginLoopSubmit } from './PluginLoopHome';
@@ -269,6 +270,7 @@ export function HomeView({
   const consumedHandoffIdRef = useRef<number | null>(null);
   const pendingPromptFocusEndRef = useRef(false);
   const activePluginApplyRequestRef = useRef(0);
+  const wxcodeDefaultPrototypeAppliedRef = useRef(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -1081,7 +1083,7 @@ export function HomeView({
   // Pure UI-state mapping — the heavy lifting is delegated back to
   // existing handlers. Migration chips that don't have a bound plugin
   // (`open-template-picker`) forward to callbacks threaded in from EntryShell.
-  function pickChip(chip: HomeHeroChip) {
+  function activateChip(chip: HomeHeroChip, options?: { trackClick?: boolean }) {
     setError(null);
     // P0 ui_click area=chat_composer element=plugin_chip|action_chip. The
     // chip's `action.kind` discriminates: plugin-bound chips
@@ -1089,16 +1091,18 @@ export function HomeView({
     // (create-plugin, open-template-picker) are action
     // shortcuts. Failure paths below still fire because the user did pick
     // the chip — error state belongs in the run lifecycle event.
-    const chipElement: 'plugin_chip' | 'action_chip' =
-      chip.action.kind === 'apply-scenario' || chip.action.kind === 'apply-figma-migration'
-        ? 'plugin_chip'
-        : 'action_chip';
-    trackHomeChatComposerClick(analytics.track, {
-      page_name: 'home',
-      area: 'chat_composer',
-      element: chipElement,
-      chip_id: chip.id,
-    });
+    if (options?.trackClick !== false) {
+      const chipElement: 'plugin_chip' | 'action_chip' =
+        chip.action.kind === 'apply-scenario' || chip.action.kind === 'apply-figma-migration'
+          ? 'plugin_chip'
+          : 'action_chip';
+      trackHomeChatComposerClick(analytics.track, {
+        page_name: 'home',
+        area: 'chat_composer',
+        element: chipElement,
+        chip_id: chip.id,
+      });
+    }
     switch (chip.action.kind) {
       case 'apply-scenario':
       case 'apply-figma-migration': {
@@ -1179,6 +1183,24 @@ export function HomeView({
       }
     }
   }
+
+  function pickChip(chip: HomeHeroChip) {
+    activateChip(chip);
+  }
+
+  useEffect(() => {
+    if (wxcodeDefaultPrototypeAppliedRef.current) return;
+    if (!isWxcodeEmbedHost()) return;
+    if (pluginsLoading || promptHandoff || active || pendingChipId) return;
+    if (prompt.trim().length > 0 || promptEditedByUser) return;
+    const prototypeChip = findChip('prototype');
+    if (!prototypeChip) return;
+    wxcodeDefaultPrototypeAppliedRef.current = true;
+    activateChip(prototypeChip, { trackClick: false });
+    // `activateChip` intentionally closes over the current plugin catalog,
+    // design-system options, and media config after the initial plugin load.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pluginsLoading, promptHandoff, active, pendingChipId, prompt, promptEditedByUser]);
 
   async function submit() {
     const trimmed = prompt.trim();

@@ -13,6 +13,17 @@ const WXCODE_EXTERNAL_PREVIEW_SANDBOX =
 const DEFAULT_PREVIEW_SANDBOX = 'allow-scripts allow-downloads';
 
 /**
+ * True when Open Design is running inside the WXCode Design iframe. Keep host
+ * checks in this seam so WXCode-only behavior remains additive to upstream.
+ */
+export function isWxcodeEmbedHost(): boolean {
+  return (
+    typeof document !== 'undefined' &&
+    document.documentElement.getAttribute('data-od-host') === 'wxcode'
+  );
+}
+
+/**
  * Sandbox attribute for the URL-load preview iframe. An external WXCode preview
  * is a trusted same-origin app surface that needs forms/popups/same-origin;
  * everything else keeps the locked-down default. Returning a constant string
