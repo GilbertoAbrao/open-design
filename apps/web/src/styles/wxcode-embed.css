@@ -268,6 +268,16 @@ html[data-od-host='wxcode'] .project-instructions-toggle {
 
 /* WXCode embeds Open Design as the Design surface, so keep Home focused on
    prototype creation and hide Open Design's standalone promotional chrome. */
+html[data-od-host='wxcode'] .entry {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+html[data-od-host='wxcode'] .entry-nav-rail,
+html[data-od-host='wxcode'] .entry-main__topbar,
+html[data-od-host='wxcode'] .chrome-share-menu {
+  display: none !important;
+}
+
 html[data-od-host='wxcode'] .entry-main__topbar-chips,
 html[data-od-host='wxcode'] .home-hero__brand,
 html[data-od-host='wxcode'] .home-hero__subtitle,
