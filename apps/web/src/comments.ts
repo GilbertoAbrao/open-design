@@ -53,6 +53,27 @@ export interface VisualAnnotationAttachmentInput {
   target?: VisualAnnotationTarget | null;
 }
 
+export function isInternalCommentTargetName(value: string | undefined | null): boolean {
+  const trimmed = String(value ?? '').trim();
+  return /^path-\d+(?:-\d+)*$/.test(trimmed);
+}
+
+export function commentTargetDisplayName(
+  target: {
+    elementId?: string | null;
+    label?: string | null;
+    selectionKind?: ChatCommentSelectionKind | PreviewCommentSelectionKind | null;
+  },
+  fallback = 'Annotation',
+): string {
+  if (target.selectionKind === 'visual') return 'Visual mark';
+  const label = String(target.label ?? '').trim();
+  if (label && !isInternalCommentTargetName(label)) return label;
+  const elementId = String(target.elementId ?? '').trim();
+  if (elementId && !isInternalCommentTargetName(elementId)) return elementId;
+  return fallback;
+}
+
 export function targetFromSnapshot(snapshot: PreviewCommentSnapshot): PreviewCommentTarget {
   const podMembers = normalizeMembers(snapshot.podMembers);
   return {
@@ -80,12 +101,13 @@ export function targetFromSnapshot(snapshot: PreviewCommentSnapshot): PreviewCom
 export function overlayBoundsFromSnapshot(
   snapshot: PreviewCommentSnapshot,
   scale: number,
+  offset: { x: number; y: number } = { x: 0, y: 0 },
 ): CommentOverlayBounds {
   const safeScale = Number.isFinite(scale) && scale > 0 ? scale : 1;
   const position = normalizePosition(snapshot.position);
   return {
-    left: position.x * safeScale,
-    top: position.y * safeScale,
+    left: offset.x + position.x * safeScale,
+    top: offset.y + position.y * safeScale,
     width: Math.max(1, position.width * safeScale),
     height: Math.max(1, position.height * safeScale),
   };

@@ -17,8 +17,10 @@ import { latestTodoWriteInputForPinnedCard } from '../runtime/todos';
 import { TodoCard } from './ToolCard';
 import type { AppConfig, ChatAttachment, ChatCommentAttachment, ChatMessage, ChatMessageFeedbackChange, Conversation, DesignSystemSummary, PreviewComment, ProjectFile, ProjectMetadata, SkillSummary } from '../types';
 import { dayKey, dayLabel, exactDateTime, messageTime, relativeTimeLong } from '../utils/chatTime';
-import { commentsToAttachments, simplePositionLabel } from '../comments';
+import { commentTargetDisplayName, commentsToAttachments, simplePositionLabel } from '../comments';
 import { AssistantMessage } from './AssistantMessage';
+import { AmrGuidance } from './AmrGuidance';
+import { AMR_RECHARGE_URL, resolveRunFailureUi } from '../runtime/amr-guidance';
 import {
   ChatComposer,
   type ChatComposerHandle,
@@ -222,7 +224,7 @@ interface Props {
   hasActiveDesignSystem?: boolean;
   activeDesignSystem?: DesignSystemSummary | null;
   sendDisabled?: boolean;
-  queuedItems?: Array<{ id: string; prompt: string }>;
+  queuedItems?: QueuedSendItem[];
   onRemoveQueuedSend?: (id: string) => void;
   onUpdateQueuedSend?: (id: string, prompt: string) => void;
   onSendQueuedNow?: (id: string) => void;
@@ -277,6 +279,14 @@ interface Props {
   // Composer settings/CLI button forwards to here. The dialog lives in App
   // (it owns the AppConfig lifecycle) so we just pass the open trigger.
   onOpenSettings?: (section?: SettingsSection) => void;
+  onOpenAmrSettings?: () => void;
+  onSwitchToAmrAndRetry?: (failedAssistant: ChatMessage) => void;
+  // PR #3157: Antigravity's `agy -p` can't complete OAuth on its own,
+  // so the auth banner offers a "Sign in via terminal" button that
+  // POSTs to /api/agents/antigravity/oauth-launch. Handler resolves
+  // after the daemon kicks off `osascript`/`x-terminal-emulator`/
+  // `cmd /c start` so the UI can disable the button while in flight.
+  onLaunchAntigravityOauth?: () => Promise<void>;
   // Same dialog, but landing on the External MCP tab. Forwarded to the
   // composer's `/mcp` slash and MCP picker button.
   onOpenMcpSettings?: () => void;
@@ -323,6 +333,13 @@ interface Props {
 
 type Tab = 'chat' | 'comments';
 
+interface QueuedSendItem {
+  id: string;
+  prompt: string;
+  attachments?: ChatAttachment[];
+  commentAttachments?: ChatCommentAttachment[];
+}
+
 export function ChatPane({
   messages,
   streaming,
@@ -364,6 +381,9 @@ export function ChatPane({
   onDeleteConversation,
   onRenameConversation,
   onOpenSettings,
+  onOpenAmrSettings,
+  onSwitchToAmrAndRetry,
+  onLaunchAntigravityOauth,
   onOpenMcpSettings,
   connectRepoNeeded,
   githubConnected,
@@ -415,6 +435,48 @@ export function ChatPane({
     (m) => m.role === 'assistant' && isActiveRunStatus(m.runStatus),
   );
   const retryAssistant = retryableAssistantMessage(messages, lastAssistantId, streaming);
+  // The failed run's error event lives on the (persisted) assistant message, so
+  // the error card + AMR card survive a reload — unlike the ephemeral global
+  // `error` state. Drive both off this event.
+  const failedRunErrorEvent = (() => {
+    const evs = retryAssistant?.events ?? [];
+    for (let i = evs.length - 1; i >= 0; i--) {
+      const ev = evs[i];
+      if (ev?.kind === 'status' && ev.label === 'error') return ev;
+    }
+    return null;
+  })();
+  // Per-case failure UI (button + copy + whether to promote AMR). Only
+  // meaningful for a failed run (retryAssistant present).
+  const runFailureUi = retryAssistant
+    ? resolveRunFailureUi(failedRunErrorEvent?.code, retryAssistant.agentId)
+    : null;
+  // Prefer a case-specific message (AMR auth / balance) over the raw upstream
+  // string; fall back to the live global error (also covers conversation-load
+  // / audio errors) then the persisted run error so a reload still shows it.
+  const rawError = error ?? failedRunErrorEvent?.detail ?? null;
+  const displayError = runFailureUi?.messageKey ? t(runFailureUi.messageKey) : rawError;
+  // The failed run whose error this top-level card represents. AssistantMessage
+  // suppresses only THIS message's per-message error pill (to avoid the
+  // duplicate); other failed turns — older history, or once a follow-up makes
+  // this no longer the last assistant — keep their pill so the error survives.
+  const errorCardOwnerId =
+    retryAssistant && failedRunErrorEvent ? retryAssistant.id : null;
+  // AMR promotion card payload (only the non-AMR model/auth/quota case).
+  const amrSwitchPayload =
+    runFailureUi?.showSwitchCard && retryAssistant && failedRunErrorEvent?.code
+      ? {
+          errorCode: failedRunErrorEvent.code,
+          projectId: projectId ?? '',
+          projectKind: projectKindForTracking,
+          conversationId: activeConversationId,
+          assistantMessageId: retryAssistant.id,
+          runId: retryAssistant.runId ?? null,
+        }
+      : null;
+  const composerDraftStorageKey = projectId && activeConversationId
+    ? `od:chat-composer:draft:${projectId}:${activeConversationId}`
+    : undefined;
   // Only the first user message gets the active-plugin chip — the
   // plugin is project-scoped so re-stamping it on every reply would be
   // noise. Subsequent messages still run under the same snapshot.
@@ -603,7 +665,12 @@ export function ChatPane({
       snapshot(target);
       const distance =
         target.scrollHeight - target.scrollTop - target.clientHeight;
-      setScrolledFromBottom(distance > 120);
+      // Functional updater bails out when the value is unchanged so a flood
+      // of scroll events (e.g. programmatic scrollTop + ResizeObserver
+      // follow-up during streaming) does not schedule a re-render per tick
+      // and trip React's "Maximum update depth exceeded" guard.
+      const next = distance > 120;
+      setScrolledFromBottom((prev) => (prev === next ? prev : next));
       pinnedToBottomRef.current = distance < 80;
     }
     el.addEventListener('scroll', onScroll);
@@ -1089,6 +1156,7 @@ export function ChatPane({
                         activePluginActionPaths={activePluginActionPaths}
                         hiddenPluginActionPaths={hiddenPluginActionPaths}
                         isLast={m.id === lastAssistantId}
+                        errorCardOwnerId={errorCardOwnerId}
                         nextUserContent={nextUserContentByAssistantId.get(m.id)}
                         suppressDirectionForms={hasActiveDesignSystem}
                         hasDesignSystemContext={hasActiveDesignSystem || !!activeDesignSystem}
@@ -1112,19 +1180,80 @@ export function ChatPane({
                   </Fragment>
                 );
               })}
-              {error ? (
+              {displayError ? (
                 <div className="msg error">
-                  <span className="chat-error-text">{error}</span>
-                  {retryAssistant && onRetry ? (
-                    <button
-                      type="button"
-                      className="ghost chat-error-retry"
-                      onClick={() => onRetry(retryAssistant)}
-                    >
-                      {t('promptTemplates.retry')}
-                    </button>
+                  <span className="chat-error-text">{displayError}</span>
+                  {retryAssistant && onRetry && runFailureUi ? (
+                    <div className="chat-error-actions">
+                      {runFailureUi.primaryAction === 'authorize' ? (
+                        <button
+                          type="button"
+                          className="chat-error-action"
+                          onClick={() => {
+                            if (onSwitchToAmrAndRetry) {
+                              onSwitchToAmrAndRetry(retryAssistant);
+                            } else {
+                              onOpenAmrSettings?.();
+                            }
+                          }}
+                        >
+                          {t('chat.amrError.authorizeCta')}
+                        </button>
+                      ) : runFailureUi.primaryAction === 'launch-terminal-auth' ? (
+                        <button
+                          type="button"
+                          className="chat-error-action"
+                          onClick={() => {
+                            onLaunchAntigravityOauth?.();
+                          }}
+                        >
+                          {t('chat.antigravityError.launchTerminalCta')}
+                        </button>
+                      ) : runFailureUi.primaryAction === 'launch-terminal-switch-model' ? (
+                        <button
+                          type="button"
+                          className="chat-error-action"
+                          onClick={() => {
+                            onLaunchAntigravityOauth?.();
+                          }}
+                        >
+                          {t('chat.antigravityError.launchSwitchModelCta')}
+                        </button>
+                      ) : runFailureUi.primaryAction === 'recharge' ? (
+                        <button
+                          type="button"
+                          className="chat-error-action"
+                          onClick={() =>
+                            window.open(AMR_RECHARGE_URL, '_blank', 'noopener,noreferrer')
+                          }
+                        >
+                          {t('chat.amrError.rechargeCta')}
+                        </button>
+                      ) : null}
+                      {runFailureUi.primaryAction === 'retry' || runFailureUi.secondaryRetry ? (
+                        <button
+                          type="button"
+                          className="ghost chat-error-retry"
+                          onClick={() => onRetry(retryAssistant)}
+                        >
+                          {t('promptTemplates.retry')}
+                        </button>
+                      ) : null}
+                    </div>
                   ) : null}
                 </div>
+              ) : null}
+              {amrSwitchPayload ? (
+                <AmrGuidance
+                  {...amrSwitchPayload}
+                  onActivate={() => {
+                    if (retryAssistant && onSwitchToAmrAndRetry) {
+                      onSwitchToAmrAndRetry(retryAssistant);
+                    } else {
+                      onOpenAmrSettings?.();
+                    }
+                  }}
+                />
               ) : null}
             </div>
             {/* Always mounted so the CSS transition can play in both
@@ -1165,6 +1294,7 @@ export function ChatPane({
             streaming={streaming}
             sendDisabled={sendDisabled}
             initialDraft={initialDraft}
+            draftStorageKey={composerDraftStorageKey}
             onEnsureProject={onEnsureProject}
             commentAttachments={commentsToAttachments(attachedComments)}
             onRemoveCommentAttachment={onDetachComment}
@@ -1488,7 +1618,7 @@ function CommentSection({
             data-testid={`comment-card-${comment.elementId}`}
           >
             <div className="comment-card-top">
-              <strong>{comment.elementId}</strong>
+              <strong>{commentTargetDisplayName(comment)}</strong>
               <div className="comment-card-actions">
                 {secondaryActionLabel && onSecondaryAction ? (
                   <button
@@ -1508,7 +1638,7 @@ function CommentSection({
             <div className="comment-card-meta">
               <span>{comment.id}</span>
               <span>{comment.filePath}</span>
-              <span>{comment.label}</span>
+              <span>{commentTargetDisplayName(comment)}</span>
               <span>{simplePositionLabel(comment.position)}</span>
             </div>
           </article>
@@ -1753,8 +1883,8 @@ function UserMessage({
         <div className="user-attachments comment-history-attachments">
           {commentAttachments.filter((attachment) => attachment.selectionKind !== 'visual').map((a) => (
             <span key={a.id} className="user-attachment staged-comment">
-              <span className="staged-name" title={`${a.elementId}: ${a.comment}`}>
-                <strong>{a.selectionKind === 'visual' ? 'Visual mark' : a.elementId}</strong>
+              <span className="staged-name" title={`${commentTargetDisplayName(a)}: ${a.comment}`}>
+                <strong>{commentTargetDisplayName(a)}</strong>
                 <span>{a.comment}</span>
               </span>
             </span>

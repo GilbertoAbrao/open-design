@@ -138,6 +138,12 @@ function migrate(db: SqliteDb): void {
       FOREIGN KEY(project_id) REFERENCES projects(id) ON DELETE CASCADE
     );
 
+    CREATE TABLE IF NOT EXISTS tabs_state (
+      project_id TEXT PRIMARY KEY,
+      updated_at INTEGER NOT NULL,
+      FOREIGN KEY(project_id) REFERENCES projects(id) ON DELETE CASCADE
+    );
+
     CREATE INDEX IF NOT EXISTS idx_tabs_project
       ON tabs(project_id, position);
 
@@ -193,6 +199,14 @@ function migrate(db: SqliteDb): void {
       summary TEXT,
       error TEXT,
       error_code TEXT,
+      FOREIGN KEY(routine_id) REFERENCES routines(id) ON DELETE CASCADE
+    );
+
+    CREATE TABLE IF NOT EXISTS routine_schedule_claims (
+      routine_id TEXT NOT NULL,
+      slot_at INTEGER NOT NULL,
+      claimed_at INTEGER NOT NULL,
+      PRIMARY KEY(routine_id, slot_at),
       FOREIGN KEY(routine_id) REFERENCES routines(id) ON DELETE CASCADE
     );
 
@@ -1489,6 +1503,41 @@ export function insertRoutineRun(db: SqliteDb, r: DbRow) {
   return getRoutineRun(db, r.id);
 }
 
+export function insertScheduledRoutineRun(db: SqliteDb, r: DbRow, slotAt: number) {
+  const insertClaim = db.prepare(
+    `INSERT OR IGNORE INTO routine_schedule_claims
+       (routine_id, slot_at, claimed_at)
+     VALUES (?, ?, ?)`,
+  );
+  const insertRun = db.prepare(
+    `INSERT INTO routine_runs
+       (id, routine_id, trigger, status, project_id, conversation_id,
+        agent_run_id, started_at, completed_at, summary, error, error_code)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+  );
+  const tx = db.transaction(() => {
+    const claim = insertClaim.run(r.routineId, slotAt, Date.now());
+    if (claim.changes === 0) return false;
+    insertRun.run(
+      r.id,
+      r.routineId,
+      r.trigger,
+      r.status,
+      r.projectId,
+      r.conversationId,
+      r.agentRunId,
+      r.startedAt,
+      r.completedAt ?? null,
+      r.summary ?? null,
+      r.error ?? null,
+      r.errorCode ?? null,
+    );
+    return true;
+  });
+  if (!tx()) return null;
+  return getRoutineRun(db, r.id);
+}
+
 export function updateRoutineRun(db: SqliteDb, id: string, patch: DbRow) {
   const existing = getRoutineRun(db, id);
   if (!existing) return null;
@@ -1498,10 +1547,14 @@ export function updateRoutineRun(db: SqliteDb, id: string, patch: DbRow) {
   };
   db.prepare(
     `UPDATE routine_runs
-        SET status = ?, completed_at = ?, summary = ?, error = ?, error_code = ?
+        SET status = ?, project_id = ?, conversation_id = ?, agent_run_id = ?,
+            completed_at = ?, summary = ?, error = ?, error_code = ?
       WHERE id = ?`,
   ).run(
     merged.status,
+    merged.projectId,
+    merged.conversationId,
+    merged.agentRunId,
     merged.completedAt ?? null,
     merged.summary ?? null,
     merged.error ?? null,
@@ -1537,15 +1590,24 @@ export function listTabs(db: SqliteDb, projectId: string) {
          FROM tabs WHERE project_id = ? ORDER BY position ASC`,
     )
     .all(projectId) as DbRow[];
+  const state = db
+    .prepare(`SELECT project_id FROM tabs_state WHERE project_id = ? LIMIT 1`)
+    .get(projectId) as DbRow | undefined;
   const active = (rows as DbRow[]).find((r: DbRow) => r.isActive) ?? null;
   return {
     tabs: (rows as DbRow[]).map((r: DbRow) => r.name),
     active: active ? active.name : null,
+    hasSavedState: rows.length > 0 || Boolean(state),
   };
 }
 
 export function setTabs(db: SqliteDb, projectId: string, names: string[], activeName: string | null) {
   const tx = db.transaction(() => {
+    db.prepare(
+      `INSERT INTO tabs_state (project_id, updated_at)
+       VALUES (?, ?)
+       ON CONFLICT(project_id) DO UPDATE SET updated_at = excluded.updated_at`,
+    ).run(projectId, Date.now());
     db.prepare(`DELETE FROM tabs WHERE project_id = ?`).run(projectId);
     const ins = db.prepare(
       `INSERT INTO tabs (project_id, name, position, is_active)

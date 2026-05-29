@@ -232,10 +232,9 @@ describe('FileWorkspace upload input', () => {
 
     expect(screen.getByTestId('wxcode-live-preview-tab')).toBeTruthy();
     await waitFor(() => {
-      expect(screen.getByTestId('palette-tweaks-toggle')).toBeTruthy();
       expect(screen.getByTestId('draw-overlay-toggle')).toBeTruthy();
       expect(screen.getByTestId('board-mode-toggle')).toBeTruthy();
-      expect(screen.getByTestId('inspect-mode-toggle')).toBeTruthy();
+      expect(screen.getByTestId('comment-panel-toggle')).toBeTruthy();
       expect(screen.getByTestId('manual-edit-mode-toggle')).toBeTruthy();
     });
     expect(screen.queryByTestId('wxcode-live-preview-viewer')).toBeNull();
@@ -274,10 +273,9 @@ describe('FileWorkspace upload input', () => {
         tabs: ['app/templates/index.html'],
         active: 'app/templates/index.html',
       });
-      expect(screen.getByTestId('palette-tweaks-toggle')).toBeTruthy();
       expect(screen.getByTestId('draw-overlay-toggle')).toBeTruthy();
       expect(screen.getByTestId('board-mode-toggle')).toBeTruthy();
-      expect(screen.getByTestId('inspect-mode-toggle')).toBeTruthy();
+      expect(screen.getByTestId('comment-panel-toggle')).toBeTruthy();
       expect(screen.getByTestId('manual-edit-mode-toggle')).toBeTruthy();
     });
     expect(screen.queryByTestId('wxcode-live-preview-viewer')).toBeNull();
@@ -303,18 +301,17 @@ describe('FileWorkspace upload input', () => {
 
     await waitFor(() => {
       expect(screen.getByTestId('wxcode-live-preview-tab')).toBeTruthy();
-      expect(screen.getByTestId('palette-tweaks-toggle')).toBeTruthy();
       expect(screen.getByTestId('draw-overlay-toggle')).toBeTruthy();
       expect(screen.getByTestId('board-mode-toggle')).toBeTruthy();
-      expect(screen.getByTestId('inspect-mode-toggle')).toBeTruthy();
+      expect(screen.getByTestId('comment-panel-toggle')).toBeTruthy();
       expect(screen.getByTestId('manual-edit-mode-toggle')).toBeTruthy();
     });
     expect(screen.queryByTestId('wxcode-live-preview-viewer')).toBeNull();
     const frame = screen.getByTestId('artifact-preview-frame') as HTMLIFrameElement;
     expect(frame.getAttribute('src')).toContain('https://example.preview.wxcode.ai/');
 
-    fireEvent.click(screen.getByTestId('inspect-mode-toggle'));
-    expect(screen.getByTestId('inspect-mode-toggle').getAttribute('aria-pressed')).toBe('true');
+    fireEvent.click(screen.getByTestId('board-mode-toggle'));
+    expect(screen.getByTestId('board-mode-toggle').getAttribute('aria-pressed')).toBe('true');
     expect(frame.getAttribute('src')).toContain('https://example.preview.wxcode.ai/');
   });
 

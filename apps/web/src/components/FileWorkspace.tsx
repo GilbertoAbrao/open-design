@@ -115,6 +115,8 @@ interface Props {
   wxcodePreviewEntryFile?: string | null;
   wxcodePreviewPreferSourceFile?: boolean;
   wxcodePreviewScroll?: { x: number; y: number } | null;
+  commentPortalId?: string;
+  onCommentModeChange?: (active: boolean) => void;
 }
 
 interface SketchState {
@@ -236,6 +238,8 @@ export function FileWorkspace({
   wxcodePreviewEntryFile = null,
   wxcodePreviewPreferSourceFile = false,
   wxcodePreviewScroll = null,
+  commentPortalId,
+  onCommentModeChange,
 }: Props) {
   const t = useT();
   const analytics = useAnalytics();
@@ -1216,6 +1220,8 @@ export function FileWorkspace({
             onSendBoardCommentAttachments={onSendBoardCommentAttachments}
             onFileSaved={onRefreshFiles}
             onOpenFileReplacing={openFileReplacing}
+            commentPortalId={commentPortalId}
+            onCommentModeChange={onCommentModeChange}
           />
         ) : (
           <div className="viewer-empty">
