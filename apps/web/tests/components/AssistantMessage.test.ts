@@ -1,4 +1,6 @@
-import { describe, expect, it } from 'vitest';
+// @vitest-environment jsdom
+
+import { afterEach, describe, expect, it } from 'vitest';
 import { assistantRoleLabel } from '../../src/components/AssistantMessage';
 import type { ChatMessage } from '../../src/types';
 
@@ -62,5 +64,36 @@ describe('assistantRoleLabel', () => {
     };
 
     expect(assistantRoleLabel(message, t)).toBe('Claude · claude-sonnet-4-6');
+  });
+});
+
+describe('assistantRoleLabel — WXCode embed white-label', () => {
+  afterEach(() => {
+    document.documentElement.removeAttribute('data-od-host');
+  });
+
+  it('shows WXCode instead of the underlying agent inside the WXCode embed', () => {
+    document.documentElement.setAttribute('data-od-host', 'wxcode');
+    const message: ChatMessage = {
+      id: 'message-wx',
+      role: 'assistant',
+      content: '',
+      agentId: 'opencode',
+      agentName: 'OpenCode',
+    };
+
+    expect(assistantRoleLabel(message, t)).toBe('WXCode');
+  });
+
+  it('keeps the upstream agent label outside the WXCode embed', () => {
+    const message: ChatMessage = {
+      id: 'message-host',
+      role: 'assistant',
+      content: '',
+      agentId: 'opencode',
+      agentName: 'OpenCode',
+    };
+
+    expect(assistantRoleLabel(message, t)).toBe('OpenCode');
   });
 });

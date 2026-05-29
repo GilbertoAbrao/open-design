@@ -49,6 +49,7 @@ import {
 } from "../runtime/todos";
 import type { Dict } from "../i18n/types";
 import { agentDisplayName, exactAgentDisplayName } from "../utils/agentLabels";
+import { isWxcodeEmbedHost } from "./wxcode-embed";
 import {
   exactDateTime,
   messageTime,
@@ -748,6 +749,9 @@ export function assistantRoleLabel(
   message: ChatMessage,
   t: TranslateFn
 ): string {
+  // WXCode white-labels Open Design: inside the WXCode embed the assistant is
+  // always "WXCode", regardless of the underlying agent or model.
+  if (isWxcodeEmbedHost()) return "WXCode";
   const model = assistantModelDetail(message);
   const fromName = message.agentName?.trim();
   if (fromName)
@@ -839,7 +843,7 @@ function AssistantFooter({
         {usage?.outputTokens != null
           ? ` · ${t("assistant.outTokens", { n: usage.outputTokens })}`
           : ""}
-        {typeof usage?.costUsd === "number"
+        {typeof usage?.costUsd === "number" && !isWxcodeEmbedHost()
           ? ` · $${usage.costUsd.toFixed(4)}`
           : ""}
       </span>
