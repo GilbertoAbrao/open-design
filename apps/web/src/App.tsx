@@ -38,6 +38,7 @@ import {
   type SettingsSection,
   type SettingsHighlight,
 } from './components/SettingsDialog';
+import { isWxcodeEmbedHost } from './components/wxcode-embed';
 import { PrivacyConsentModal } from './components/PrivacyConsentModal';
 import {
   daemonIsLive,
@@ -1207,6 +1208,39 @@ function AppInner() {
     route.kind === 'project'
       ? (projects.find((p) => p.id === route.projectId) ?? null)
       : null;
+
+  useEffect(() => {
+    if (!isWxcodeEmbedHost()) return;
+    if (typeof window === 'undefined' || window.parent === window) return;
+
+    if (route.kind === 'project') {
+      window.parent.postMessage(
+        {
+          type: 'wxcode-design-route',
+          view: 'project',
+          projectId: route.projectId,
+          projectName: activeProject?.name ?? null,
+        },
+        '*',
+      );
+      return;
+    }
+
+    if (route.kind === 'home' && route.view === 'projects') {
+      window.parent.postMessage(
+        { type: 'wxcode-design-route', view: 'prototypes' },
+        '*',
+      );
+      return;
+    }
+
+    if (route.kind === 'home' && route.view === 'home') {
+      window.parent.postMessage(
+        { type: 'wxcode-design-route', view: 'home' },
+        '*',
+      );
+    }
+  }, [activeProject?.name, route]);
 
   // Deep-linked route to a project we don't have yet (e.g. after a refresh
   // that finishes after the project list comes back). Fetch it in the
