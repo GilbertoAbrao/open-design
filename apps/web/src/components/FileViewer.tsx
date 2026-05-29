@@ -75,6 +75,7 @@ import {
   parseForceInline,
   shouldUrlLoadHtmlPreview,
 } from './file-viewer-render-mode';
+import { resolveWxcodeUrlLoadPreview, wxcodePreviewSandbox } from './wxcode-embed';
 import { saveTemplate } from '../state/projects';
 import type {
   LiveArtifactEventItem,
@@ -4529,9 +4530,10 @@ function HtmlViewer({
     () => source != null && htmlNeedsFocusGuard(source),
     [source],
   );
-  const useUrlLoadPreview = externalPreviewBaseUrl
-    ? mode === 'preview'
-    : shouldUrlLoadHtmlPreview({
+  const useUrlLoadPreview = resolveWxcodeUrlLoadPreview(
+    externalPreviewBaseUrl,
+    mode === 'preview',
+    shouldUrlLoadHtmlPreview({
       mode,
       isDeck: effectiveDeck,
       commentMode: boardMode,
@@ -4541,7 +4543,9 @@ function HtmlViewer({
       drawMode: drawOverlayOpen,
       forceInline: forceInline || needsSandboxShim,
       needsFocusGuard,
-    });
+    }),
+  );
+  const previewSandbox = wxcodePreviewSandbox(externalPreviewBaseUrl);
   const basePreviewSrcUrl = useMemo(
     () => externalPreviewBaseUrl
       ? externalPreviewSrc(externalPreviewBaseUrl, reloadKey)
@@ -7044,9 +7048,7 @@ function HtmlViewer({
                         aria-hidden={useUrlLoadPreview ? undefined : true}
                         tabIndex={useUrlLoadPreview ? 0 : -1}
                         title={file.name}
-                        sandbox={externalPreviewBaseUrl
-                          ? 'allow-scripts allow-forms allow-popups allow-downloads allow-same-origin'
-                          : 'allow-scripts allow-downloads'}
+                        sandbox={previewSandbox}
                         src={urlTransportSrc}
                         onLoad={() => {
                           const frame = urlPreviewIframeRef.current;
@@ -7070,9 +7072,7 @@ function HtmlViewer({
                         aria-hidden={useUrlLoadPreview ? undefined : true}
                         tabIndex={useUrlLoadPreview ? 0 : -1}
                         title={file.name}
-                        sandbox={externalPreviewBaseUrl
-                          ? 'allow-scripts allow-forms allow-popups allow-downloads allow-same-origin'
-                          : 'allow-scripts allow-downloads'}
+                        sandbox={previewSandbox}
                         src={urlTransportSrc}
                         onLoad={() => {
                           const frame = urlPreviewIframeRef.current;
