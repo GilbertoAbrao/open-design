@@ -1392,7 +1392,8 @@ export function HomeView({
         onOpenDetails={setDetailsRecord}
         onBrowseRegistry={onBrowseRegistry}
         preferDefaultFacet={false}
-        presetSelection={presetStartersSelection}
+        presetSelection={isWxcodeEmbedHost() ? WXCODE_PROTOTYPE_SELECTION : presetStartersSelection}
+        restrictCategory={isWxcodeEmbedHost() ? 'prototype' : null}
       />
 
       {detailsRecord ? (
@@ -1521,6 +1522,9 @@ function shouldShowActivePluginChip(active: ActivePlugin | null): boolean {
 // kind in a different control. The list mirrors the `apply-scenario`
 // and `apply-figma-migration` chip ids in `home-hero/chips.ts`; any
 // new chip there should add a row here too.
+// WXCode embed locks the Home community section to the Prototype kind.
+const WXCODE_PROTOTYPE_SELECTION: FacetSelection = { category: 'prototype', subcategory: null };
+
 function facetSelectionForChip(chipId: string): FacetSelection | null {
   switch (chipId) {
     case 'prototype': return { category: 'prototype', subcategory: null };

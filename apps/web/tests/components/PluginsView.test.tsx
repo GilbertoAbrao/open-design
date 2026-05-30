@@ -675,3 +675,23 @@ describe('PluginsView', () => {
     );
   });
 });
+
+describe('PluginsView — WXCode embed', () => {
+  afterEach(() => {
+    document.documentElement.removeAttribute('data-od-host');
+  });
+
+  it('hides the Create plugin button inside the WXCode embed', async () => {
+    document.documentElement.setAttribute('data-od-host', 'wxcode');
+    render(<PluginsView onCreatePlugin={vi.fn()} />);
+
+    expect(await screen.findByTestId('plugins-import-button')).toBeTruthy();
+    expect(screen.queryByTestId('plugins-create-button')).toBeNull();
+  });
+
+  it('keeps the Create plugin button outside the WXCode embed', async () => {
+    render(<PluginsView onCreatePlugin={vi.fn()} />);
+
+    expect(await screen.findByTestId('plugins-create-button')).toBeTruthy();
+  });
+});

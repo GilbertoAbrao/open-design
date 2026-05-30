@@ -37,6 +37,7 @@ import { Icon } from './Icon';
 import { PluginDetailsModal } from './PluginDetailsModal';
 import { PluginsHomeSection } from './PluginsHomeSection';
 import { TrustBadge } from './TrustBadge';
+import { isWxcodeEmbedHost } from './wxcode-embed';
 import { useI18n } from '../i18n';
 import { copyToClipboard } from '../lib/copy-to-clipboard';
 import type { PluginUseAction } from './plugins-home/useActions';
@@ -286,6 +287,9 @@ export function PluginsView({
           </p>
         </div>
         <div className="plugins-view__hero-actions">
+          {/* WXCode embed hides plugin authoring: the embed is a curated
+              prototype catalog, not a plugin-creation surface. */}
+          {isWxcodeEmbedHost() ? null : (
           <button
             type="button"
             className="plugins-view__primary"
@@ -302,6 +306,7 @@ export function PluginsView({
             <Icon name="edit" size={13} />
             <span>{t('homeHero.chip.createPlugin')}</span>
           </button>
+          )}
           <button
             type="button"
             className="plugins-view__secondary"

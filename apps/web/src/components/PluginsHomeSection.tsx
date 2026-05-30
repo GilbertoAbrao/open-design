@@ -50,6 +50,10 @@ interface Props {
   // slice instead of staying on its default. The hook only re-applies
   // when this identity changes, so manual facet clicks still win.
   presetSelection?: FacetSelection | null;
+  // When set (WXCode embed), the category bar collapses to this single
+  // artifact kind: the Saved/All chips and every other category pill are
+  // hidden, the pill is locked active, and the grid only lists that kind.
+  restrictCategory?: string | null;
   title?: string;
   subtitle?: string;
   emptyMessage?: string;
@@ -67,6 +71,7 @@ export function PluginsHomeSection({
   onBrowseRegistry,
   preferDefaultFacet = true,
   presetSelection = null,
+  restrictCategory = null,
   title,
   subtitle,
   emptyMessage,
@@ -177,7 +182,10 @@ export function PluginsHomeSection({
             aria-label="Plugin filters"
           >
             <CategoryRow
-              options={catalog.category}
+              options={restrictCategory
+                ? catalog.category.filter((opt) => opt.slug === restrictCategory)
+                : catalog.category}
+              locked={Boolean(restrictCategory)}
               selectedSlug={selection.category}
               totalVisible={totalVisible}
               onPick={pickCategory}
@@ -252,6 +260,7 @@ export function PluginsHomeSection({
 
 interface CategoryRowProps {
   options: FacetOption[];
+  locked?: boolean;
   selectedSlug: string | null;
   totalVisible: number;
   onPick: (slug: string | null) => void;
@@ -269,6 +278,7 @@ interface CategoryRowProps {
 // what the chip strip already shows.
 function CategoryRow({
   options,
+  locked = false,
   selectedSlug,
   totalVisible,
   onPick,
@@ -290,39 +300,44 @@ function CategoryRow({
         role="tablist"
         aria-label={t('pluginsHome.categoryFilterAria')}
       >
-        <button
-          type="button"
-          className={[
-            'plugins-home__chip',
-            'plugins-home__chip--saved',
-            savedActive ? 'is-active' : '',
-          ]
-            .filter(Boolean)
-            .join(' ')}
-          onClick={onToggleSaved}
-          aria-pressed={savedActive}
-          data-testid="plugins-home-chip-saved"
-        >
-          <Icon name="star" size={11} />
-          <span>{t('pluginsHome.featured')}</span>
-          <span className="plugins-home__chip-count">{savedCount}</span>
-        </button>
-        <CategoryPill
-          slug={null}
-          label={t('common.all')}
-          count={totalVisible}
-          active={selectedSlug === null}
-          onPick={onPick}
-          variant="all"
-        />
+        {locked ? null : (
+          <button
+            type="button"
+            className={[
+              'plugins-home__chip',
+              'plugins-home__chip--saved',
+              savedActive ? 'is-active' : '',
+            ]
+              .filter(Boolean)
+              .join(' ')}
+            onClick={onToggleSaved}
+            aria-pressed={savedActive}
+            data-testid="plugins-home-chip-saved"
+          >
+            <Icon name="star" size={11} />
+            <span>{t('pluginsHome.featured')}</span>
+            <span className="plugins-home__chip-count">{savedCount}</span>
+          </button>
+        )}
+        {locked ? null : (
+          <CategoryPill
+            slug={null}
+            label={t('common.all')}
+            count={totalVisible}
+            active={selectedSlug === null}
+            onPick={onPick}
+            variant="all"
+          />
+        )}
         {options.map((opt) => (
           <CategoryPill
             key={opt.slug}
             slug={opt.slug}
             label={opt.label}
             count={opt.count}
-            active={selectedSlug === opt.slug}
+            active={locked ? true : selectedSlug === opt.slug}
             onPick={onPick}
+            locked={locked}
           />
         ))}
       </div>
@@ -385,10 +400,11 @@ interface CategoryPillProps {
   active: boolean;
   variant?: 'all' | 'sub-all';
   testId?: string;
+  locked?: boolean;
   onPick: (slug: string | null) => void;
 }
 
-function CategoryPill({ slug, label, count, active, variant, testId, onPick }: CategoryPillProps) {
+function CategoryPill({ slug, label, count, active, variant, testId, locked = false, onPick }: CategoryPillProps) {
   const t = useT();
   const displayLabel = slug ? pluginFacetLabel(slug, label, t) : label;
   return (
@@ -404,7 +420,13 @@ function CategoryPill({ slug, label, count, active, variant, testId, onPick }: C
       ]
         .filter(Boolean)
         .join(' ')}
-      onClick={() => onPick(slug)}
+      onClick={() => {
+        // Locked (WXCode embed) pill is display-only: clicking it must
+        // not toggle the single allowed category off.
+        if (locked) return;
+        onPick(slug);
+      }}
+      aria-disabled={locked || undefined}
       // Planned child buckets stay visible even before the catalog
       // has examples for each scene. The `data-empty` flag gives
       // those zero-count buckets a lighter treatment without adding
