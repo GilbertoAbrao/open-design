@@ -4,6 +4,7 @@ import { copyToClipboard } from '../lib/copy-to-clipboard';
 import { exportAsHtml, exportAsPdf, exportAsZip, openSandboxedPreviewInNewTab } from '../runtime/exports';
 import { buildSrcdoc } from '../runtime/srcdoc';
 import { Icon } from './Icon';
+import { isWxcodeEmbedHost } from './wxcode-embed';
 
 export interface PreviewView {
   id: string;
@@ -457,7 +458,10 @@ export function PreviewModal({
   }
 
   const showTabs = views.length > 1;
-  const showTemplateShareMenu = !isCustomView || Boolean(shareTarget?.url);
+  // WXCode embed hides the template Share menu (external/social share is not
+  // exposed in the white-labeled, curated catalog).
+  const showTemplateShareMenu =
+    (!isCustomView || Boolean(shareTarget?.url)) && !isWxcodeEmbedHost();
   const canOpenTemplateShareMenu = canExportFiles || Boolean(previewShareUrl);
 
   return (
@@ -530,21 +534,25 @@ export function PreviewModal({
                   {sidebar.label}
                 </button>
               ) : null}
-              <button
-                className="ghost"
-                onClick={() => {
-                  onFullscreenClick?.();
-                  if (fullscreen) exitFullscreen();
-                  else enterFullscreen();
-                }}
-                title={
-                  fullscreen
-                    ? t('common.exitFullscreen')
-                    : t('common.fullscreen')
-                }
-              >
-                {fullscreen ? t('preview.exit') : t('preview.fullscreen')}
-              </button>
+              {/* WXCode embed hides Fullscreen — the embed runs inside a
+                  fixed Design iframe where native fullscreen is unwanted. */}
+              {isWxcodeEmbedHost() ? null : (
+                <button
+                  className="ghost"
+                  onClick={() => {
+                    onFullscreenClick?.();
+                    if (fullscreen) exitFullscreen();
+                    else enterFullscreen();
+                  }}
+                  title={
+                    fullscreen
+                      ? t('common.exitFullscreen')
+                      : t('common.fullscreen')
+                  }
+                >
+                  {fullscreen ? t('preview.exit') : t('preview.fullscreen')}
+                </button>
+              )}
               {showTemplateShareMenu ? (
                 <div className="share-menu template-share-menu" ref={templateShareRef}>
                   <button

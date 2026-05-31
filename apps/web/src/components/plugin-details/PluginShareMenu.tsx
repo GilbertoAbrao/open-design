@@ -18,6 +18,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { InstalledPluginRecord } from '@open-design/contracts';
 import { Icon } from '../Icon';
+import { isWxcodeEmbedHost } from '../wxcode-embed';
 import { useT } from '../../i18n';
 import { copyToClipboard } from '../../lib/copy-to-clipboard';
 import { derivePluginSourceLinks } from '../../runtime/plugin-source';
@@ -261,23 +262,30 @@ export function PluginShareMenu({ record, variant = 'default' }: Props) {
               </button>
             ))}
           </div>
-          <div className="plugin-share-popover__divider" />
-          <div className="plugin-share-popover__group">
-            {openItems.map((item) => (
-              <a
-                key={item.key}
-                role="menuitem"
-                className="plugin-share-item"
-                href={item.href}
-                target="_blank"
-                rel="noreferrer"
-                onClick={() => setOpen(false)}
-              >
-                <Icon name={item.icon} size={12} />
-                <span>{item.label}</span>
-              </a>
-            ))}
-          </div>
+          {/* WXCode embed hides the external "Open ..." links (GitHub
+              source, homepage, marketplace) — the white-labeled catalog does
+              not expose upstream provenance destinations. */}
+          {openItems.length > 0 && !isWxcodeEmbedHost() ? (
+            <>
+              <div className="plugin-share-popover__divider" />
+              <div className="plugin-share-popover__group">
+                {openItems.map((item) => (
+                  <a
+                    key={item.key}
+                    role="menuitem"
+                    className="plugin-share-item"
+                    href={item.href}
+                    target="_blank"
+                    rel="noreferrer"
+                    onClick={() => setOpen(false)}
+                  >
+                    <Icon name={item.icon} size={12} />
+                    <span>{item.label}</span>
+                  </a>
+                ))}
+              </div>
+            </>
+          ) : null}
         </div>
       ) : null}
     </div>

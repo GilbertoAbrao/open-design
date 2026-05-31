@@ -83,6 +83,7 @@ describe('PluginShareMenu', () => {
   afterEach(() => {
     act(() => root.unmount());
     container.remove();
+    document.documentElement.removeAttribute('data-od-host');
   });
 
   function renderMenu(record: InstalledPluginRecord, locale?: Locale) {
@@ -347,6 +348,28 @@ describe('PluginShareMenu', () => {
       'a.plugin-share-item[href="https://github.com/owner/repo"]',
     );
     expect(sourceLink).toBeTruthy();
+  });
+
+  it('hides the external open links inside the WXCode embed', () => {
+    document.documentElement.setAttribute('data-od-host', 'wxcode');
+    renderMenu(
+      make({
+        id: 'gh-embed',
+        sourceKind: 'github',
+        source: 'github:owner/repo',
+        homepage: 'https://example.test/home',
+      }),
+    );
+    openPopover();
+    const labels = Array.from(
+      container.querySelectorAll('.plugin-share-item'),
+    ).map((item) => item.textContent ?? '');
+    // The "Open ..." provenance links are gone in the embed.
+    expect(labels.some((l) => l.includes('Open source on GitHub'))).toBe(false);
+    expect(labels.some((l) => l.includes('Open homepage'))).toBe(false);
+    expect(labels.some((l) => l.includes('Open in marketplace'))).toBe(false);
+    // Copy actions stay available.
+    expect(labels.some((l) => l.includes('Copy install command'))).toBe(true);
   });
 
   it('surfaces the homepage link when manifest.homepage is set', () => {
