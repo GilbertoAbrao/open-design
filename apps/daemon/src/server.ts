@@ -457,6 +457,7 @@ import {
 import {
   allowedBrowserPorts,
   configuredAllowedOrigins,
+  frameAncestorsDirective,
   isAllowedBrowserOrigin,
   isLocalSameOrigin,
 } from './origin-validation.js';
@@ -2964,7 +2965,7 @@ function setLiveArtifactPreviewHeaders(res) {
       "object-src 'none'",
       "connect-src 'none'",
       "form-action 'none'",
-      "frame-ancestors 'self'",
+      frameAncestorsDirective(),
       "img-src 'self' data: blob:",
       "font-src 'self' data:",
       "style-src 'unsafe-inline'",
@@ -7212,7 +7213,7 @@ export async function startServer({
       }
       res.setHeader(
         'Content-Security-Policy',
-        "default-src 'none'; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src 'none'; frame-ancestors 'self'",
+        `default-src 'none'; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src 'none'; ${frameAncestorsDirective()}`,
       );
       res.setHeader('X-Content-Type-Options', 'nosniff');
       const ext = path.extname(contentPath).toLowerCase();
@@ -7504,7 +7505,7 @@ export async function startServer({
       // no network, no external resources, no document-level forms.
       res.setHeader(
         'Content-Security-Policy',
-        "default-src 'none'; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src 'none'; frame-ancestors 'self'",
+        `default-src 'none'; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src 'none'; ${frameAncestorsDirective()}`,
       );
       res.setHeader('X-Content-Type-Options', 'nosniff');
       const ext = path.extname(resolved).toLowerCase();

@@ -6,6 +6,8 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import {
   allowedBrowserPorts,
   configuredAllowedOrigins,
+  configuredFrameAncestors,
+  frameAncestorsDirective,
   isAllowedBrowserOrigin,
   isLocalSameOrigin,
 } from '../src/origin-validation.js';
@@ -640,5 +642,35 @@ describe('isLocalSameOrigin: Sec-Fetch-Site fallback for no-Origin same-origin G
       },
     };
     expect(isLocalSameOrigin(req, 7456, env)).toBe(false);
+  });
+});
+
+describe('frameAncestorsDirective / configuredFrameAncestors', () => {
+  it("defaults to 'self' when OD_FRAME_ANCESTORS is unset", () => {
+    expect(frameAncestorsDirective({} as NodeJS.ProcessEnv)).toBe("frame-ancestors 'self'");
+    expect(configuredFrameAncestors({} as NodeJS.ProcessEnv)).toEqual([]);
+  });
+
+  it('appends a configured top-frame origin', () => {
+    expect(
+      frameAncestorsDirective({ OD_FRAME_ANCESTORS: 'https://app.wxcode.ai' } as NodeJS.ProcessEnv),
+    ).toBe("frame-ancestors 'self' https://app.wxcode.ai");
+  });
+
+  it('accepts a subdomain wildcard and de-dupes space/comma-separated origins', () => {
+    expect(
+      configuredFrameAncestors({
+        OD_FRAME_ANCESTORS: 'https://app.wxcode.ai, https://*.wxcode.ai https://app.wxcode.ai',
+      } as NodeJS.ProcessEnv),
+    ).toEqual(['https://app.wxcode.ai', 'https://*.wxcode.ai']);
+  });
+
+  it('drops malformed tokens so a bad env cannot inject CSP directives', () => {
+    expect(
+      configuredFrameAncestors({
+        OD_FRAME_ANCESTORS:
+          "https://ok.example.com 'unsafe-inline'; script-src * https://evil.test/path javascript:alert(1)",
+      } as NodeJS.ProcessEnv),
+    ).toEqual(['https://ok.example.com']);
   });
 });

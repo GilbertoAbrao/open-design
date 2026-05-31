@@ -204,3 +204,43 @@ function headerValue(value: unknown): string | undefined {
   }
   return value == null ? undefined : String(value);
 }
+
+// CSP host-source: http(s) origin with an optional single `*.` subdomain
+// wildcard. `URL` rejects the wildcard form, so validate with a regex that
+// also rejects quotes, semicolons, paths, and whitespace — anything that could
+// break out of the `frame-ancestors` directive.
+const FRAME_ANCESTOR_ORIGIN_RE = /^https?:\/\/(\*\.)?[a-z0-9.-]+(:\d+)?$/i;
+
+/**
+ * Extra origins allowed to frame the sandboxed preview/embed responses, read
+ * from `OD_FRAME_ANCESTORS` (space- or comma-separated). Default empty so the
+ * caller keeps `frame-ancestors 'self'` (unchanged upstream behavior). Invalid
+ * tokens are skipped rather than thrown: this feeds a response header, so a
+ * malformed env should degrade to 'self', not 500 every preview.
+ */
+export function configuredFrameAncestors(env: NodeJS.ProcessEnv = process.env): string[] {
+  const raw = env.OD_FRAME_ANCESTORS || '';
+  if (!raw.trim()) return [];
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const token of raw.split(/[\s,]+/)) {
+    const trimmed = token.trim();
+    if (!trimmed || !FRAME_ANCESTOR_ORIGIN_RE.test(trimmed)) continue;
+    const key = trimmed.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(trimmed);
+  }
+  return out;
+}
+
+/**
+ * CSP `frame-ancestors` directive for sandboxed preview/embed responses. Always
+ * leads with `'self'` (same-origin framing keeps working) and appends any
+ * origins from `OD_FRAME_ANCESTORS`. With no env set this is exactly
+ * `frame-ancestors 'self'` — identical to the previous hardcoded value, so it
+ * is safe by default and additive against upstream.
+ */
+export function frameAncestorsDirective(env: NodeJS.ProcessEnv = process.env): string {
+  return ["frame-ancestors 'self'", ...configuredFrameAncestors(env)].join(' ');
+}
