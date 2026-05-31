@@ -12984,6 +12984,66 @@ export async function startServer({
     }
     design.runs.start(run, () => startChatRun(meta, run));
 
+    // Per-run usage webhook (billing). Independent of the telemetry/prefs
+    // gate below: this fires whenever `OD_USAGE_WEBHOOK_URL` is set,
+    // regardless of `analyticsContext` / metrics preferences. Strictly
+    // fire-and-forget — `emitUsageWebhook` swallows every error and never
+    // throws, so run success never depends on it. The DS-vs-chat signal is
+    // re-derived here from the same cheap request hints the analytics block
+    // uses, so this block has no dependency on analytics-scoped locals.
+    {
+      const usageReqBody = (req.body || {}) as Record<string, unknown>;
+      const usageProjectId =
+        typeof usageReqBody.projectId === 'string' ? usageReqBody.projectId : null;
+      const usageHints =
+        usageReqBody.analyticsHints && typeof usageReqBody.analyticsHints === 'object'
+          ? (usageReqBody.analyticsHints as Record<string, unknown>)
+          : {};
+      const usageEntryFrom =
+        typeof usageHints.entryFrom === 'string' ? usageHints.entryFrom : undefined;
+      const usageHintProjectKind =
+        typeof usageHints.projectKind === 'string' ? usageHints.projectKind : null;
+      const usageProject = usageProjectId ? getProject(db, usageProjectId) : null;
+      const usageProjectKind = resolveRunProjectKindForAnalytics({
+        hintProjectKind: usageHintProjectKind,
+        projectMetadata: usageProject?.metadata,
+      });
+      const usageIsDesignSystemRun =
+        usageProjectKind === 'design_system'
+        || usageEntryFrom === 'design_system_create'
+        || usageEntryFrom === 'onboarding_design_system'
+        || usageEntryFrom === 'regenerate_from_review';
+      const usageStartedAt = Date.now();
+      design.runs.wait(run).then(() => {
+        const { inputTokens, outputTokens, agentReportedModel } =
+          scanRunEventsForFinishedProps(run.events, usageReqBody.model);
+        emitUsageWebhook({
+          runId: run.id,
+          conversationId:
+            typeof usageReqBody.conversationId === 'string'
+              ? usageReqBody.conversationId
+              : null,
+          projectId: usageProjectId,
+          isDesignSystemRun: usageIsDesignSystemRun,
+          model:
+            typeof usageReqBody.model === 'string' && usageReqBody.model.trim()
+              ? usageReqBody.model
+              : agentReportedModel,
+          designSystemId:
+            typeof usageReqBody.designSystemId === 'string'
+              ? usageReqBody.designSystemId
+              : null,
+          inputTokens,
+          outputTokens,
+          startedAt: usageStartedAt,
+          endedAt: Date.now(),
+        });
+      }).catch(() => {
+        // wait() can't reject in the current runs.ts impl, but guard anyway;
+        // the usage webhook must never surface an error into the run.
+      });
+    }
+
     // Analytics v2: emit run_created (daemon-side authoritative) and
     // schedule run_finished on terminal state. The matching `chat-routes.ts`
     // handler is shadowed by this earlier registration in Express; emit
