@@ -2,15 +2,15 @@
   "$schema": "https://open-design.ai/schemas/marketplace.v1.json",
   "specVersion": "1.0.0",
   "name": "wxcode-design-plugins",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "owner": {
     "name": "WXCode",
     "url": "https://github.com/GilbertoAbrao/wxcode-design-plugins"
   },
   "metadata": {
     "description": "WXCode-curated admin / dashboard / cockpit plugins. Pre-registered marketplace source seeded by the daemon; entries install from the wxcode-design-plugins repo.",
-    "version": "0.1.0",
-    "updatedAt": "2026-05-28T14:05:21Z"
+    "version": "0.2.0",
+    "updatedAt": "2026-06-01T00:00:00Z"
   },
   "plugins": [
     {
@@ -44,6 +44,146 @@
         "split-pane"
       ],
       "description": "Admin dashboard with a permanent AI copilot rail. Deterministic widget canvas on the left, conversational agent on the right, Cmd+K command palette, inline suggestion chips, tool-call cards. The 2025 pattern for agentic admin UIs.",
+      "mode": "prototype"
+    },
+    {
+      "name": "wxcode/admin-aurora-analytics",
+      "title": "Aurora Analytics Admin",
+      "version": "0.1.0",
+      "source": "github:GilbertoAbrao/wxcode-design-plugins@main/plugins/admin-aurora-analytics",
+      "publisher": {
+        "id": "wxcode",
+        "github": "GilbertoAbrao",
+        "url": "https://github.com/GilbertoAbrao/wxcode-design-plugins"
+      },
+      "homepage": "https://github.com/GilbertoAbrao/wxcode-design-plugins/tree/main/plugins/admin-aurora-analytics",
+      "license": "MIT",
+      "capabilitiesSummary": [
+        "prompt:inject",
+        "fs:write"
+      ],
+      "tags": [
+        "wxcode-plugin",
+        "wxcode",
+        "first-party",
+        "prototype",
+        "operations",
+        "web",
+        "admin",
+        "analytics",
+        "light-mode",
+        "indigo",
+        "clean-cards"
+      ],
+      "description": "Aurora Analytics Admin is a polished light-mode dashboard for product and growth teams who need at-a-glance visibility into sessions, conversion, and retention. It pairs a fixed left sidebar with a top search bar, four live KPI tiles, an area chart of weekly sessions, a recent-sessions table, and a right-rail insights panel \u2014 all rendered in a single self-contained HTML file. Designed for clarity over decoration: indigo-violet accents on a crisp slate-and-white canvas.",
+      "mode": "prototype"
+    },
+    {
+      "name": "wxcode/admin-cargo-fleet",
+      "title": "Cargo Fleet Admin",
+      "version": "0.1.0",
+      "source": "github:GilbertoAbrao/wxcode-design-plugins@main/plugins/admin-cargo-fleet",
+      "publisher": {
+        "id": "wxcode",
+        "github": "GilbertoAbrao",
+        "url": "https://github.com/GilbertoAbrao/wxcode-design-plugins"
+      },
+      "homepage": "https://github.com/GilbertoAbrao/wxcode-design-plugins/tree/main/plugins/admin-cargo-fleet",
+      "license": "MIT",
+      "capabilitiesSummary": [
+        "prompt:inject",
+        "fs:write"
+      ],
+      "tags": [
+        "wxcode-plugin",
+        "wxcode",
+        "first-party",
+        "prototype",
+        "operations",
+        "web",
+        "admin",
+        "logistics",
+        "fleet",
+        "shipments",
+        "light-mode",
+        "industrial-clean",
+        "orange-accent",
+        "kanban",
+        "status-board"
+      ],
+      "description": "Industrial-clean logistics admin for fleet & shipment operations \u2014 left hub/region sidebar, topbar with region filter, 4 KPI cards (in-transit / on-time rate / active fleet / warehouse utilization), a Kanban-style shipment status board, an original abstract route/region SVG visualization, and a live active-shipments table. Orange-amber accent on white/slate canvas.",
+      "mode": "prototype"
+    },
+    {
+      "name": "wxcode/admin-cobalt-projects",
+      "title": "Cobalt Projects Admin",
+      "version": "0.1.0",
+      "source": "github:GilbertoAbrao/wxcode-design-plugins@main/plugins/admin-cobalt-projects",
+      "publisher": {
+        "id": "wxcode",
+        "github": "GilbertoAbrao",
+        "url": "https://github.com/GilbertoAbrao/wxcode-design-plugins"
+      },
+      "homepage": "https://github.com/GilbertoAbrao/wxcode-design-plugins/tree/main/plugins/admin-cobalt-projects",
+      "license": "MIT",
+      "capabilitiesSummary": [
+        "prompt:inject",
+        "fs:write"
+      ],
+      "tags": [
+        "wxcode-plugin",
+        "wxcode",
+        "first-party",
+        "prototype",
+        "operations",
+        "web",
+        "admin",
+        "project-management",
+        "tasks",
+        "light-mode",
+        "cobalt",
+        "gantt",
+        "timeline",
+        "work-management",
+        "focused",
+        "clean-cards"
+      ],
+      "description": "Focused project and work-management admin dashboard \u2014 light mode with cobalt-blue accent, left sidebar project list, topbar search and view switch, 4 KPI cards, a compact gantt-style timeline strip, a My Tasks table, and a Team/Milestones side panel.",
+      "mode": "prototype"
+    },
+    {
+      "name": "wxcode/admin-ember-campaigns",
+      "title": "Ember Campaigns Admin",
+      "version": "0.1.0",
+      "source": "github:GilbertoAbrao/wxcode-design-plugins@main/plugins/admin-ember-campaigns",
+      "publisher": {
+        "id": "wxcode",
+        "github": "GilbertoAbrao",
+        "url": "https://github.com/GilbertoAbrao/wxcode-design-plugins"
+      },
+      "homepage": "https://github.com/GilbertoAbrao/wxcode-design-plugins/tree/main/plugins/admin-ember-campaigns",
+      "license": "MIT",
+      "capabilitiesSummary": [
+        "prompt:inject",
+        "fs:write"
+      ],
+      "tags": [
+        "wxcode-plugin",
+        "wxcode",
+        "first-party",
+        "prototype",
+        "marketing",
+        "web",
+        "admin",
+        "campaigns",
+        "analytics",
+        "light-mode",
+        "rose-accent",
+        "vibrant",
+        "funnel",
+        "campaign-management"
+      ],
+      "description": "Vibrant-but-clean marketing command centre \u2014 left sidebar, topbar with date-range filter, 4 KPI cards (reach / CTR / spend / ROAS) with inline SVG sparklines, a multi-series campaign performance chart, a conversion funnel, and a campaigns table with channel chips and status pills. Rose-pink accent on white/slate canvas.",
       "mode": "prototype"
     },
     {
@@ -112,6 +252,111 @@
       "mode": "prototype"
     },
     {
+      "name": "wxcode/admin-harbor-banking",
+      "title": "Harbor Banking Admin",
+      "version": "0.1.0",
+      "source": "github:GilbertoAbrao/wxcode-design-plugins@main/plugins/admin-harbor-banking",
+      "publisher": {
+        "id": "wxcode",
+        "github": "GilbertoAbrao",
+        "url": "https://github.com/GilbertoAbrao/wxcode-design-plugins"
+      },
+      "homepage": "https://github.com/GilbertoAbrao/wxcode-design-plugins/tree/main/plugins/admin-harbor-banking",
+      "license": "MIT",
+      "capabilitiesSummary": [
+        "prompt:inject",
+        "fs:write"
+      ],
+      "tags": [
+        "wxcode-plugin",
+        "wxcode",
+        "first-party",
+        "prototype",
+        "operations",
+        "web",
+        "admin",
+        "banking",
+        "fintech",
+        "light-mode",
+        "navy-blue",
+        "teal",
+        "personal-finance",
+        "transactions",
+        "payment-card",
+        "trustworthy",
+        "clean-cards"
+      ],
+      "description": "Digital banking / personal finance operations console \u2014 light mode, navy-blue accent, teal secondary. Left account sidebar, topbar with search and notifications, hero payment-card SVG, 3 KPI tiles, spending donut chart, recent transactions table, and quick-transfer payees panel.",
+      "mode": "prototype"
+    },
+    {
+      "name": "wxcode/admin-meridian-people",
+      "title": "Meridian People Admin",
+      "version": "0.1.0",
+      "source": "github:GilbertoAbrao/wxcode-design-plugins@main/plugins/admin-meridian-people",
+      "publisher": {
+        "id": "wxcode",
+        "github": "GilbertoAbrao",
+        "url": "https://github.com/GilbertoAbrao/wxcode-design-plugins"
+      },
+      "homepage": "https://github.com/GilbertoAbrao/wxcode-design-plugins/tree/main/plugins/admin-meridian-people",
+      "license": "MIT",
+      "capabilitiesSummary": [
+        "prompt:inject",
+        "fs:write"
+      ],
+      "tags": [
+        "wxcode-plugin",
+        "wxcode",
+        "first-party",
+        "prototype",
+        "operations",
+        "web",
+        "admin",
+        "hr",
+        "people",
+        "light-mode",
+        "warm-professional",
+        "indigo-accent",
+        "headcount",
+        "workforce"
+      ],
+      "description": "HR and people-operations admin dashboard \u2014 warm-professional light mode with indigo accent, left sidebar org/team switcher, 4 KPI tiles (headcount, attendance, open roles, turnover), headcount-over-time chart, department breakdown, employees table, and a time-off requests panel.",
+      "mode": "prototype"
+    },
+    {
+      "name": "wxcode/admin-midnight-ops",
+      "title": "Midnight Ops Console",
+      "version": "0.1.0",
+      "source": "github:GilbertoAbrao/wxcode-design-plugins@main/plugins/admin-midnight-ops",
+      "publisher": {
+        "id": "wxcode",
+        "github": "GilbertoAbrao",
+        "url": "https://github.com/GilbertoAbrao/wxcode-design-plugins"
+      },
+      "homepage": "https://github.com/GilbertoAbrao/wxcode-design-plugins/tree/main/plugins/admin-midnight-ops",
+      "license": "MIT",
+      "capabilitiesSummary": [
+        "prompt:inject",
+        "fs:write"
+      ],
+      "tags": [
+        "wxcode-plugin",
+        "wxcode",
+        "first-party",
+        "prototype",
+        "operations",
+        "web",
+        "admin",
+        "observability",
+        "dark-mode",
+        "teal",
+        "ops-console"
+      ],
+      "description": "A production-grade dark-mode operations and observability dashboard built for on-call engineers and SRE teams. Features a compact left icon rail, four live metric tiles with inline trend sparklines, a time-series throughput chart, an active incidents table with severity pills, and a per-service health status list \u2014 all in a high-contrast teal-on-midnight palette optimised for 3 AM focus.",
+      "mode": "prototype"
+    },
+    {
       "name": "wxcode/admin-neobrutal",
       "title": "Neobrutalist Admin",
       "version": "0.1.0",
@@ -141,6 +386,147 @@
         "pastel-blocks"
       ],
       "description": "A neo-brutalist admin dashboard \u2014 thick black borders, hard 4px offset shadows, vibrant pastel blocks (coral / lime / cream), monospaced numerics. Use when the brief asks for an admin with personality: 'brutalist admin', 'pastel dashboard', 'bold borders', 'flat blocks'.",
+      "mode": "prototype"
+    },
+    {
+      "name": "wxcode/admin-onyx-crypto",
+      "title": "Onyx Crypto Admin",
+      "version": "0.1.0",
+      "source": "github:GilbertoAbrao/wxcode-design-plugins@main/plugins/admin-onyx-crypto",
+      "publisher": {
+        "id": "wxcode",
+        "github": "GilbertoAbrao",
+        "url": "https://github.com/GilbertoAbrao/wxcode-design-plugins"
+      },
+      "homepage": "https://github.com/GilbertoAbrao/wxcode-design-plugins/tree/main/plugins/admin-onyx-crypto",
+      "license": "MIT",
+      "capabilitiesSummary": [
+        "prompt:inject",
+        "fs:write"
+      ],
+      "tags": [
+        "wxcode-plugin",
+        "wxcode",
+        "first-party",
+        "prototype",
+        "operations",
+        "web",
+        "admin",
+        "crypto",
+        "web3",
+        "dark-mode",
+        "neon",
+        "digital-assets",
+        "portfolio",
+        "defi",
+        "sleek"
+      ],
+      "description": "Dark-mode digital-asset portfolio console \u2014 left rail nav, topbar with network/wallet switcher, 4 KPI cards, area price chart, holdings table, and market movers side list. Sleek neon aesthetic with emerald and violet accents.",
+      "mode": "prototype"
+    },
+    {
+      "name": "wxcode/admin-pulse-crm",
+      "title": "Pulse CRM Admin",
+      "version": "0.1.0",
+      "source": "github:GilbertoAbrao/wxcode-design-plugins@main/plugins/admin-pulse-crm",
+      "publisher": {
+        "id": "wxcode",
+        "github": "GilbertoAbrao",
+        "url": "https://github.com/GilbertoAbrao/wxcode-design-plugins"
+      },
+      "homepage": "https://github.com/GilbertoAbrao/wxcode-design-plugins/tree/main/plugins/admin-pulse-crm",
+      "license": "MIT",
+      "capabilitiesSummary": [
+        "prompt:inject",
+        "fs:write"
+      ],
+      "tags": [
+        "wxcode-plugin",
+        "wxcode",
+        "first-party",
+        "prototype",
+        "sales",
+        "web",
+        "admin",
+        "crm",
+        "pipeline",
+        "deals",
+        "light-mode",
+        "airy",
+        "sky-blue",
+        "slate"
+      ],
+      "description": "Airy light-mode sales CRM admin \u2014 left sidebar with workspace switcher, topbar with search and filters, 4 pipeline KPI tiles with sparklines, horizontal pipeline-by-stage strip, recent deals table with stage pills, and a right-side activity and tasks panel. Sky-blue accent on a white/slate canvas.",
+      "mode": "prototype"
+    },
+    {
+      "name": "wxcode/admin-quartz-lms",
+      "title": "Quartz LMS Admin",
+      "version": "0.1.0",
+      "source": "github:GilbertoAbrao/wxcode-design-plugins@main/plugins/admin-quartz-lms",
+      "publisher": {
+        "id": "wxcode",
+        "github": "GilbertoAbrao",
+        "url": "https://github.com/GilbertoAbrao/wxcode-design-plugins"
+      },
+      "homepage": "https://github.com/GilbertoAbrao/wxcode-design-plugins/tree/main/plugins/admin-quartz-lms",
+      "license": "MIT",
+      "capabilitiesSummary": [
+        "prompt:inject",
+        "fs:write"
+      ],
+      "tags": [
+        "wxcode-plugin",
+        "wxcode",
+        "first-party",
+        "prototype",
+        "operations",
+        "web",
+        "admin",
+        "education",
+        "lms",
+        "light-mode",
+        "friendly-academic",
+        "purple",
+        "learning-management"
+      ],
+      "description": "Friendly-academic LMS administration dashboard \u2014 purple accent, left sidebar with school/program switcher, topbar with term selector, 4 KPI tiles (active students, courses, completion rate, avg score), enrollment/completion chart, courses table with progress bars, and upcoming assignments panel.",
+      "mode": "prototype"
+    },
+    {
+      "name": "wxcode/admin-relay-helpdesk",
+      "title": "Relay Helpdesk Admin",
+      "version": "0.1.0",
+      "source": "github:GilbertoAbrao/wxcode-design-plugins@main/plugins/admin-relay-helpdesk",
+      "publisher": {
+        "id": "wxcode",
+        "github": "GilbertoAbrao",
+        "url": "https://github.com/GilbertoAbrao/wxcode-design-plugins"
+      },
+      "homepage": "https://github.com/GilbertoAbrao/wxcode-design-plugins/tree/main/plugins/admin-relay-helpdesk",
+      "license": "MIT",
+      "capabilitiesSummary": [
+        "prompt:inject",
+        "fs:write"
+      ],
+      "tags": [
+        "wxcode-plugin",
+        "wxcode",
+        "first-party",
+        "prototype",
+        "operations",
+        "web",
+        "admin",
+        "helpdesk",
+        "support",
+        "light-mode",
+        "violet-accent",
+        "friendly",
+        "ticket-queue",
+        "sla",
+        "csat"
+      ],
+      "description": "Friendly light-mode helpdesk operations dashboard \u2014 left inbox sidebar, topbar with search and assignee filter, 4 KPI cards (open tickets, avg first response, SLA compliance, CSAT), SLA-by-priority bar set, ticket queue table, and team load panel. Accent violet with green/amber/red status semantics.",
       "mode": "prototype"
     },
     {
@@ -175,6 +561,146 @@
         "polished"
       ],
       "description": "The market-leading SaaS admin archetype \u2014 polished light-mode dashboard with collapsible sidebar, breadcrumb topbar, 4 stat tiles, primary chart, recent table, side activity. Modeled after the Metronic / Vuexy / Velzon family that dominates Themeforest's admin category.",
+      "mode": "prototype"
+    },
+    {
+      "name": "wxcode/admin-slate-commerce",
+      "title": "Slate Commerce Admin",
+      "version": "0.1.0",
+      "source": "github:GilbertoAbrao/wxcode-design-plugins@main/plugins/admin-slate-commerce",
+      "publisher": {
+        "id": "wxcode",
+        "github": "GilbertoAbrao",
+        "url": "https://github.com/GilbertoAbrao/wxcode-design-plugins"
+      },
+      "homepage": "https://github.com/GilbertoAbrao/wxcode-design-plugins/tree/main/plugins/admin-slate-commerce",
+      "license": "MIT",
+      "capabilitiesSummary": [
+        "prompt:inject",
+        "fs:write"
+      ],
+      "tags": [
+        "wxcode-plugin",
+        "wxcode",
+        "first-party",
+        "prototype",
+        "e-commerce",
+        "web",
+        "admin",
+        "back-office",
+        "light-mode",
+        "emerald",
+        "orders"
+      ],
+      "description": "A clean, light-mode e-commerce back-office dashboard with warm neutral surfaces, emerald accents, and amber highlights. Ships with a sidebar store switcher, topbar date range selector, four KPI cards with inline sparklines, a revenue bar chart, a recent orders table with status badges, and a top products list \u2014 everything a merchant needs at a glance.",
+      "mode": "prototype"
+    },
+    {
+      "name": "wxcode/admin-sprout-iot",
+      "title": "Sprout IoT Admin",
+      "version": "0.1.0",
+      "source": "github:GilbertoAbrao/wxcode-design-plugins@main/plugins/admin-sprout-iot",
+      "publisher": {
+        "id": "wxcode",
+        "github": "GilbertoAbrao",
+        "url": "https://github.com/GilbertoAbrao/wxcode-design-plugins"
+      },
+      "homepage": "https://github.com/GilbertoAbrao/wxcode-design-plugins/tree/main/plugins/admin-sprout-iot",
+      "license": "MIT",
+      "capabilitiesSummary": [
+        "prompt:inject",
+        "fs:write"
+      ],
+      "tags": [
+        "wxcode-plugin",
+        "wxcode",
+        "first-party",
+        "prototype",
+        "operations",
+        "web",
+        "admin",
+        "iot",
+        "telemetry",
+        "dark-mode",
+        "technical",
+        "lime-accent",
+        "cyan-accent",
+        "device-fleet",
+        "monitoring"
+      ],
+      "description": "Dark-mode IoT device-fleet and telemetry console \u2014 left rail nav, gateway/site switcher, 4 KPI cards (online/offline/signal/alerts), multi-series sparkline telemetry panel, active alerts list, and a devices table with signal bars and firmware status.",
+      "mode": "prototype"
+    },
+    {
+      "name": "wxcode/admin-vault-treasury",
+      "title": "Vault Treasury Admin",
+      "version": "0.1.0",
+      "source": "github:GilbertoAbrao/wxcode-design-plugins@main/plugins/admin-vault-treasury",
+      "publisher": {
+        "id": "wxcode",
+        "github": "GilbertoAbrao",
+        "url": "https://github.com/GilbertoAbrao/wxcode-design-plugins"
+      },
+      "homepage": "https://github.com/GilbertoAbrao/wxcode-design-plugins/tree/main/plugins/admin-vault-treasury",
+      "license": "MIT",
+      "capabilitiesSummary": [
+        "prompt:inject",
+        "fs:write"
+      ],
+      "tags": [
+        "wxcode-plugin",
+        "wxcode",
+        "first-party",
+        "prototype",
+        "operations",
+        "web",
+        "admin",
+        "finance",
+        "treasury",
+        "dark-mode",
+        "amber-gold",
+        "corporate",
+        "premium",
+        "cashflow",
+        "deep-navy"
+      ],
+      "description": "Premium dark-mode corporate treasury dashboard \u2014 amber/gold accent on deep navy, left rail nav, entity/period switcher, 4 KPI cards (balance \u00b7 inflows \u00b7 outflows \u00b7 runway), cashflow SVG area chart, allocation donut, recent transactions table with status pills.",
+      "mode": "prototype"
+    },
+    {
+      "name": "wxcode/admin-verdant-clinic",
+      "title": "Verdant Clinic Admin",
+      "version": "0.1.0",
+      "source": "github:GilbertoAbrao/wxcode-design-plugins@main/plugins/admin-verdant-clinic",
+      "publisher": {
+        "id": "wxcode",
+        "github": "GilbertoAbrao",
+        "url": "https://github.com/GilbertoAbrao/wxcode-design-plugins"
+      },
+      "homepage": "https://github.com/GilbertoAbrao/wxcode-design-plugins/tree/main/plugins/admin-verdant-clinic",
+      "license": "MIT",
+      "capabilitiesSummary": [
+        "prompt:inject",
+        "fs:write"
+      ],
+      "tags": [
+        "wxcode-plugin",
+        "wxcode",
+        "first-party",
+        "prototype",
+        "operations",
+        "web",
+        "admin",
+        "healthcare",
+        "clinic",
+        "light-mode",
+        "emerald-teal",
+        "calm-clinical",
+        "triage",
+        "schedule",
+        "patient-management"
+      ],
+      "description": "Calm, clinical light-mode admin dashboard for clinic and healthcare operations \u2014 left sidebar with department switcher, topbar with search and clinician avatar, 4 KPI cards (patients today, appointments, avg wait, bed occupancy), today's appointment schedule, vitals occupancy mini-chart, and a recent patients table. Emerald-to-teal accent palette with triage status colors.",
       "mode": "prototype"
     }
   ]
