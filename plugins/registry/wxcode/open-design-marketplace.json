@@ -2,19 +2,19 @@
   "$schema": "https://open-design.ai/schemas/marketplace.v1.json",
   "specVersion": "1.0.0",
   "name": "wxcode-design-plugins",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "owner": {
     "name": "WXCode",
     "url": "https://github.com/GilbertoAbrao/wxcode-design-plugins"
   },
   "metadata": {
     "description": "WXCode-curated admin / dashboard / cockpit plugins. Pre-registered marketplace source seeded by the daemon; entries install from the wxcode-design-plugins repo.",
-    "version": "0.2.0",
+    "version": "0.2.1",
     "updatedAt": "2026-06-01T00:00:00Z"
   },
   "plugins": [
     {
-      "name": "wxcode/admin-ai-copilot",
+      "name": "wxcode-admin-ai-copilot",
       "title": "AI Copilot Admin",
       "version": "0.1.0",
       "source": "github:GilbertoAbrao/wxcode-design-plugins@main/plugins/admin-ai-copilot",
@@ -47,7 +47,7 @@
       "mode": "prototype"
     },
     {
-      "name": "wxcode/admin-aurora-analytics",
+      "name": "wxcode-admin-aurora-analytics",
       "title": "Aurora Analytics Admin",
       "version": "0.1.0",
       "source": "github:GilbertoAbrao/wxcode-design-plugins@main/plugins/admin-aurora-analytics",
@@ -79,7 +79,7 @@
       "mode": "prototype"
     },
     {
-      "name": "wxcode/admin-cargo-fleet",
+      "name": "wxcode-admin-cargo-fleet",
       "title": "Cargo Fleet Admin",
       "version": "0.1.0",
       "source": "github:GilbertoAbrao/wxcode-design-plugins@main/plugins/admin-cargo-fleet",
@@ -115,7 +115,7 @@
       "mode": "prototype"
     },
     {
-      "name": "wxcode/admin-cobalt-projects",
+      "name": "wxcode-admin-cobalt-projects",
       "title": "Cobalt Projects Admin",
       "version": "0.1.0",
       "source": "github:GilbertoAbrao/wxcode-design-plugins@main/plugins/admin-cobalt-projects",
@@ -152,7 +152,7 @@
       "mode": "prototype"
     },
     {
-      "name": "wxcode/admin-ember-campaigns",
+      "name": "wxcode-admin-ember-campaigns",
       "title": "Ember Campaigns Admin",
       "version": "0.1.0",
       "source": "github:GilbertoAbrao/wxcode-design-plugins@main/plugins/admin-ember-campaigns",
@@ -187,7 +187,7 @@
       "mode": "prototype"
     },
     {
-      "name": "wxcode/admin-finance-terminal",
+      "name": "wxcode-admin-finance-terminal",
       "title": "Finance Terminal Admin",
       "version": "0.1.0",
       "source": "github:GilbertoAbrao/wxcode-design-plugins@main/plugins/admin-finance-terminal",
@@ -220,7 +220,7 @@
       "mode": "prototype"
     },
     {
-      "name": "wxcode/admin-glassmorphism",
+      "name": "wxcode-admin-glassmorphism",
       "title": "Glassmorphism Admin",
       "version": "0.1.0",
       "source": "github:GilbertoAbrao/wxcode-design-plugins@main/plugins/admin-glassmorphism",
@@ -252,7 +252,7 @@
       "mode": "prototype"
     },
     {
-      "name": "wxcode/admin-harbor-banking",
+      "name": "wxcode-admin-harbor-banking",
       "title": "Harbor Banking Admin",
       "version": "0.1.0",
       "source": "github:GilbertoAbrao/wxcode-design-plugins@main/plugins/admin-harbor-banking",
@@ -290,7 +290,7 @@
       "mode": "prototype"
     },
     {
-      "name": "wxcode/admin-meridian-people",
+      "name": "wxcode-admin-meridian-people",
       "title": "Meridian People Admin",
       "version": "0.1.0",
       "source": "github:GilbertoAbrao/wxcode-design-plugins@main/plugins/admin-meridian-people",
@@ -325,7 +325,7 @@
       "mode": "prototype"
     },
     {
-      "name": "wxcode/admin-midnight-ops",
+      "name": "wxcode-admin-midnight-ops",
       "title": "Midnight Ops Console",
       "version": "0.1.0",
       "source": "github:GilbertoAbrao/wxcode-design-plugins@main/plugins/admin-midnight-ops",
@@ -357,7 +357,7 @@
       "mode": "prototype"
     },
     {
-      "name": "wxcode/admin-neobrutal",
+      "name": "wxcode-admin-neobrutal",
       "title": "Neobrutalist Admin",
       "version": "0.1.0",
       "source": "github:GilbertoAbrao/wxcode-design-plugins@main/plugins/admin-neobrutal",
@@ -389,7 +389,7 @@
       "mode": "prototype"
     },
     {
-      "name": "wxcode/admin-onyx-crypto",
+      "name": "wxcode-admin-onyx-crypto",
       "title": "Onyx Crypto Admin",
       "version": "0.1.0",
       "source": "github:GilbertoAbrao/wxcode-design-plugins@main/plugins/admin-onyx-crypto",
@@ -425,7 +425,7 @@
       "mode": "prototype"
     },
     {
-      "name": "wxcode/admin-pulse-crm",
+      "name": "wxcode-admin-pulse-crm",
       "title": "Pulse CRM Admin",
       "version": "0.1.0",
       "source": "github:GilbertoAbrao/wxcode-design-plugins@main/plugins/admin-pulse-crm",
@@ -460,7 +460,7 @@
       "mode": "prototype"
     },
     {
-      "name": "wxcode/admin-quartz-lms",
+      "name": "wxcode-admin-quartz-lms",
       "title": "Quartz LMS Admin",
       "version": "0.1.0",
       "source": "github:GilbertoAbrao/wxcode-design-plugins@main/plugins/admin-quartz-lms",
@@ -494,7 +494,7 @@
       "mode": "prototype"
     },
     {
-      "name": "wxcode/admin-relay-helpdesk",
+      "name": "wxcode-admin-relay-helpdesk",
       "title": "Relay Helpdesk Admin",
       "version": "0.1.0",
       "source": "github:GilbertoAbrao/wxcode-design-plugins@main/plugins/admin-relay-helpdesk",
@@ -530,7 +530,7 @@
       "mode": "prototype"
     },
     {
-      "name": "wxcode/admin-saas-bestseller",
+      "name": "wxcode-admin-saas-bestseller",
       "title": "SaaS Admin Bestseller",
       "version": "0.1.0",
       "source": "github:GilbertoAbrao/wxcode-design-plugins@main/plugins/admin-saas-bestseller",
@@ -564,7 +564,7 @@
       "mode": "prototype"
     },
     {
-      "name": "wxcode/admin-slate-commerce",
+      "name": "wxcode-admin-slate-commerce",
       "title": "Slate Commerce Admin",
       "version": "0.1.0",
       "source": "github:GilbertoAbrao/wxcode-design-plugins@main/plugins/admin-slate-commerce",
@@ -596,7 +596,7 @@
       "mode": "prototype"
     },
     {
-      "name": "wxcode/admin-sprout-iot",
+      "name": "wxcode-admin-sprout-iot",
       "title": "Sprout IoT Admin",
       "version": "0.1.0",
       "source": "github:GilbertoAbrao/wxcode-design-plugins@main/plugins/admin-sprout-iot",
@@ -632,7 +632,7 @@
       "mode": "prototype"
     },
     {
-      "name": "wxcode/admin-vault-treasury",
+      "name": "wxcode-admin-vault-treasury",
       "title": "Vault Treasury Admin",
       "version": "0.1.0",
       "source": "github:GilbertoAbrao/wxcode-design-plugins@main/plugins/admin-vault-treasury",
@@ -668,7 +668,7 @@
       "mode": "prototype"
     },
     {
-      "name": "wxcode/admin-verdant-clinic",
+      "name": "wxcode-admin-verdant-clinic",
       "title": "Verdant Clinic Admin",
       "version": "0.1.0",
       "source": "github:GilbertoAbrao/wxcode-design-plugins@main/plugins/admin-verdant-clinic",
