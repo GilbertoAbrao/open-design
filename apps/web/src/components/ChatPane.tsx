@@ -193,7 +193,14 @@ const AUDIO_STARTERS: StarterPrompt[] = [
 function pickStarters(
   metadata: ProjectMetadata | undefined,
   t: TranslateFn,
+  hasPinnedPlugin: boolean,
 ): StarterPrompt[] {
+  // A plugin-driven prototype (pinned via appliedPluginSnapshotId) already
+  // carries its own intent — the generic deck/dashboard/annual-report trio is
+  // guaranteed off-topic for it (e.g. a "Glassmorphism Admin" plugin would
+  // see "Editorial pitch deck"). Show no canned starters rather than wrong
+  // ones; the empty state keeps just the "Start a conversation" title.
+  if (hasPinnedPlugin) return [];
   const kind = metadata?.kind;
   if (kind === 'image') return IMAGE_STARTERS;
   if (kind === 'video') {
@@ -1054,7 +1061,7 @@ export function ChatPane({
                     </span>
                   </div>
                   <div className="chat-examples" role="list">
-                    {pickStarters(projectMetadata, t).map((ex, i) => (
+                    {pickStarters(projectMetadata, t, Boolean(activePluginSnapshot)).map((ex, i) => (
                       <button
                         key={`${ex.title}-${i}`}
                         type="button"
