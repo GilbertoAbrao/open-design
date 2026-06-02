@@ -231,6 +231,7 @@ import {
   countNewHtmlArtifacts,
   didRunCreateDesignSystemFile,
 } from './run-artifacts.js';
+import { emitUsageWebhook } from './usage-webhook.js';
 import {
   reportRunCompletedFromDaemon,
   reportRunFeedbackFromDaemon,
