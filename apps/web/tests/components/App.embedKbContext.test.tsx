@@ -213,9 +213,11 @@ describe('App embed kbContext injection into createProject', () => {
     setEmbedHost(false);
   });
 
-  it('seeds the embed kbContext digest as customInstructions on the created project', async () => {
+  it('seeds the kbContext digest as customInstructions on the created project', async () => {
     // The capture is a lazy useRef initializer that reads window.location.search
-    // + the embed host on FIRST render, so both must be in place BEFORE mount.
+    // on FIRST render, so the param must be in place BEFORE mount. The presence
+    // of the param is the signal now — the embed host no longer gates it, but
+    // keep the embed attribute set here since that is the real WXCode case.
     setEmbedHost(true);
     window.history.replaceState(null, '', '/?kbContext=KB-MARKER-123');
 
@@ -229,11 +231,12 @@ describe('App embed kbContext injection into createProject', () => {
     });
   });
 
-  it('does not inject customInstructions outside the WXCode embed even with kbContext present', async () => {
-    // Same query param, but no data-od-host: resolveEmbedKbContext returns null,
-    // so the create payload must carry no customInstructions at all.
+  it('does not inject customInstructions when no kbContext param is present', async () => {
+    // No kbContext in the URL: resolveEmbedKbContext returns null, so the create
+    // payload must carry no customInstructions at all. (Only the WXCode shell
+    // ever appends kbContext, so a standalone URL never has it.)
     setEmbedHost(false);
-    window.history.replaceState(null, '', '/?kbContext=KB-MARKER-123');
+    window.history.replaceState(null, '', '/');
 
     render(<App />);
 
@@ -244,8 +247,8 @@ describe('App embed kbContext injection into createProject', () => {
   });
 
   it('lets an explicit caller customInstructions win over the embed default', async () => {
-    // Inside the embed with a kbContext digest, but the caller already provides
-    // its own customInstructions — the embed default must never clobber it.
+    // A kbContext digest is present, but the caller already provides its own
+    // customInstructions — the kbContext default must never clobber it.
     setEmbedHost(true);
     window.history.replaceState(null, '', '/?kbContext=KB-MARKER-123');
 

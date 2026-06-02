@@ -209,13 +209,16 @@ function AppInner() {
   latestPersistedConfigRef.current = config;
   // WXCode embed: capture the KB-context digest the shell put on the iframe
   // `src` ONCE, on first render, before any SPA route change can rewrite
-  // `window.location.search` and drop the param. Gated on the embed host so
-  // non-embed runtimes are unaffected. Becomes a created project's
-  // `customInstructions` (see `handleCreateProject`).
+  // `window.location.search` and drop the param. Read unconditionally — the
+  // WXCode shell is the only source of `kbContext`, so a standalone runtime
+  // never carries it; no embed-host gate is needed (and `isWxcodeEmbedHost()`
+  // was unreliable here because `data-od-host` may not be set yet at first
+  // render). Becomes a created project's `customInstructions` (see
+  // `handleCreateProject`).
   const embedKbContextRef = useRef<string | null>(
     typeof window === 'undefined'
       ? null
-      : resolveEmbedKbContext(window.location.search, { embed: isWxcodeEmbedHost() }),
+      : resolveEmbedKbContext(window.location.search),
   );
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [settingsWelcome, setSettingsWelcome] = useState(false);

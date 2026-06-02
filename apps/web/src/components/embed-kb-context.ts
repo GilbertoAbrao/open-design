@@ -11,14 +11,18 @@
  * Keep the parse/decision pure and isolated here so the behavior stays
  * additive to upstream (mirrors the `home-plugin-use` / `wxcode-embed` seam
  * style) and is unit-testable without mounting the app.
+ *
+ * The `kbContext` param is read unconditionally — no embed-host gate. The
+ * WXCode shell is the ONLY source of this param (it appends it to the iframe
+ * `src`); a standalone, non-embed Open Design never carries it in its URL, so
+ * reading it whenever present is safe. The previous `isWxcodeEmbedHost()` gate
+ * was removed because `data-od-host` (what that check reads) is set at runtime
+ * and is not guaranteed present at App's FIRST render — the lazy `useRef`
+ * initializer that captures this digest ran before the attribute existed, so
+ * the gate returned false and the digest was silently dropped. The param's
+ * presence is the signal; the host attribute's timing is no longer a factor.
  */
-export function resolveEmbedKbContext(
-  search: string,
-  opts: { embed: boolean },
-): string | null {
-  // Only honor the param inside the WXCode iframe; non-embed hosts are
-  // unaffected so upstream merges stay clean.
-  if (!opts.embed) return null;
+export function resolveEmbedKbContext(search: string): string | null {
   let raw: string | null;
   try {
     raw = new URLSearchParams(search).get('kbContext');
