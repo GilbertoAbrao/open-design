@@ -261,7 +261,18 @@ function injectSnapshotBridge(doc: string): string {
     var cloneBody = clone.querySelector('body');
     var rootStyle = clone.getAttribute('style') || '';
     var bodyStyle = cloneBody ? cloneBody.getAttribute('style') || '' : '';
-    var bodyContent = cloneBody ? cloneBody.innerHTML : clone.innerHTML;
+    // Serialize as XHTML: XMLSerializer self-closes void elements (<input>,
+    // <br>, <img>, <hr>, ...). The foreignObject content is parsed as strict
+    // XML when the SVG loads as an image, so the HTML-style unclosed void tags
+    // produced by .innerHTML would make the SVG malformed and fail to
+    // rasterize (img.onerror -> "snapshot image failed").
+    var snapshotSerializer = new XMLSerializer();
+    var serializeChildren = function(node){
+      var out = '';
+      for (var i = 0; i < node.childNodes.length; i++) out += snapshotSerializer.serializeToString(node.childNodes[i]);
+      return out;
+    };
+    var bodyContent = serializeChildren(cloneBody || clone);
     var wrapperStyle = rootStyle + bodyStyle +
       'margin:0;position:relative;left:' + (-scroll.x) + 'px;top:' + (-scroll.y) + 'px;' +
       'width:' + docW + 'px;height:' + docH + 'px;overflow:visible;';
