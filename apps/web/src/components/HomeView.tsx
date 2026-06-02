@@ -789,12 +789,17 @@ export function HomeView({
     if (shouldFocusOnly) focusPromptAtEnd();
   }
 
-  // In the WXCode embed, a plugin "Use" must PIN the plugin as the active
-  // (executable) scenario so its SKILL.md drives the run — replacing the
-  // auto-applied generic example-web-prototype. `usePlugin` calls setActive
-  // and resolves the snapshot, so submit() carries pluginId +
-  // appliedPluginSnapshotId for THIS plugin. Outside the embed we keep the
-  // upstream context-only behavior.
+  // In the WXCode embed, "Use" PINS the plugin as the active scenario (via
+  // usePlugin -> setActive), so its SKILL.md drives the run instead of the
+  // auto-applied generic example-web-prototype. `usePlugin` resolves the
+  // snapshot, so submit() carries pluginId + appliedPluginSnapshotId for THIS
+  // plugin. We intentionally collapse both 'use' and 'use-with-query' here:
+  // the pinned plugin's useCase.query is hydrated server-side from the applied
+  // snapshot, so there's no separate prompt-seeding step. Outside the embed we
+  // keep upstream behavior exactly (requestPluginContextUse — context reference
+  // only). This stays a pure router: usePlugin already clears detailsRecord
+  // synchronously (in its optimistic block before the first await), and
+  // requestPluginContextUse closes the modal itself.
   function handlePluginUse(
     record: InstalledPluginRecord,
     action: PluginUseAction = 'use',
@@ -807,7 +812,6 @@ export function HomeView({
         suppressPromptUpdate: true,
         replaceWithoutConfirmation: true,
       });
-      setDetailsRecord(null);
       return;
     }
     requestPluginContextUse(record, action, inputs);
