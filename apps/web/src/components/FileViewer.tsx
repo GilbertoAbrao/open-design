@@ -76,6 +76,7 @@ import {
   shouldUrlLoadHtmlPreview,
 } from './file-viewer-render-mode';
 import { resolveWxcodeUrlLoadPreview, wxcodePreviewSandbox } from './wxcode-embed';
+import { WxcodePreviewReloadButton } from './wxcode-preview-reload';
 import { saveTemplate } from '../state/projects';
 import type {
   LiveArtifactEventItem,
@@ -6578,6 +6579,13 @@ function HtmlViewer({
               </button>
             ))}
           </div>
+          {/* WXCode-additive: manual preview reload (iframe only, never the page). */}
+          <WxcodePreviewReloadButton
+            onReload={() => {
+              fireArtifactToolbarClick('reload');
+              setReloadKey((n) => n + 1);
+            }}
+          />
           {showPreviewToolbarControls ? (
             <>
               <span className="viewer-divider" aria-hidden />
