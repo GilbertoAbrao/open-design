@@ -68,6 +68,7 @@ import {
   type HomePromptHandoff,
 } from './home-hero/plugin-authoring';
 import { isWxcodeEmbedHost } from './wxcode-embed';
+import { resolvePluginUseMode } from './home-plugin-use';
 import { PluginDetailsModal } from './PluginDetailsModal';
 import { PluginsHomeSection } from './PluginsHomeSection';
 import type { PluginLoopSubmit } from './PluginLoopHome';
@@ -788,6 +789,30 @@ export function HomeView({
     if (shouldFocusOnly) focusPromptAtEnd();
   }
 
+  // In the WXCode embed, a plugin "Use" must PIN the plugin as the active
+  // (executable) scenario so its SKILL.md drives the run — replacing the
+  // auto-applied generic example-web-prototype. `usePlugin` calls setActive
+  // and resolves the snapshot, so submit() carries pluginId +
+  // appliedPluginSnapshotId for THIS plugin. Outside the embed we keep the
+  // upstream context-only behavior.
+  function handlePluginUse(
+    record: InstalledPluginRecord,
+    action: PluginUseAction = 'use',
+    inputs?: Record<string, unknown>,
+  ) {
+    if (resolvePluginUseMode({ embed: isWxcodeEmbedHost() }) === 'pin') {
+      void usePlugin(record, undefined, {
+        projectKind: 'prototype',
+        inputs,
+        suppressPromptUpdate: true,
+        replaceWithoutConfirmation: true,
+      });
+      setDetailsRecord(null);
+      return;
+    }
+    requestPluginContextUse(record, action, inputs);
+  }
+
   function runWithReplacementConfirmation(
     title: string,
     replacementPrompt: string | null,
@@ -1388,7 +1413,7 @@ export function HomeView({
         loading={pluginsLoading}
         activePluginId={active?.record.id ?? null}
         pendingApplyId={pendingApplyId}
-        onUse={(record, action) => requestPluginContextUse(record, action)}
+        onUse={(record, action) => handlePluginUse(record, action)}
         onOpenDetails={setDetailsRecord}
         onBrowseRegistry={onBrowseRegistry}
         preferDefaultFacet={false}
@@ -1400,7 +1425,7 @@ export function HomeView({
         <PluginDetailsModal
           record={detailsRecord}
           onClose={() => setDetailsRecord(null)}
-          onUse={(record) => requestPluginContextUse(record, 'use')}
+          onUse={(record) => handlePluginUse(record, 'use')}
           isApplying={pendingApplyId === detailsRecord.id}
         />
       ) : null}
