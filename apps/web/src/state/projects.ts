@@ -63,6 +63,11 @@ export async function createProject(input: {
   pluginId?: string;
   appliedPluginSnapshotId?: string;
   pluginInputs?: Record<string, unknown>;
+  // Persisted to the project's `custom_instructions` column and rendered into
+  // the agent's system prompt under "## Custom instructions (project-level)".
+  // The WXCode embed seeds this with the KB-context digest from the iframe URL
+  // (see App.handleCreateProject); the daemon caps it at 5000 chars.
+  customInstructions?: string;
 }): Promise<{ project: Project; conversationId: string; appliedPluginSnapshotId?: string } | null> {
   try {
     // `randomUUID` falls back to `crypto.getRandomValues` / `Math.random`

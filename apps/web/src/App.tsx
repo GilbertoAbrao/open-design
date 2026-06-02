@@ -39,6 +39,7 @@ import {
   type SettingsHighlight,
 } from './components/SettingsDialog';
 import { isWxcodeEmbedHost } from './components/wxcode-embed';
+import { resolveEmbedKbContext } from './components/embed-kb-context';
 import { PrivacyConsentModal } from './components/PrivacyConsentModal';
 import {
   daemonIsLive,
@@ -206,6 +207,16 @@ function AppInner() {
   configRef.current = config;
   const latestPersistedConfigRef = useRef(config);
   latestPersistedConfigRef.current = config;
+  // WXCode embed: capture the KB-context digest the shell put on the iframe
+  // `src` ONCE, on first render, before any SPA route change can rewrite
+  // `window.location.search` and drop the param. Gated on the embed host so
+  // non-embed runtimes are unaffected. Becomes a created project's
+  // `customInstructions` (see `handleCreateProject`).
+  const embedKbContextRef = useRef<string | null>(
+    typeof window === 'undefined'
+      ? null
+      : resolveEmbedKbContext(window.location.search, { embed: isWxcodeEmbedHost() }),
+  );
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [settingsWelcome, setSettingsWelcome] = useState(false);
   const [settingsInitialSection, setSettingsInitialSection] = useState<SettingsSection>('execution');
@@ -830,6 +841,7 @@ function AppInner() {
         pluginId?: string;
         appliedPluginSnapshotId?: string;
         pluginInputs?: Record<string, unknown>;
+        customInstructions?: string;
         autoSendFirstMessage?: boolean;
         requestId?: string;
         pendingFiles?: File[];
@@ -847,12 +859,19 @@ function AppInner() {
       const fidelity = fidelityToTracking(input.metadata?.fidelity ?? null);
       const creationSource: 'blank' | 'template' | 'zip' | 'folder' =
         kind === 'template' ? 'template' : 'blank';
+      // WXCode embed KB grounding: when the shell handed a KB-context digest
+      // on the iframe URL, seed it as the new project's custom instructions so
+      // the agent is grounded before turn 0. Never overwrite an explicit
+      // user-set value; only defaults when none flows through the payload.
+      const customInstructions =
+        input.customInstructions ?? embedKbContextRef.current ?? undefined;
       const result = await createProject({
         name: input.name,
         skillId: input.skillId,
         designSystemId: input.designSystemId,
         pendingPrompt: derivedPendingPrompt,
         metadata: input.metadata,
+        ...(customInstructions ? { customInstructions } : {}),
         ...(input.pluginId ? { pluginId: input.pluginId } : {}),
         ...(input.appliedPluginSnapshotId
           ? { appliedPluginSnapshotId: input.appliedPluginSnapshotId }
