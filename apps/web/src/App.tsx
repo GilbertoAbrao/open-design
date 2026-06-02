@@ -863,6 +863,9 @@ function AppInner() {
       // on the iframe URL, seed it as the new project's custom instructions so
       // the agent is grounded before turn 0. Never overwrite an explicit
       // user-set value; only defaults when none flows through the payload.
+      // `??` only falls back on null/undefined, so an explicit caller value —
+      // even `''` (intent: clear) — wins over the embed default; the truthy
+      // spread below then omits a falsy result instead of sending `''`.
       const customInstructions =
         input.customInstructions ?? embedKbContextRef.current ?? undefined;
       const result = await createProject({
