@@ -1833,4 +1833,9 @@ export const uk: Dict = {
   'diagnostics.exporting': 'Експортування…',
   'diagnostics.exportSuccess': 'Діагностику збережено: {path}',
   'diagnostics.exportFailed': 'Не вдалося експортувати діагностику: {message}',
+  // WXCode embed — plugin Use confirmation + auto-brief
+  'embed.usePluginConfirmTitle': 'Використати цей плагін?',
+  'embed.usePluginConfirmBody': 'Я створю проєкт у стилі цього плагіна й розпочну бриф.',
+  'embed.usePluginConfirmOk': 'Створити й почати',
+  'embed.usePluginFiredPrompt': 'Створи шаблон на основі цього плагіна.',
 };

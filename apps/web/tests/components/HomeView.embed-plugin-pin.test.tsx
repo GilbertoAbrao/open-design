@@ -44,6 +44,48 @@ function makePrototypePlugin(id: string, title: string): InstalledPluginRecord {
 const ADMIN_PLUGIN = makePrototypePlugin('admin-dashboard', 'Admin Dashboard');
 const WEB_PROTOTYPE_PLUGIN = makePrototypePlugin('example-web-prototype', 'Web Prototype');
 
+// The fixed first prompt the embed auto-sends on confirm. Keep in sync with
+// the `embed.usePluginFiredPrompt` i18n key (en value).
+const FIRED_PROMPT = 'Create a template based on this plugin.';
+
+function makeFetchMock() {
+  return vi.fn<typeof fetch>(async (url) => {
+    if (typeof url === 'string' && url === '/api/plugins') {
+      return new Response(
+        JSON.stringify({ plugins: [ADMIN_PLUGIN, WEB_PROTOTYPE_PLUGIN] }),
+        { status: 200, headers: { 'content-type': 'application/json' } },
+      );
+    }
+    if (typeof url === 'string' && url.includes('/apply')) {
+      return new Response(
+        JSON.stringify({
+          ok: true,
+          query: 'Hydrated query from Admin Dashboard',
+          contextItems: [],
+          inputs: [],
+          assets: [],
+          mcpServers: [],
+          appliedPlugin: {
+            snapshotId: 'snap-admin-dashboard',
+            pluginId: 'admin-dashboard',
+            pluginVersion: '1.0.0',
+            inputs: {},
+            taskKind: 'new-generation',
+          },
+        }),
+        { status: 200, headers: { 'content-type': 'application/json' } },
+      );
+    }
+    if (typeof url === 'string' && url === '/api/mcp/servers') {
+      return new Response(JSON.stringify({ servers: [], templates: [] }), {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      });
+    }
+    throw new Error(`unexpected fetch ${url}`);
+  });
+}
+
 function setEmbedHost(value: boolean) {
   if (value) {
     document.documentElement.setAttribute('data-od-host', 'wxcode');
@@ -64,45 +106,11 @@ afterEach(() => {
   setEmbedHost(false);
 });
 
-describe('HomeView embed plugin Use pins selected plugin', () => {
-  it('carries the picked plugin id as pluginId when "Use"d inside the WXCode embed', async () => {
+describe('HomeView embed plugin Use confirms then auto-briefs', () => {
+  it('opens a confirmation modal on "Use" instead of immediately pinning + applying', async () => {
     setEmbedHost(true);
 
-    const fetchMock = vi.fn<typeof fetch>(async (url) => {
-      if (typeof url === 'string' && url === '/api/plugins') {
-        return new Response(
-          JSON.stringify({ plugins: [ADMIN_PLUGIN, WEB_PROTOTYPE_PLUGIN] }),
-          { status: 200, headers: { 'content-type': 'application/json' } },
-        );
-      }
-      if (typeof url === 'string' && url.includes('/apply')) {
-        return new Response(
-          JSON.stringify({
-            ok: true,
-            query: 'Hydrated query from Admin Dashboard',
-            contextItems: [],
-            inputs: [],
-            assets: [],
-            mcpServers: [],
-            appliedPlugin: {
-              snapshotId: 'snap-admin-dashboard',
-              pluginId: 'admin-dashboard',
-              pluginVersion: '1.0.0',
-              inputs: {},
-              taskKind: 'new-generation',
-            },
-          }),
-          { status: 200, headers: { 'content-type': 'application/json' } },
-        );
-      }
-      if (typeof url === 'string' && url === '/api/mcp/servers') {
-        return new Response(JSON.stringify({ servers: [], templates: [] }), {
-          status: 200,
-          headers: { 'content-type': 'application/json' },
-        });
-      }
-      throw new Error(`unexpected fetch ${url}`);
-    });
+    const fetchMock = makeFetchMock();
     vi.stubGlobal('fetch', fetchMock);
     vi.stubGlobal('requestAnimationFrame', (cb: FrameRequestCallback) => {
       cb(0);
@@ -119,77 +127,104 @@ describe('HomeView embed plugin Use pins selected plugin', () => {
       />,
     );
 
-    // "Use" the admin plugin from the Plugins home section. In the embed this
-    // PINS it as the active scenario (usePlugin -> setActive) rather than
-    // attaching it as @-context.
     const useButton = await screen.findByTestId('plugins-home-use-admin-dashboard');
     fireEvent.click(useButton);
 
-    // The apply roundtrip resolves the snapshot; submit must then carry the
-    // picked plugin id, not the generic example-web-prototype or the unselected
-    // default.
-    await waitFor(() =>
-      expect(
-        fetchMock.mock.calls.some(([reqUrl]) => String(reqUrl).includes('/apply')),
-      ).toBe(true),
+    // The confirmation modal appears...
+    expect(await screen.findByTestId('embed-use-confirm')).toBeTruthy();
+
+    // ...and nothing has been applied or submitted yet.
+    expect(
+      fetchMock.mock.calls.some(([reqUrl]) => String(reqUrl).includes('/apply')),
+    ).toBe(false);
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
+
+  it('cancel closes the modal with no apply and no submit', async () => {
+    setEmbedHost(true);
+
+    const fetchMock = makeFetchMock();
+    vi.stubGlobal('fetch', fetchMock);
+    vi.stubGlobal('requestAnimationFrame', (cb: FrameRequestCallback) => {
+      cb(0);
+      return 0;
+    });
+    const onSubmit = vi.fn();
+
+    render(
+      <HomeView
+        projects={[]}
+        onSubmit={onSubmit}
+        onOpenProject={() => undefined}
+        onViewAllProjects={() => undefined}
+      />,
     );
 
-    fireEvent.change(await screen.findByTestId('home-hero-input'), {
-      target: { value: 'Build an internal admin dashboard.' },
-    });
-    fireEvent.click(screen.getByTestId('home-hero-submit'));
+    fireEvent.click(await screen.findByTestId('plugins-home-use-admin-dashboard'));
+    expect(await screen.findByTestId('embed-use-confirm')).toBeTruthy();
 
+    fireEvent.click(screen.getByTestId('embed-use-confirm-cancel'));
+
+    await waitFor(() =>
+      expect(screen.queryByTestId('embed-use-confirm')).toBeNull(),
+    );
+    expect(
+      fetchMock.mock.calls.some(([reqUrl]) => String(reqUrl).includes('/apply')),
+    ).toBe(false);
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
+
+  it('confirming applies the plugin and auto-sends the fixed first prompt', async () => {
+    setEmbedHost(true);
+
+    const fetchMock = makeFetchMock();
+    vi.stubGlobal('fetch', fetchMock);
+    vi.stubGlobal('requestAnimationFrame', (cb: FrameRequestCallback) => {
+      cb(0);
+      return 0;
+    });
+    const onSubmit = vi.fn();
+
+    render(
+      <HomeView
+        projects={[]}
+        onSubmit={onSubmit}
+        onOpenProject={() => undefined}
+        onViewAllProjects={() => undefined}
+      />,
+    );
+
+    fireEvent.click(await screen.findByTestId('plugins-home-use-admin-dashboard'));
+    fireEvent.click(await screen.findByTestId('embed-use-confirm-ok'));
+
+    // The confirm closes the modal, applies the plugin, and auto-submits the
+    // fixed first prompt — no manual typing or send click.
     await waitFor(() => expect(onSubmit).toHaveBeenCalled());
+
     const payload = onSubmit.mock.calls[0]?.[0];
+    // The auto-sent first turn IS the fixed localized prompt.
+    expect(payload?.prompt).toBe(FIRED_PROMPT);
+    // The pinned plugin carries through as the executable scenario.
     expect(payload?.pluginId).toBe('admin-dashboard');
     expect(payload?.pluginId).not.toBe('example-web-prototype');
     expect(payload?.pluginId).not.toBe(DEFAULT_UNSELECTED_SCENARIO_PLUGIN_ID);
     expect(payload?.appliedPluginSnapshotId).toBe('snap-admin-dashboard');
+    expect(payload?.projectKind).toBe('prototype');
     // The pinned plugin is the executable scenario, not an @-context reference.
     expect(payload?.contextPlugins).toEqual([]);
+
+    await waitFor(() =>
+      expect(screen.queryByTestId('embed-use-confirm')).toBeNull(),
+    );
   });
 
-  it('stages an @-context (not a pin) when "Use"d outside the WXCode embed', async () => {
+  it('stages an @-context (not a modal) when "Use"d outside the WXCode embed', async () => {
     // No data-od-host="wxcode": resolvePluginUseMode returns 'context', so the
     // upstream behavior holds — "Use" attaches the plugin as an @-context
-    // reference and never pins it as the executable scenario.
+    // reference, never opens the embed confirm modal, and never pins it.
     setEmbedHost(false);
 
-    const fetchMock = vi.fn<typeof fetch>(async (url) => {
-      if (typeof url === 'string' && url === '/api/plugins') {
-        return new Response(
-          JSON.stringify({ plugins: [ADMIN_PLUGIN, WEB_PROTOTYPE_PLUGIN] }),
-          { status: 200, headers: { 'content-type': 'application/json' } },
-        );
-      }
-      if (typeof url === 'string' && url.includes('/apply')) {
-        return new Response(
-          JSON.stringify({
-            ok: true,
-            query: 'Hydrated query from Admin Dashboard',
-            contextItems: [],
-            inputs: [],
-            assets: [],
-            mcpServers: [],
-            appliedPlugin: {
-              snapshotId: 'snap-admin-dashboard',
-              pluginId: 'admin-dashboard',
-              pluginVersion: '1.0.0',
-              inputs: {},
-              taskKind: 'new-generation',
-            },
-          }),
-          { status: 200, headers: { 'content-type': 'application/json' } },
-        );
-      }
-      if (typeof url === 'string' && url === '/api/mcp/servers') {
-        return new Response(JSON.stringify({ servers: [], templates: [] }), {
-          status: 200,
-          headers: { 'content-type': 'application/json' },
-        });
-      }
-      throw new Error(`unexpected fetch ${url}`);
-    });
+    const fetchMock = makeFetchMock();
     vi.stubGlobal('fetch', fetchMock);
     vi.stubGlobal('requestAnimationFrame', (cb: FrameRequestCallback) => {
       cb(0);
@@ -206,10 +241,11 @@ describe('HomeView embed plugin Use pins selected plugin', () => {
       />,
     );
 
-    // Same "Use" button as the embed test, but without the embed host the
-    // click attaches the admin plugin as @-context instead of pinning it.
     const useButton = await screen.findByTestId('plugins-home-use-admin-dashboard');
     fireEvent.click(useButton);
+
+    // No embed confirm modal outside the embed.
+    expect(screen.queryByTestId('embed-use-confirm')).toBeNull();
 
     fireEvent.change(await screen.findByTestId('home-hero-input'), {
       target: { value: 'Build an internal admin dashboard.' },

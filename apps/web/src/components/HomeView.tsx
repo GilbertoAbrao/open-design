@@ -250,6 +250,14 @@ export function HomeView({
   const [elevenLabsVoicesError, setElevenLabsVoicesError] = useState<string | null>(null);
   const [detailsRecord, setDetailsRecord] = useState<InstalledPluginRecord | null>(null);
   const [pendingReplacement, setPendingReplacement] = useState<PendingReplacement | null>(null);
+  // WXCode embed only: clicking a plugin's "Use" no longer pins silently — it
+  // first asks for confirmation. We hold the picked plugin (and the inputs the
+  // section passed) until the user confirms; OK pins + auto-briefs, Cancel drops
+  // everything with no side effects. Outside the embed this stays null.
+  const [useConfirm, setUseConfirm] = useState<{
+    record: InstalledPluginRecord;
+    inputs?: Record<string, unknown>;
+  } | null>(null);
   // Surface_view fires when the replacement modal becomes visible. Tied
   // to the {before, after} pair so reopening with the same pair after a
   // close doesn't double-fire, but a fresh pair always does.
@@ -578,6 +586,14 @@ export function HomeView({
       // their apply deferred makes Prototype <-> Deck <-> Media changes
       // feel instant; submit() still resolves the snapshot before sending.
       deferApply?: boolean;
+      // WXCode embed Use-confirm auto-brief: after the snapshot resolves,
+      // immediately fire `pendingPrompt` as the first turn (via the same
+      // onSubmit -> handlePluginLoopSubmit -> onCreateProject path the
+      // composer uses), so the agent starts its discovery brief without the
+      // user having to type. Only honored together with a non-empty
+      // `pendingPrompt`; ignored when the apply roundtrip fails.
+      autoSendFirstMessage?: boolean;
+      pendingPrompt?: string;
     },
   ) {
     const applyRequestId = activePluginApplyRequestRef.current + 1;
@@ -715,6 +731,39 @@ export function HomeView({
         }
       }
     }
+
+    // WXCode embed auto-brief: the snapshot is now bound, so fire the fixed
+    // first prompt as the project's opening turn. We build the submit payload
+    // from the just-resolved local `result`/`reconciledInputs` rather than the
+    // `active` state (which setActive above has only *scheduled*, not applied),
+    // so there is no race between binding the plugin and sending. EntryShell
+    // maps this onSubmit into onCreateProject({ pendingPrompt, autoSendFirstMessage }).
+    if (options?.autoSendFirstMessage && options.pendingPrompt && options.pendingPrompt.trim().length > 0) {
+      const resolvedFields = options?.preserveInputFields ? inputFields : result.inputs ?? inputFields;
+      emitPluginLoopSubmit(
+        {
+          record,
+          result,
+          inputs: reconciledInputs,
+          inputFields: resolvedFields,
+          inputsValid: pluginInputsAreValid(resolvedFields, reconciledInputs),
+          queryTemplate,
+          lastRenderedPrompt: optimisticPrompt,
+          projectKind: options?.projectKind ?? null,
+          chipId: options?.chipId ?? null,
+          mediaSurface: options?.mediaSurface ?? null,
+          projectMetadata: homeCreateProjectMetadata(
+            options?.projectKind ?? null,
+            reconciledInputs,
+            options?.projectMetadata ?? null,
+          ),
+          editableInputNames: options?.editableInputNames ?? [],
+          preserveInputFields: options?.preserveInputFields === true,
+          suppressPromptSync: suppressPromptUpdate,
+        },
+        options.pendingPrompt,
+      );
+    }
   }
 
   async function resolveActivePlugin(
@@ -789,32 +838,50 @@ export function HomeView({
     if (shouldFocusOnly) focusPromptAtEnd();
   }
 
-  // In the WXCode embed, "Use" PINS the plugin as the active scenario (via
-  // usePlugin -> setActive), so its SKILL.md drives the run instead of the
-  // auto-applied generic example-web-prototype. `usePlugin` resolves the
-  // snapshot, so submit() carries pluginId + appliedPluginSnapshotId for THIS
-  // plugin. We intentionally collapse both 'use' and 'use-with-query' here:
-  // the pinned plugin's useCase.query is hydrated server-side from the applied
-  // snapshot, so there's no separate prompt-seeding step. Outside the embed we
-  // keep upstream behavior exactly (requestPluginContextUse — context reference
-  // only). This stays a pure router: usePlugin already clears detailsRecord
-  // synchronously (in its optimistic block before the first await), and
-  // requestPluginContextUse closes the modal itself.
+  // In the WXCode embed, "Use" no longer pins silently. It first asks the user
+  // to confirm; on OK we PIN the plugin as the active scenario (via usePlugin ->
+  // setActive) AND auto-send a fixed localized first prompt, so the project is
+  // created and the agent immediately starts its discovery brief — the user
+  // never has to type the opening message. `usePlugin` resolves the snapshot, so
+  // the auto-sent payload carries pluginId + appliedPluginSnapshotId for THIS
+  // plugin. We intentionally collapse both 'use' and 'use-with-query' in the
+  // embed: the pinned plugin's useCase.query is hydrated server-side from the
+  // applied snapshot, so there's no separate prompt-seeding step. Outside the
+  // embed we keep upstream behavior exactly (requestPluginContextUse — context
+  // reference only, no modal).
   function handlePluginUse(
     record: InstalledPluginRecord,
     action: PluginUseAction = 'use',
     inputs?: Record<string, unknown>,
   ) {
     if (resolvePluginUseMode({ embed: isWxcodeEmbedHost() }) === 'pin') {
-      void usePlugin(record, undefined, {
-        projectKind: 'prototype',
-        inputs,
-        suppressPromptUpdate: true,
-        replaceWithoutConfirmation: true,
-      });
+      // Defer all side effects to the confirmation. Cancel must leave the home
+      // exactly as it was (no apply roundtrip, no project, no active badge).
+      setError(null);
+      setDetailsRecord(null);
+      setUseConfirm({ record, ...(inputs ? { inputs } : {}) });
       return;
     }
     requestPluginContextUse(record, action, inputs);
+  }
+
+  // Embed Use-confirm OK: pin the picked plugin and fire the fixed localized
+  // first prompt as the project's opening turn. We drop `suppressPromptUpdate`
+  // (the auto-sent prompt IS the first turn) and route the prompt through
+  // usePlugin's autoSendFirstMessage path, which calls onSubmit once the
+  // snapshot binds — EntryShell turns that into onCreateProject({ pendingPrompt,
+  // autoSendFirstMessage:true }).
+  function confirmEmbedPluginUse() {
+    if (!useConfirm) return;
+    const { record, inputs } = useConfirm;
+    setUseConfirm(null);
+    void usePlugin(record, undefined, {
+      projectKind: 'prototype',
+      inputs,
+      replaceWithoutConfirmation: true,
+      autoSendFirstMessage: true,
+      pendingPrompt: t('embed.usePluginFiredPrompt'),
+    });
   }
 
   function runWithReplacementConfirmation(
@@ -1273,6 +1340,32 @@ export function HomeView({
       submittedActive = { ...submittedActive, result, inputs: submittedPluginInputs };
       setActive(submittedActive);
     }
+    emitPluginLoopSubmit(submittedActive, trimmed);
+  }
+
+  // Build the PluginLoopSubmit payload from a *resolved* active plugin and the
+  // prompt text, then hand it to `onSubmit`. EntryShell's handlePluginLoopSubmit
+  // turns this into onCreateProject({ pendingPrompt, autoSendFirstMessage:true }),
+  // so this is the single place that decides the project's first auto-sent turn.
+  // Both the manual composer `submit()` and the embed Use-confirm auto-brief path
+  // route through here so they share one payload shape — the auto-brief is NOT a
+  // separate submission mechanism, just the same onSubmit with a fixed prompt.
+  function emitPluginLoopSubmit(
+    submittedActive: ActivePlugin | null,
+    promptText: string,
+  ) {
+    const submittedDesignSystemSelection = homeDesignSystemSelectionForInputs(
+      submittedActive?.inputs ?? null,
+      designSystemOptions,
+      promptText,
+    );
+    const submittedPluginInputs = submittedActive
+      ? applyHomeDesignSystemSelectionToInputs(
+          submittedActive.inputs,
+          submittedDesignSystemSelection,
+          designSystemOptions,
+        )
+      : { prompt: promptText };
     const contextPlugins = selectedPluginContexts.map((item) => ({
       id: item.record.id,
       title: item.record.title,
@@ -1308,7 +1401,7 @@ export function HomeView({
     // mutually exclusive routing sources — never send both (#2972).
     const resolvedSkillId = submittedActive ? null : activeSkill?.id ?? null;
     onSubmit({
-      prompt: trimmed,
+      prompt: promptText,
       pluginId: submittedActive?.record.id ?? DEFAULT_UNSELECTED_SCENARIO_PLUGIN_ID,
       skillId: resolvedSkillId,
       appliedPluginSnapshotId: submittedActive?.result?.appliedPlugin?.snapshotId ?? null,
@@ -1505,6 +1598,38 @@ export function HomeView({
                 }}
               >
                 {t('homeHero.confirmReplace')}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+      {useConfirm ? (
+        <div className="home-hero-confirm__backdrop" role="presentation">
+          <div
+            className="home-hero-confirm"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="embed-use-confirm-title"
+            data-testid="embed-use-confirm"
+          >
+            <h2 id="embed-use-confirm-title">{t('embed.usePluginConfirmTitle')}</h2>
+            <p>{t('embed.usePluginConfirmBody')}</p>
+            <div className="home-hero-confirm__actions">
+              <button
+                type="button"
+                className="home-hero-confirm__secondary"
+                data-testid="embed-use-confirm-cancel"
+                onClick={() => setUseConfirm(null)}
+              >
+                {t('common.cancel')}
+              </button>
+              <button
+                type="button"
+                className="home-hero-confirm__primary"
+                data-testid="embed-use-confirm-ok"
+                onClick={() => confirmEmbedPluginUse()}
+              >
+                {t('embed.usePluginConfirmOk')}
               </button>
             </div>
           </div>

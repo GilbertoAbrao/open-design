@@ -1833,4 +1833,9 @@ export const id: Dict = {
   'diagnostics.exporting': 'Mengekspor…',
   'diagnostics.exportSuccess': 'Diagnostik disimpan di {path}',
   'diagnostics.exportFailed': 'Gagal mengekspor diagnostik: {message}',
+  // WXCode embed — plugin Use confirmation + auto-brief
+  'embed.usePluginConfirmTitle': 'Gunakan plugin ini?',
+  'embed.usePluginConfirmBody': 'Saya akan membuat proyek dengan tampilan plugin ini dan memulai brief-nya.',
+  'embed.usePluginConfirmOk': 'Buat & mulai',
+  'embed.usePluginFiredPrompt': 'Buat template berdasarkan plugin ini.',
 };

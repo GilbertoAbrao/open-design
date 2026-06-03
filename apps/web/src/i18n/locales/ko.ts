@@ -1840,4 +1840,9 @@ export const ko: Dict = {
   'diagnostics.exporting': '내보내는 중…',
   'diagnostics.exportSuccess': '진단 정보를 {path}에 저장했습니다',
   'diagnostics.exportFailed': '진단 정보 내보내기 실패: {message}',
+  // WXCode embed — plugin Use confirmation + auto-brief
+  'embed.usePluginConfirmTitle': '이 플러그인을 사용할까요?',
+  'embed.usePluginConfirmBody': '이 플러그인의 디자인으로 프로젝트를 만들고 브리프를 시작할게요.',
+  'embed.usePluginConfirmOk': '생성 후 시작',
+  'embed.usePluginFiredPrompt': '이 플러그인을 기반으로 템플릿을 만들어 주세요.',
 };

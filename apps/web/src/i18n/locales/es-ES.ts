@@ -1679,4 +1679,9 @@ export const esES: Dict = {
   'diagnostics.exporting': 'Exportando…',
   'diagnostics.exportSuccess': 'Diagnósticos guardados en {path}',
   'diagnostics.exportFailed': 'No se pudieron exportar los diagnósticos: {message}',
+  // WXCode embed — plugin Use confirmation + auto-brief
+  'embed.usePluginConfirmTitle': '¿Usar este plugin?',
+  'embed.usePluginConfirmBody': 'Crearé un proyecto con el estilo de este plugin y empezaré el brief.',
+  'embed.usePluginConfirmOk': 'Crear e iniciar',
+  'embed.usePluginFiredPrompt': 'Crea una plantilla basada en este plugin.',
 };

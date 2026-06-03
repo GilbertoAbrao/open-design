@@ -2110,4 +2110,9 @@ export const zhTW: Dict = {
   'skillPluginCandidate.publishRepo': '發布倉庫',
   'skillPluginCandidate.dismiss': '忽略',
   'skillPluginCandidate.repoDescription': '這個倉庫看起來可以做成外掛。',
+  // WXCode embed — plugin Use confirmation + auto-brief
+  'embed.usePluginConfirmTitle': '使用此外掛？',
+  'embed.usePluginConfirmBody': '我會以此外掛的風格建立一個專案並開始整理需求。',
+  'embed.usePluginConfirmOk': '建立並開始',
+  'embed.usePluginFiredPrompt': '根據此外掛建立一個範本。',
 };

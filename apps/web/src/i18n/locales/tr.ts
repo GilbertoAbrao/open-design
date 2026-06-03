@@ -1777,4 +1777,9 @@ export const tr: Dict = {
   'diagnostics.exporting': 'Dışa aktarılıyor…',
   'diagnostics.exportSuccess': 'Tanılama {path} konumuna kaydedildi',
   'diagnostics.exportFailed': 'Tanılama dışa aktarılamadı: {message}',
+  // WXCode embed — plugin Use confirmation + auto-brief
+  'embed.usePluginConfirmTitle': 'Bu eklenti kullanılsın mı?',
+  'embed.usePluginConfirmBody': 'Bu eklentinin görünümüyle bir proje oluşturup brief\'i başlatacağım.',
+  'embed.usePluginConfirmOk': 'Oluştur ve başlat',
+  'embed.usePluginFiredPrompt': 'Bu eklentiye dayalı bir şablon oluştur.',
 };

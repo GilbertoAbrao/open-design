@@ -1727,4 +1727,9 @@ export const ja: Dict = {
   'diagnostics.exporting': 'エクスポート中…',
   'diagnostics.exportSuccess': '診断情報を {path} に保存しました',
   'diagnostics.exportFailed': '診断情報のエクスポートに失敗しました: {message}',
+  // WXCode embed — plugin Use confirmation + auto-brief
+  'embed.usePluginConfirmTitle': 'このプラグインを使いますか？',
+  'embed.usePluginConfirmBody': 'このプラグインの見た目でプロジェクトを作成し、ブリーフを開始します。',
+  'embed.usePluginConfirmOk': '作成して開始',
+  'embed.usePluginFiredPrompt': 'このプラグインをもとにテンプレートを作成してください。',
 };

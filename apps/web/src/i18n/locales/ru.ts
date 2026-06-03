@@ -1831,4 +1831,9 @@ export const ru: Dict = {
   'diagnostics.exporting': 'Экспортирование…',
   'diagnostics.exportSuccess': 'Диагностика сохранена: {path}',
   'diagnostics.exportFailed': 'Не удалось экспортировать диагностику: {message}',
+  // WXCode embed — plugin Use confirmation + auto-brief
+  'embed.usePluginConfirmTitle': 'Использовать этот плагин?',
+  'embed.usePluginConfirmBody': 'Я создам проект в стиле этого плагина и начну бриф.',
+  'embed.usePluginConfirmOk': 'Создать и начать',
+  'embed.usePluginFiredPrompt': 'Создай шаблон на основе этого плагина.',
 };

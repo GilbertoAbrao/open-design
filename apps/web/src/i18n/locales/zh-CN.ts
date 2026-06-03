@@ -2542,4 +2542,9 @@ export const zhCN: Dict = {
   'diagnostics.exporting': '导出中…',
   'diagnostics.exportSuccess': '诊断日志已保存到 {path}',
   'diagnostics.exportFailed': '导出诊断日志失败：{message}',
+  // WXCode embed — plugin Use confirmation + auto-brief
+  'embed.usePluginConfirmTitle': '使用此插件？',
+  'embed.usePluginConfirmBody': '我会用该插件的风格创建一个项目并开始梳理需求。',
+  'embed.usePluginConfirmOk': '创建并开始',
+  'embed.usePluginFiredPrompt': '基于此插件创建一个模板。',
 };

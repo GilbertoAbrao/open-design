@@ -1657,4 +1657,9 @@ export const it: Dict = {
   'liveArtifact.viewer.code.loading': 'Caricamento codice…',
   'liveArtifact.viewer.code.unavailable': 'Il codice non è ancora disponibile.',
   'liveArtifact.viewer.code.empty': 'Questo file di codice è vuoto.',
+  // WXCode embed — plugin Use confirmation + auto-brief
+  'embed.usePluginConfirmTitle': 'Usare questo plugin?',
+  'embed.usePluginConfirmBody': 'Creerò un progetto con lo stile di questo plugin e avvierò il brief.',
+  'embed.usePluginConfirmOk': 'Crea e avvia',
+  'embed.usePluginFiredPrompt': 'Crea un modello basato su questo plugin.',
 };

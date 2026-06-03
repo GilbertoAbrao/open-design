@@ -2591,4 +2591,10 @@ export interface Dict {
   'diagnostics.exporting': string;
   'diagnostics.exportSuccess': string;
   'diagnostics.exportFailed': string;
+
+  // WXCode embed — plugin Use confirmation + auto-brief
+  'embed.usePluginConfirmTitle': string;
+  'embed.usePluginConfirmBody': string;
+  'embed.usePluginConfirmOk': string;
+  'embed.usePluginFiredPrompt': string;
 }

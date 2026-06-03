@@ -1800,4 +1800,9 @@ export const hu: Dict = {
   'diagnostics.exporting': 'Exportálás…',
   'diagnostics.exportSuccess': 'Diagnosztika mentve: {path}',
   'diagnostics.exportFailed': 'Diagnosztika exportálása sikertelen: {message}',
+  // WXCode embed — plugin Use confirmation + auto-brief
+  'embed.usePluginConfirmTitle': 'Használod ezt a bővítményt?',
+  'embed.usePluginConfirmBody': 'Létrehozok egy projektet ennek a bővítménynek a stílusával, és elindítom a briefet.',
+  'embed.usePluginConfirmOk': 'Létrehozás és indítás',
+  'embed.usePluginFiredPrompt': 'Hozz létre egy sablont ez alapján a bővítmény alapján.',
 };

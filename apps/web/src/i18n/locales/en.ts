@@ -2563,4 +2563,9 @@ export const en: Dict = {
   'diagnostics.exporting': 'Exporting…',
   'diagnostics.exportSuccess': 'Saved diagnostics to {path}',
   'diagnostics.exportFailed': 'Could not export diagnostics: {message}',
+  // WXCode embed — plugin Use confirmation + auto-brief
+  'embed.usePluginConfirmTitle': 'Use this plugin?',
+  'embed.usePluginConfirmBody': 'I\'ll create a project with this plugin\'s look and start the brief.',
+  'embed.usePluginConfirmOk': 'Create & start',
+  'embed.usePluginFiredPrompt': 'Create a template based on this plugin.',
 };

@@ -1620,4 +1620,9 @@ export const th: Dict = {
   'settings.designSystemsCategory': 'หมวดหมู่',
   'settings.designSystemsAllCategories': 'ทุกหมวดหมู่',
   'settings.designSystemsShowInHomeGallery': 'แสดงในแกลเลอรีหน้าแรก',
+  // WXCode embed — plugin Use confirmation + auto-brief
+  'embed.usePluginConfirmTitle': 'ใช้ปลั๊กอินนี้ไหม?',
+  'embed.usePluginConfirmBody': 'ฉันจะสร้างโปรเจกต์ด้วยสไตล์ของปลั๊กอินนี้และเริ่มสรุปงาน',
+  'embed.usePluginConfirmOk': 'สร้างและเริ่ม',
+  'embed.usePluginFiredPrompt': 'สร้างเทมเพลตจากปลั๊กอินนี้',
 };

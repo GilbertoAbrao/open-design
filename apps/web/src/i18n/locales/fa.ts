@@ -1833,4 +1833,9 @@ export const fa: Dict = {
   'diagnostics.exporting': 'در حال صادر کردن…',
   'diagnostics.exportSuccess': 'تشخیص در {path} ذخیره شد',
   'diagnostics.exportFailed': 'صادر کردن تشخیص ناموفق بود: {message}',
+  // WXCode embed — plugin Use confirmation + auto-brief
+  'embed.usePluginConfirmTitle': 'از این افزونه استفاده شود؟',
+  'embed.usePluginConfirmBody': 'یک پروژه با ظاهر این افزونه می‌سازم و بریف را آغاز می‌کنم.',
+  'embed.usePluginConfirmOk': 'ساخت و شروع',
+  'embed.usePluginFiredPrompt': 'یک قالب بر اساس این افزونه بساز.',
 };

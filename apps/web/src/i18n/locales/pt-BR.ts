@@ -1831,4 +1831,9 @@ export const ptBR: Dict = {
   'diagnostics.exporting': 'Exportando…',
   'diagnostics.exportSuccess': 'Diagnósticos salvos em {path}',
   'diagnostics.exportFailed': 'Falha ao exportar diagnósticos: {message}',
+  // WXCode embed — plugin Use confirmation + auto-brief
+  'embed.usePluginConfirmTitle': 'Usar este plugin?',
+  'embed.usePluginConfirmBody': 'Vou criar um projeto com a identidade visual deste plugin e iniciar o briefing.',
+  'embed.usePluginConfirmOk': 'Criar e iniciar',
+  'embed.usePluginFiredPrompt': 'Crie um template baseado neste plugin.',
 };

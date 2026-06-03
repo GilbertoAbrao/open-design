@@ -1791,4 +1791,9 @@ export const ar: Dict = {
   'diagnostics.exporting': 'جارٍ التصدير…',
   'diagnostics.exportSuccess': 'تم حفظ التشخيص في {path}',
   'diagnostics.exportFailed': 'تعذّر تصدير التشخيص: {message}',
+  // WXCode embed — plugin Use confirmation + auto-brief
+  'embed.usePluginConfirmTitle': 'استخدام هذا المكوّن الإضافي؟',
+  'embed.usePluginConfirmBody': 'سأنشئ مشروعًا بمظهر هذا المكوّن وأبدأ الموجز.',
+  'embed.usePluginConfirmOk': 'إنشاء وبدء',
+  'embed.usePluginFiredPrompt': 'أنشئ قالبًا استنادًا إلى هذا المكوّن الإضافي.',
 };
