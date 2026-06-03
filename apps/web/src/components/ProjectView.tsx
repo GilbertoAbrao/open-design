@@ -149,6 +149,7 @@ import {
 } from './Theater';
 import { useIframeKeepAlivePool } from './IframeKeepAlivePool';
 import { decideAutoOpenAfterWrite } from './auto-open-file';
+import { isWxcodeEmbedHost } from './wxcode-embed';
 import { buildRepoImportPrompt, designSystemNeedsRepoConnect } from './design-system-github-evidence';
 import { collectReferencedJsxNames } from '../runtime/jsx-module-refs';
 import { FileWorkspace } from './FileWorkspace';
@@ -267,13 +268,6 @@ interface WxcodePreviewContext {
   scrollX: number;
   scrollY: number;
   preferSourceFile: boolean;
-}
-
-function isWxcodeEmbedHost(): boolean {
-  return (
-    typeof document !== 'undefined' &&
-    document.documentElement.getAttribute('data-od-host') === 'wxcode'
-  );
 }
 
 function readWxcodePreviewContext(): WxcodePreviewContext | null {

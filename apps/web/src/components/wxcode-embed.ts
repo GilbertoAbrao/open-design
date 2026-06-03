@@ -15,12 +15,35 @@ const DEFAULT_PREVIEW_SANDBOX = 'allow-scripts allow-downloads';
 /**
  * True when Open Design is running inside the WXCode Design iframe. Keep host
  * checks in this seam so WXCode-only behavior remains additive to upstream.
+ *
+ * Detection has two independent signals so neither alone can silently no-op the
+ * embed gates:
+ *
+ * 1. `data-od-host='wxcode'` on `<html>`, set by the pre-hydration script in
+ *    `app/layout.tsx`. This is the only signal that survives SPA navigation
+ *    after the launch query string has been dropped.
+ * 2. The launch URL params (`source=wxcode`, `shell=wxcode`, `embed=1`,
+ *    `wxcodeDesign=1`). In the sandboxed cross-origin Design iframe the layout
+ *    script can throw on `localStorage` before it sets the attribute, so the
+ *    URL is the reliable signal on first paint / welcome.
  */
 export function isWxcodeEmbedHost(): boolean {
-  return (
+  const byAttribute =
     typeof document !== 'undefined' &&
-    document.documentElement.getAttribute('data-od-host') === 'wxcode'
-  );
+    document.documentElement.getAttribute('data-od-host') === 'wxcode';
+  if (byAttribute) return true;
+  if (typeof window === 'undefined') return false;
+  try {
+    const params = new URLSearchParams(window.location.search);
+    return (
+      params.get('source') === 'wxcode' ||
+      params.get('shell') === 'wxcode' ||
+      params.get('embed') === '1' ||
+      params.get('wxcodeDesign') === '1'
+    );
+  } catch {
+    return false;
+  }
 }
 
 /**
