@@ -150,3 +150,83 @@ describe('discovery.ts active-skill visual-direction exception', () => {
     expect(prompt).not.toMatch(/\n## Active design system(?:\n| —)/);
   });
 });
+
+// Consolidation: the WXCode-embedded OD generation agent used to receive a
+// per-request `customInstructions` payload that (a) declared the active
+// plugin/skill is aesthetic-only and the product DOMAIN comes from the
+// Knowledge-Base context + the user's prompt, and (b) banned generated-design
+// metadata from leaking into product screens (rules/status panels instead of
+// inline validation, build-status caveats, and design-narration prose). These
+// tests lock those behaviors as NATIVE to OD's composed system prompt so the
+// embed can revert `customInstructions` to a digest-only channel.
+describe('discovery.ts active-visual-skill DOMAIN AUTHORITY', () => {
+  it('states the active visual skill is look + structure only, not the product domain', () => {
+    // The pinned visual skill fixes the LOOK + STRUCTURE; the product domain
+    // (entities, screens, metrics, workflows, terminology) must come from the
+    // KB context + the user's prompt, not the skill.
+    expect(DISCOVERY_AND_PHILOSOPHY).toMatch(
+      /Active visual skill exception[\s\S]*?LOOK \+ STRUCTURE/,
+    );
+    expect(DISCOVERY_AND_PHILOSOPHY).toMatch(
+      /Active visual skill exception[\s\S]*?product \*\*domain\*\*[\s\S]*?Knowledge Base/,
+    );
+  });
+
+  it('treats the skill example domain as illustrative only — never briefs or builds it', () => {
+    // Authoritative-domain behavior: the skill's example domain is a sample of
+    // the aesthetic, not the thing to build. The agent must not brief, ask
+    // about, or generate the skill's example domain.
+    expect(DISCOVERY_AND_PHILOSOPHY).toMatch(
+      /Active visual skill exception[\s\S]*?illustrative only/,
+    );
+    expect(DISCOVERY_AND_PHILOSOPHY).toMatch(
+      /Active visual skill exception[\s\S]*?Do NOT brief, ask about, or generate the skill's example domain/,
+    );
+  });
+
+  it('falls back to the skill example domain only when no KB/domain is supplied (standalone)', () => {
+    // Standalone (no embed, no KB): there is no real domain, so the skill's
+    // example domain is the correct fallback.
+    expect(DISCOVERY_AND_PHILOSOPHY).toMatch(
+      /Active visual skill exception[\s\S]*?If NO KB\/domain is supplied[\s\S]*?fall back to the skill's example domain/,
+    );
+  });
+
+  it('keys the domain source on the Custom instructions (project-level) KB block', () => {
+    // The KB digest arrives as projectInstructions -> "## Custom instructions
+    // (project-level)". The domain-authority clause must reference that block so
+    // the agent knows where the real domain lives.
+    expect(DISCOVERY_AND_PHILOSOPHY).toMatch(
+      /Active visual skill exception[\s\S]*?## Custom instructions \(project-level\)/,
+    );
+  });
+});
+
+describe('discovery.ts anti-AI-slop metadata-as-UI (three families)', () => {
+  it('forbids rules/status/validation panels and requires inline field validation instead', () => {
+    // Family 1: domain rules must be expressed as inline field validation
+    // (required marks, helper text, inline errors), NEVER as a panel listing
+    // the rules.
+    expect(DISCOVERY_AND_PHILOSOPHY).toMatch(/inline field validation/);
+    expect(DISCOVERY_AND_PHILOSOPHY).toMatch(
+      /never a panel listing the rules/,
+    );
+  });
+
+  it('forbids build/implementation status notes and designer/demo controls', () => {
+    // Family 2: no "depends on backend" / "persistence pending" / "TODO" /
+    // "coming soon" build-status caveats, and no designer/demo controls.
+    expect(DISCOVERY_AND_PHILOSOPHY).toMatch(/persistence pending/);
+    expect(DISCOVERY_AND_PHILOSOPHY).toMatch(/coming soon/);
+  });
+
+  it('forbids design-narration prose and asserts every visible word is real product copy', () => {
+    // Family 3 (NEW): no copy that narrates the design / visual system / plugin
+    // or that the artifact is a template/prototype. The two stable phrases the
+    // task calls out:
+    expect(DISCOVERY_AND_PHILOSOPHY).toMatch(/template with real form states/);
+    expect(DISCOVERY_AND_PHILOSOPHY).toMatch(
+      /Every visible word is real product copy for the end user/,
+    );
+  });
+});

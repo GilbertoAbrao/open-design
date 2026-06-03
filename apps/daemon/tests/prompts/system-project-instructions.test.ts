@@ -16,11 +16,19 @@ describe('daemon composeSystemPrompt — project-level custom instructions', () 
   it('renders project-level custom instructions (KB context channel)', () => {
     const out = composeSystemPrompt({ projectInstructions: 'KB-CONTEXT-MARKER' });
     expect(out).toContain('KB-CONTEXT-MARKER');
-    expect(out).toContain('## Custom instructions (project-level)');
+    // The composer emits the section as a real `\n\n## Custom instructions
+    // (project-level)\n\n` heading. Assert on that rendered form rather than a
+    // bare substring: the discovery prose now also *mentions* the heading name
+    // in backticks (the domain-authority clause points the agent at the KB
+    // block), so a substring check would no longer prove the section rendered.
+    expect(out).toMatch(/\n## Custom instructions \(project-level\)\n/);
   });
 
   it('omits the project-level section when no instructions are set', () => {
     const out = composeSystemPrompt({});
-    expect(out).not.toContain('## Custom instructions (project-level)');
+    // Same precision fix: the static discovery prose references the heading
+    // name inline, so the absence guard must key on the emitted `\n\n##`
+    // heading form, not the substring that the prose legitimately contains.
+    expect(out).not.toMatch(/\n## Custom instructions \(project-level\)\n/);
   });
 });
