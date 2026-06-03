@@ -2,15 +2,15 @@
   "$schema": "https://open-design.ai/schemas/marketplace.v1.json",
   "specVersion": "1.0.0",
   "name": "wxcode-design-plugins",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "owner": {
     "name": "WXCode",
     "url": "https://github.com/GilbertoAbrao/wxcode-design-plugins"
   },
   "metadata": {
     "description": "WXCode-curated admin / dashboard / cockpit plugins. Pre-registered marketplace source seeded by the daemon; entries install from the wxcode-design-plugins repo.",
-    "version": "0.3.0",
-    "updatedAt": "2026-06-01T00:00:00Z"
+    "version": "0.4.0",
+    "updatedAt": "2026-06-03T00:00:00Z"
   },
   "plugins": [
     {
@@ -47,7 +47,7 @@
         "renewals",
         "loss-ratio"
       ],
-      "description": "Institutional light-mode operations dashboard for an insurance carrier \u2014 policy & claims lifecycle management. Left sidebar with line-of-business switcher, topbar with period filter, 4 KPI cards, claims pipeline board, policies table, renewals panel, and inline SVG claims trend chart.",
+      "description": "Institutional light-mode operations dashboard for an insurance carrier — policy & claims lifecycle management. Left sidebar with line-of-business switcher, topbar with period filter, 4 KPI cards, claims pipeline board, policies table, renewals panel, and inline SVG claims trend chart.",
       "mode": "prototype"
     },
     {
@@ -112,7 +112,7 @@
         "indigo",
         "clean-cards"
       ],
-      "description": "Aurora Analytics Admin is a polished light-mode dashboard for product and growth teams who need at-a-glance visibility into sessions, conversion, and retention. It pairs a fixed left sidebar with a top search bar, four live KPI tiles, an area chart of weekly sessions, a recent-sessions table, and a right-rail insights panel \u2014 all rendered in a single self-contained HTML file. Designed for clarity over decoration: indigo-violet accents on a crisp slate-and-white canvas.",
+      "description": "Aurora Analytics Admin is a polished light-mode dashboard for product and growth teams who need at-a-glance visibility into sessions, conversion, and retention. It pairs a fixed left sidebar with a top search bar, four live KPI tiles, an area chart of weekly sessions, a recent-sessions table, and a right-rail insights panel — all rendered in a single self-contained HTML file. Designed for clarity over decoration: indigo-violet accents on a crisp slate-and-white canvas.",
       "mode": "prototype"
     },
     {
@@ -148,7 +148,7 @@
         "ops",
         "asymmetric-layout"
       ],
-      "description": "Operations overview dashboard built on a bento-grid layout \u2014 asymmetric tiles of varied sizes spanning a neutral canvas. One hero metric, an inline SVG area chart, KPI pills, donut chart, activity feed, mini-table, and status tile. Multi-accent palette: indigo, teal, amber, rose.",
+      "description": "Operations overview dashboard built on a bento-grid layout — asymmetric tiles of varied sizes spanning a neutral canvas. One hero metric, an inline SVG area chart, KPI pills, donut chart, activity feed, mini-table, and status tile. Multi-accent palette: indigo, teal, amber, rose.",
       "mode": "prototype"
     },
     {
@@ -184,7 +184,7 @@
         "fundraising",
         "donor-management"
       ],
-      "description": "Warm-optimistic light-mode admin dashboard for nonprofit fundraising and donor management \u2014 org/program switcher sidebar, KPI cards, campaigns progress, donations trend chart, donor-segments donut, and recent donations table. Original archetype with emerald + coral accent palette.",
+      "description": "Warm-optimistic light-mode admin dashboard for nonprofit fundraising and donor management — org/program switcher sidebar, KPI cards, campaigns progress, donations trend chart, donor-segments donut, and recent donations table. Original archetype with emerald + coral accent palette.",
       "mode": "prototype"
     },
     {
@@ -221,7 +221,7 @@
         "monospace",
         "green-accent"
       ],
-      "description": "Dark-mode CI/CD operations dashboard \u2014 terminal-inspired admin for pipeline runs, deploy frequency, build health, and incident tracking. Original archetype built for DevOps and platform engineering teams.",
+      "description": "Dark-mode CI/CD operations dashboard — terminal-inspired admin for pipeline runs, deploy frequency, build health, and incident tracking. Original archetype built for DevOps and platform engineering teams.",
       "mode": "prototype"
     },
     {
@@ -257,7 +257,7 @@
         "kanban",
         "status-board"
       ],
-      "description": "Industrial-clean logistics admin for fleet & shipment operations \u2014 left hub/region sidebar, topbar with region filter, 4 KPI cards (in-transit / on-time rate / active fleet / warehouse utilization), a Kanban-style shipment status board, an original abstract route/region SVG visualization, and a live active-shipments table. Orange-amber accent on white/slate canvas.",
+      "description": "Industrial-clean logistics admin for fleet & shipment operations — left hub/region sidebar, topbar with region filter, 4 KPI cards (in-transit / on-time rate / active fleet / warehouse utilization), a Kanban-style shipment status board, an original abstract route/region SVG visualization, and a live active-shipments table. Orange-amber accent on white/slate canvas.",
       "mode": "prototype"
     },
     {
@@ -292,7 +292,7 @@
         "blue-violet",
         "dashboard"
       ],
-      "description": "Friendly light-mode admin dashboard for online community and social platform operators \u2014 left sidebar with community switcher, topbar with search and date-range, 4 KPI cards, moderation queue with approve/remove actions, engagement chart, members table, and trending/flagged side panel. Original archetype for the community-ops use case.",
+      "description": "Friendly light-mode admin dashboard for online community and social platform operators — left sidebar with community switcher, topbar with search and date-range, 4 KPI cards, moderation queue with approve/remove actions, engagement chart, members table, and trending/flagged side panel. Original archetype for the community-ops use case.",
       "mode": "prototype"
     },
     {
@@ -329,7 +329,7 @@
         "focused",
         "clean-cards"
       ],
-      "description": "Focused project and work-management admin dashboard \u2014 light mode with cobalt-blue accent, left sidebar project list, topbar search and view switch, 4 KPI cards, a compact gantt-style timeline strip, a My Tasks table, and a Team/Milestones side panel.",
+      "description": "Focused project and work-management admin dashboard — light mode with cobalt-blue accent, left sidebar project list, topbar search and view switch, 4 KPI cards, a compact gantt-style timeline strip, a My Tasks table, and a Team/Milestones side panel.",
       "mode": "prototype"
     },
     {
@@ -365,7 +365,76 @@
         "invoices",
         "dunning"
       ],
-      "description": "Clean-fintech billing operations dashboard \u2014 left sidebar, topbar with period picker, 4 KPI cards (MRR / active subscriptions / churn / ARPU), inline SVG trend chart, plan breakdown bars, invoices table, and a dunning side panel. Coral accent on white surfaces.",
+      "description": "Clean-fintech billing operations dashboard — left sidebar, topbar with period picker, 4 KPI cards (MRR / active subscriptions / churn / ARPU), inline SVG trend chart, plan breakdown bars, invoices table, and a dunning side panel. Coral accent on white surfaces.",
+      "mode": "prototype"
+    },
+    {
+      "name": "wxcode-admin-corona",
+      "title": "Violet Night Admin",
+      "version": "0.1.0",
+      "source": "github:GilbertoAbrao/wxcode-design-plugins@main/plugins/admin-corona",
+      "publisher": {
+        "id": "wxcode",
+        "github": "GilbertoAbrao",
+        "url": "https://github.com/GilbertoAbrao/wxcode-design-plugins"
+      },
+      "homepage": "https://github.com/GilbertoAbrao/wxcode-design-plugins/tree/main/plugins/admin-corona",
+      "license": "MIT",
+      "capabilitiesSummary": [
+        "prompt:inject",
+        "fs:write"
+      ],
+      "description": "Dark admin aesthetic: deep-charcoal canvas (#191c24), violet accent (#8862e0) on a violet-to-blue gradient for primary actions, Rubik type at weight 500 headings, 4px card radius, subdued #6c7293 body text, and #2c2e33 hairline borders. Archetype = top navbar with search + user controls, left icon sidebar, KPI card row (4 tiles), 2-column grid with a chart panel and a status list, plus a full-width data table — all balanced between density and breathing room.",
+      "tags": [
+        "wxcode-plugin",
+        "wxcode",
+        "first-party",
+        "prototype",
+        "operations",
+        "web",
+        "admin",
+        "dark-mode",
+        "violet-accent",
+        "gradient-buttons",
+        "charcoal-canvas",
+        "enterprise",
+        "rubik"
+      ],
+      "mode": "prototype"
+    },
+    {
+      "name": "wxcode-admin-darkpan",
+      "title": "Onyx Sharp Admin",
+      "version": "0.1.0",
+      "source": "github:GilbertoAbrao/wxcode-design-plugins@main/plugins/admin-darkpan",
+      "publisher": {
+        "id": "wxcode",
+        "github": "GilbertoAbrao",
+        "url": "https://github.com/GilbertoAbrao/wxcode-design-plugins"
+      },
+      "homepage": "https://github.com/GilbertoAbrao/wxcode-design-plugins/tree/main/plugins/admin-darkpan",
+      "license": "MIT",
+      "capabilitiesSummary": [
+        "prompt:inject",
+        "fs:write"
+      ],
+      "description": "Midnight-black admin aesthetic: pure-black canvas (#000000), deep charcoal panels (#191c24), teal accent (#009688), muted slate body text (#6c7293), hairline borders (#2a2e38), Open Sans type, and zero-radius sharp corners throughout. Archetype = collapsible icon sidebar + top header bar + KPI metric tiles + data tables with teal status pills + form screens with inline validation. A crisp, zero-radius dark panel system suited for high-information operational dashboards.",
+      "tags": [
+        "wxcode-plugin",
+        "wxcode",
+        "first-party",
+        "prototype",
+        "operations",
+        "web",
+        "admin",
+        "dark-mode",
+        "midnight-black",
+        "teal-accent",
+        "sharp-corners",
+        "data-dense",
+        "enterprise",
+        "zero-radius"
+      ],
       "mode": "prototype"
     },
     {
@@ -402,7 +471,7 @@
         "order-book",
         "high-density"
       ],
-      "description": "High-density dark-mode operations dashboard in the trading-desk style \u2014 compact rows, monospace tabular figures, color-coded deltas, watchlist, positions table, order book, sparkline strip, and stats row. Maximum information per pixel with a 4-px spacing grid.",
+      "description": "High-density dark-mode operations dashboard in the trading-desk style — compact rows, monospace tabular figures, color-coded deltas, watchlist, positions table, order book, sparkline strip, and stats row. Maximum information per pixel with a 4-px spacing grid.",
       "mode": "prototype"
     },
     {
@@ -437,7 +506,7 @@
         "funnel",
         "campaign-management"
       ],
-      "description": "Vibrant-but-clean marketing command centre \u2014 left sidebar, topbar with date-range filter, 4 KPI cards (reach / CTR / spend / ROAS) with inline SVG sparklines, a multi-series campaign performance chart, a conversion funnel, and a campaigns table with channel chips and status pills. Rose-pink accent on white/slate canvas.",
+      "description": "Vibrant-but-clean marketing command centre — left sidebar, topbar with date-range filter, 4 KPI cards (reach / CTR / spend / ROAS) with inline SVG sparklines, a multi-series campaign performance chart, a conversion funnel, and a campaigns table with channel chips and status pills. Rose-pink accent on white/slate canvas.",
       "mode": "prototype"
     },
     {
@@ -471,7 +540,7 @@
         "refined",
         "property-management"
       ],
-      "description": "Real-estate brokerage back-office admin \u2014 light mode, teal accent, left sidebar with brokerage switcher, 4 KPI cards (active listings, deals in progress, avg days on market, commission MTD), listings table, deals pipeline, and agent leaderboard.",
+      "description": "Real-estate brokerage back-office admin — light mode, teal accent, left sidebar with brokerage switcher, 4 KPI cards (active listings, deals in progress, avg days on market, commission MTD), listings table, deals pipeline, and agent leaderboard.",
       "mode": "prototype"
     },
     {
@@ -542,7 +611,7 @@
         "orange-accent",
         "status-board"
       ],
-      "description": "Industrial dark-mode Manufacturing Execution System dashboard \u2014 shop-floor plant switcher, OEE / output / downtime / scrap KPI tiles, production lines status board, inline SVG output trend chart, work-orders table, and real-time downtime alerts panel. Original archetype for discrete manufacturing operations teams.",
+      "description": "Industrial dark-mode Manufacturing Execution System dashboard — shop-floor plant switcher, OEE / output / downtime / scrap KPI tiles, production lines status board, inline SVG output trend chart, work-orders table, and real-time downtime alerts panel. Original archetype for discrete manufacturing operations teams.",
       "mode": "prototype"
     },
     {
@@ -578,7 +647,7 @@
         "cyan-violet",
         "dashboard"
       ],
-      "description": "Glassmorphism operations dashboard \u2014 frosted translucent cards layered over a deep indigo-violet-teal gradient canvas. Signature style: backdrop-filter blur, 1px translucent borders, soft ambient shadows, cyan and violet accents on near-black. Use when the brief calls for a dark, premium, or futuristic analytics look.",
+      "description": "Glassmorphism operations dashboard — frosted translucent cards layered over a deep indigo-violet-teal gradient canvas. Signature style: backdrop-filter blur, 1px translucent borders, soft ambient shadows, cyan and violet accents on near-black. Use when the brief calls for a dark, premium, or futuristic analytics look.",
       "mode": "prototype"
     },
     {
@@ -610,7 +679,7 @@
         "frosted-glass",
         "modern"
       ],
-      "description": "Dark-mode admin built on frosted glass panels \u2014 translucent surfaces with backdrop blur over a soft colored aurora gradient, cyan accent, hairline white-alpha borders. Modern alternative to flat-card SaaS admins.",
+      "description": "Dark-mode admin built on frosted glass panels — translucent surfaces with backdrop blur over a soft colored aurora gradient, cyan accent, hairline white-alpha borders. Modern alternative to flat-card SaaS admins.",
       "mode": "prototype"
     },
     {
@@ -648,7 +717,7 @@
         "trustworthy",
         "clean-cards"
       ],
-      "description": "Digital banking / personal finance operations console \u2014 light mode, navy-blue accent, teal secondary. Left account sidebar, topbar with search and notifications, hero payment-card SVG, 3 KPI tiles, spending donut chart, recent transactions table, and quick-transfer payees panel.",
+      "description": "Digital banking / personal finance operations console — light mode, navy-blue accent, teal secondary. Left account sidebar, topbar with search and notifications, hero payment-card SVG, 3 KPI tiles, spending donut chart, recent transactions table, and quick-transfer payees panel.",
       "mode": "prototype"
     },
     {
@@ -684,7 +753,41 @@
         "flights",
         "indigo-sky"
       ],
-      "description": "Airline operations control center \u2014 dark-mode admin dashboard with slim navbar, icon rail, KPI tiles (on-time performance, flights today, load factor, delayed), live flights board, departures-by-hour SVG chart, flights table, and crew/aircraft side panel. Original archetype for aviation and transport operations.",
+      "description": "Airline operations control center — dark-mode admin dashboard with slim navbar, icon rail, KPI tiles (on-time performance, flights today, load factor, delayed), live flights board, departures-by-hour SVG chart, flights table, and crew/aircraft side panel. Original archetype for aviation and transport operations.",
+      "mode": "prototype"
+    },
+    {
+      "name": "wxcode-admin-kaiadmin",
+      "title": "Azure Rail Admin",
+      "version": "0.1.0",
+      "source": "github:GilbertoAbrao/wxcode-design-plugins@main/plugins/admin-kaiadmin",
+      "publisher": {
+        "id": "wxcode",
+        "github": "GilbertoAbrao",
+        "url": "https://github.com/GilbertoAbrao/wxcode-design-plugins"
+      },
+      "homepage": "https://github.com/GilbertoAbrao/wxcode-design-plugins/tree/main/plugins/admin-kaiadmin",
+      "license": "MIT",
+      "capabilitiesSummary": [
+        "prompt:inject",
+        "fs:write"
+      ],
+      "description": "Light content-area + dark sidebar admin aesthetic: page canvas #f5f7fd, crisp white cards with 10px radius, deep navy sidebar (#1a2035), blue primary accent (#1572e8), body text #5a5a5a, Public Sans typography, bold 700 headings. Archetype = fixed dark vertical sidebar (icon + label nav) + sticky top header bar (page title + search + action icons + avatar) + 4-tile KPI row + 2-column dashboard grid (status overview panel + chart panel) + full-width records table with status pills. Complementary screens: list, form, charts, profile/settings, login.",
+      "tags": [
+        "wxcode-plugin",
+        "wxcode",
+        "first-party",
+        "prototype",
+        "operations",
+        "web",
+        "admin",
+        "light-mode",
+        "dark-sidebar",
+        "blue-accent",
+        "clean-cards",
+        "enterprise",
+        "sidebar-nav"
+      ],
       "mode": "prototype"
     },
     {
@@ -720,7 +823,41 @@
         "members",
         "studio-management"
       ],
-      "description": "Dark-mode gym and fitness studio operations dashboard \u2014 active member KPIs, live class schedule with capacity bars, weekly attendance area chart, members table with plan/status, and coach panel. Original energetic dark-green palette with lime accent.",
+      "description": "Dark-mode gym and fitness studio operations dashboard — active member KPIs, live class schedule with capacity bars, weekly attendance area chart, members table with plan/status, and coach panel. Original energetic dark-green palette with lime accent.",
+      "mode": "prototype"
+    },
+    {
+      "name": "wxcode-admin-mazer",
+      "title": "Soft Blue Admin",
+      "version": "0.1.0",
+      "source": "github:GilbertoAbrao/wxcode-design-plugins@main/plugins/admin-mazer",
+      "publisher": {
+        "id": "wxcode",
+        "github": "GilbertoAbrao",
+        "url": "https://github.com/GilbertoAbrao/wxcode-design-plugins"
+      },
+      "homepage": "https://github.com/GilbertoAbrao/wxcode-design-plugins/tree/main/plugins/admin-mazer",
+      "license": "MIT",
+      "capabilitiesSummary": [
+        "prompt:inject",
+        "fs:write"
+      ],
+      "description": "Light friendly admin aesthetic: soft cloud-blue page background (#f2f7ff), white card surfaces with 11px radius, deep navy body text (#25396f), indigo-blue primary accent (#435ebe), and Nunito type at 700 weight headings. Archetype = fixed sidebar with collapsible nav groups + top header bar + 4-tile KPI row + mixed content grid (charts panel + recent-activity list + status table) + full-width data table with badge-status pills, plus list, form, settings, auth, and error screens.",
+      "tags": [
+        "wxcode-plugin",
+        "wxcode",
+        "first-party",
+        "prototype",
+        "operations",
+        "web",
+        "admin",
+        "light-mode",
+        "rounded",
+        "indigo-accent",
+        "friendly",
+        "sidebar-nav",
+        "card-grid"
+      ],
       "mode": "prototype"
     },
     {
@@ -757,7 +894,7 @@
         "sensors",
         "yield-forecast"
       ],
-      "description": "Original agriculture farm-management admin dashboard \u2014 light mode, natural green and earth-amber palette, left sidebar with farm/region switcher, 4 KPI cards, fields status board, yield forecast chart, sensors table, and weather plus tasks side panel.",
+      "description": "Original agriculture farm-management admin dashboard — light mode, natural green and earth-amber palette, left sidebar with farm/region switcher, 4 KPI cards, fields status board, yield forecast chart, sensors table, and weather plus tasks side panel.",
       "mode": "prototype"
     },
     {
@@ -792,7 +929,7 @@
         "headcount",
         "workforce"
       ],
-      "description": "HR and people-operations admin dashboard \u2014 warm-professional light mode with indigo accent, left sidebar org/team switcher, 4 KPI tiles (headcount, attendance, open roles, turnover), headcount-over-time chart, department breakdown, employees table, and a time-off requests panel.",
+      "description": "HR and people-operations admin dashboard — warm-professional light mode with indigo accent, left sidebar org/team switcher, 4 KPI tiles (headcount, attendance, open roles, turnover), headcount-over-time chart, department breakdown, employees table, and a time-off requests panel.",
       "mode": "prototype"
     },
     {
@@ -824,7 +961,7 @@
         "teal",
         "ops-console"
       ],
-      "description": "A production-grade dark-mode operations and observability dashboard built for on-call engineers and SRE teams. Features a compact left icon rail, four live metric tiles with inline trend sparklines, a time-series throughput chart, an active incidents table with severity pills, and a per-service health status list \u2014 all in a high-contrast teal-on-midnight palette optimised for 3 AM focus.",
+      "description": "A production-grade dark-mode operations and observability dashboard built for on-call engineers and SRE teams. Features a compact left icon rail, four live metric tiles with inline trend sparklines, a time-series throughput chart, an active incidents table with severity pills, and a per-service health status list — all in a high-contrast teal-on-midnight palette optimised for 3 AM focus.",
       "mode": "prototype"
     },
     {
@@ -856,7 +993,7 @@
         "high-contrast",
         "pastel-blocks"
       ],
-      "description": "A neo-brutalist admin dashboard \u2014 thick black borders, hard 4px offset shadows, vibrant pastel blocks (coral / lime / cream), monospaced numerics. Use when the brief asks for an admin with personality: 'brutalist admin', 'pastel dashboard', 'bold borders', 'flat blocks'.",
+      "description": "A neo-brutalist admin dashboard — thick black borders, hard 4px offset shadows, vibrant pastel blocks (coral / lime / cream), monospaced numerics. Use when the brief asks for an admin with personality: 'brutalist admin', 'pastel dashboard', 'bold borders', 'flat blocks'.",
       "mode": "prototype"
     },
     {
@@ -892,7 +1029,7 @@
         "defi",
         "sleek"
       ],
-      "description": "Dark-mode digital-asset portfolio console \u2014 left rail nav, topbar with network/wallet switcher, 4 KPI cards, area price chart, holdings table, and market movers side list. Sleek neon aesthetic with emerald and violet accents.",
+      "description": "Dark-mode digital-asset portfolio console — left rail nav, topbar with network/wallet switcher, 4 KPI cards, area price chart, holdings table, and market movers side list. Sleek neon aesthetic with emerald and violet accents.",
       "mode": "prototype"
     },
     {
@@ -928,7 +1065,7 @@
         "real-time",
         "playful-techy"
       ],
-      "description": "Dark-mode game studio live-operations dashboard \u2014 neon purple/cyan accent on deep-space backgrounds. Sidebar game switcher, topbar period filter, 4 KPI tiles (DAU / D1 retention / ARPDAU / live events), DAU chart, live events board, top in-game items table, player segments panel. Original archetype for game ops teams.",
+      "description": "Dark-mode game studio live-operations dashboard — neon purple/cyan accent on deep-space backgrounds. Sidebar game switcher, topbar period filter, 4 KPI tiles (DAU / D1 retention / ARPDAU / live events), DAU chart, live events board, top in-game items table, player segments panel. Original archetype for game ops teams.",
       "mode": "prototype"
     },
     {
@@ -963,7 +1100,7 @@
         "sky-blue",
         "slate"
       ],
-      "description": "Airy light-mode sales CRM admin \u2014 left sidebar with workspace switcher, topbar with search and filters, 4 pipeline KPI tiles with sparklines, horizontal pipeline-by-stage strip, recent deals table with stage pills, and a right-side activity and tasks panel. Sky-blue accent on a white/slate canvas.",
+      "description": "Airy light-mode sales CRM admin — left sidebar with workspace switcher, topbar with search and filters, 4 pipeline KPI tiles with sparklines, horizontal pipeline-by-stage strip, recent deals table with stage pills, and a right-side activity and tasks panel. Sky-blue accent on a white/slate canvas.",
       "mode": "prototype"
     },
     {
@@ -997,7 +1134,7 @@
         "purple",
         "learning-management"
       ],
-      "description": "Friendly-academic LMS administration dashboard \u2014 purple accent, left sidebar with school/program switcher, topbar with term selector, 4 KPI tiles (active students, courses, completion rate, avg score), enrollment/completion chart, courses table with progress bars, and upcoming assignments panel.",
+      "description": "Friendly-academic LMS administration dashboard — purple accent, left sidebar with school/program switcher, topbar with term selector, 4 KPI tiles (active students, courses, completion rate, avg score), enrollment/completion chart, courses table with progress bars, and upcoming assignments panel.",
       "mode": "prototype"
     },
     {
@@ -1033,7 +1170,7 @@
         "sla",
         "csat"
       ],
-      "description": "Friendly light-mode helpdesk operations dashboard \u2014 left inbox sidebar, topbar with search and assignee filter, 4 KPI cards (open tickets, avg first response, SLA compliance, CSAT), SLA-by-priority bar set, ticket queue table, and team load panel. Accent violet with green/amber/red status semantics.",
+      "description": "Friendly light-mode helpdesk operations dashboard — left inbox sidebar, topbar with search and assignee filter, 4 KPI cards (open tickets, avg first response, SLA compliance, CSAT), SLA-by-priority bar set, ticket queue table, and team load panel. Accent violet with green/amber/red status semantics.",
       "mode": "prototype"
     },
     {
@@ -1067,7 +1204,7 @@
         "clean-cards",
         "polished"
       ],
-      "description": "The market-leading SaaS admin archetype \u2014 polished light-mode dashboard with collapsible sidebar, breadcrumb topbar, 4 stat tiles, primary chart, recent table, side activity. Modeled after the Metronic / Vuexy / Velzon family that dominates Themeforest's admin category.",
+      "description": "The market-leading SaaS admin archetype — polished light-mode dashboard with collapsible sidebar, breadcrumb topbar, 4 stat tiles, primary chart, recent table, side activity. Modeled after the Metronic / Vuexy / Velzon family that dominates Themeforest's admin category.",
       "mode": "prototype"
     },
     {
@@ -1135,7 +1272,41 @@
         "emerald",
         "orders"
       ],
-      "description": "A clean, light-mode e-commerce back-office dashboard with warm neutral surfaces, emerald accents, and amber highlights. Ships with a sidebar store switcher, topbar date range selector, four KPI cards with inline sparklines, a revenue bar chart, a recent orders table with status badges, and a top products list \u2014 everything a merchant needs at a glance.",
+      "description": "A clean, light-mode e-commerce back-office dashboard with warm neutral surfaces, emerald accents, and amber highlights. Ships with a sidebar store switcher, topbar date range selector, four KPI cards with inline sparklines, a revenue bar chart, a recent orders table with status badges, and a top products list — everything a merchant needs at a glance.",
+      "mode": "prototype"
+    },
+    {
+      "name": "wxcode-admin-sneat",
+      "title": "Indigo SaaS Admin",
+      "version": "0.1.0",
+      "source": "github:GilbertoAbrao/wxcode-design-plugins@main/plugins/admin-sneat",
+      "publisher": {
+        "id": "wxcode",
+        "github": "GilbertoAbrao",
+        "url": "https://github.com/GilbertoAbrao/wxcode-design-plugins"
+      },
+      "homepage": "https://github.com/GilbertoAbrao/wxcode-design-plugins/tree/main/plugins/admin-sneat",
+      "license": "MIT",
+      "capabilitiesSummary": [
+        "prompt:inject",
+        "fs:write"
+      ],
+      "description": "Clean light-mode SaaS admin aesthetic: #f5f5f9 page canvas, white (#fff) card surfaces, indigo accent (#696cff), Public Sans type, 6px card radius, soft shadows, and muted body text (#646e78). Archetype = sticky top navbar (app title + search + notification + avatar) + left sidebar (nav groups with icons) + KPI stat tiles + mixed-width grid of charts and tables + paginated records table with status pills, plus list, form, settings, auth, error, email, and calendar screens.",
+      "tags": [
+        "wxcode-plugin",
+        "wxcode",
+        "first-party",
+        "prototype",
+        "operations",
+        "web",
+        "admin",
+        "light-mode",
+        "indigo-accent",
+        "soft-shadow",
+        "saas-admin",
+        "clean",
+        "sidebar-nav"
+      ],
       "mode": "prototype"
     },
     {
@@ -1171,7 +1342,7 @@
         "device-fleet",
         "monitoring"
       ],
-      "description": "Dark-mode IoT device-fleet and telemetry console \u2014 left rail nav, gateway/site switcher, 4 KPI cards (online/offline/signal/alerts), multi-series sparkline telemetry panel, active alerts list, and a devices table with signal bars and firmware status.",
+      "description": "Dark-mode IoT device-fleet and telemetry console — left rail nav, gateway/site switcher, 4 KPI cards (online/offline/signal/alerts), multi-series sparkline telemetry panel, active alerts list, and a devices table with signal bars and firmware status.",
       "mode": "prototype"
     },
     {
@@ -1207,7 +1378,7 @@
         "burgundy",
         "gold-accent"
       ],
-      "description": "Refined light-mode law firm dashboard for case and matter management \u2014 practice-area sidebar, KPI tiles for active cases / billable hours / deadlines / realization rate, matters table with status pills, upcoming deadlines panel, matters-by-practice chart, and recent documents list. Burgundy-gold accent palette on warm white surfaces.",
+      "description": "Refined light-mode law firm dashboard for case and matter management — practice-area sidebar, KPI tiles for active cases / billable hours / deadlines / realization rate, matters table with status pills, upcoming deadlines panel, matters-by-practice chart, and recent documents list. Burgundy-gold accent palette on warm white surfaces.",
       "mode": "prototype"
     },
     {
@@ -1245,7 +1416,7 @@
         "trust",
         "finance"
       ],
-      "description": "Retail banking back-office operations dashboard \u2014 sober slate-blue and emerald palette, left sidebar with branch switcher, topbar with period picker, 4 KPI cards, an approvals queue, a transactions table, a risk/exceptions panel, and an inline SVG throughput chart. Designed for trust and clarity.",
+      "description": "Retail banking back-office operations dashboard — sober slate-blue and emerald palette, left sidebar with branch switcher, topbar with period picker, 4 KPI cards, an approvals queue, a transactions table, a risk/exceptions panel, and an inline SVG throughput chart. Designed for trust and clarity.",
       "mode": "prototype"
     },
     {
@@ -1282,7 +1453,7 @@
         "indigo",
         "pink-accent"
       ],
-      "description": "Recruiting & applicant-tracking dashboard archetype \u2014 left sidebar with requisition switcher, topbar with period picker and avatar, 4 KPI cards (open roles / candidates / interviews / time-to-hire), kanban-style hiring pipeline, recruiting funnel SVG, candidates table, and upcoming-interviews side panel. Indigo + pink accent, light HR aesthetic.",
+      "description": "Recruiting & applicant-tracking dashboard archetype — left sidebar with requisition switcher, topbar with period picker and avatar, 4 KPI cards (open roles / candidates / interviews / time-to-hire), kanban-style hiring pipeline, recruiting funnel SVG, candidates table, and upcoming-interviews side panel. Indigo + pink accent, light HR aesthetic.",
       "mode": "prototype"
     },
     {
@@ -1318,7 +1489,7 @@
         "cashflow",
         "deep-navy"
       ],
-      "description": "Premium dark-mode corporate treasury dashboard \u2014 amber/gold accent on deep navy, left rail nav, entity/period switcher, 4 KPI cards (balance \u00b7 inflows \u00b7 outflows \u00b7 runway), cashflow SVG area chart, allocation donut, recent transactions table with status pills.",
+      "description": "Premium dark-mode corporate treasury dashboard — amber/gold accent on deep navy, left rail nav, entity/period switcher, 4 KPI cards (balance · inflows · outflows · runway), cashflow SVG area chart, allocation donut, recent transactions table with status pills.",
       "mode": "prototype"
     },
     {
@@ -1354,7 +1525,7 @@
         "schedule",
         "patient-management"
       ],
-      "description": "Calm, clinical light-mode admin dashboard for clinic and healthcare operations \u2014 left sidebar with department switcher, topbar with search and clinician avatar, 4 KPI cards (patients today, appointments, avg wait, bed occupancy), today's appointment schedule, vitals occupancy mini-chart, and a recent patients table. Emerald-to-teal accent palette with triage status colors.",
+      "description": "Calm, clinical light-mode admin dashboard for clinic and healthcare operations — left sidebar with department switcher, topbar with search and clinician avatar, 4 KPI cards (patients today, appointments, avg wait, bed occupancy), today's appointment schedule, vitals occupancy mini-chart, and a recent patients table. Emerald-to-teal accent palette with triage status colors.",
       "mode": "prototype"
     },
     {
@@ -1390,7 +1561,7 @@
         "cyan-accent",
         "infrastructure"
       ],
-      "description": "Dark-mode utility grid operations control-room dashboard \u2014 KPI tiles, regions/sites status board, dual-series load/generation chart, alerts table, and sites side panel. Amber + cyan accent on deep navy. Original archetype for energy and infrastructure operations.",
+      "description": "Dark-mode utility grid operations control-room dashboard — KPI tiles, regions/sites status board, dual-series load/generation chart, alerts table, and sites side panel. Amber + cyan accent on deep navy. Original archetype for energy and infrastructure operations.",
       "mode": "prototype"
     },
     {
@@ -1427,7 +1598,7 @@
         "itinerary",
         "occupancy"
       ],
-      "description": "Airy light-mode operations dashboard for travel agencies \u2014 region/agency switcher sidebar, topbar with date-range picker, 4 KPI cards, itinerary board, destinations breakdown, recent bookings table, and occupancy side panel. Sky-and-coral accent palette; original copy and invented data.",
+      "description": "Airy light-mode operations dashboard for travel agencies — region/agency switcher sidebar, topbar with date-range picker, 4 KPI cards, itinerary board, destinations breakdown, recent bookings table, and occupancy side panel. Sky-and-coral accent palette; original copy and invented data.",
       "mode": "prototype"
     }
   ]
