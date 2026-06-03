@@ -199,19 +199,22 @@ export async function emitUsageWebhook(
 }
 
 /**
- * Pick the model id to bill, most-trusted source first. The request body wins
- * (the user explicitly chose a model), then the server-resolved `run.model`
- * (the concrete id that actually ran — the only source design-system runs have,
- * since they carry no body model and emit no `agent/status` model event), then
- * the agent-reported model scanned from run events. Returns `null` when none is
- * a non-empty string, so the collector/biller can fall back cleanly.
+ * Pick the model id to bill, most-trusted source first:
+ *   1. request body model — the user explicitly chose it;
+ *   2. OpenCode session model — the concrete `provider/model` read from
+ *      OpenCode's own SQLite (the only reliable source for design/chat_panel
+ *      runs, which carry no body model and never report one in the stream);
+ *   3. server-resolved `run.model` — set from the body at run-create;
+ *   4. agent-reported model — scanned from run events (Claude/codex/etc).
+ * Returns null when none is a non-empty string, so the biller falls back cleanly.
  */
 export function resolveUsageWebhookModel(
   bodyModel: unknown,
   runModel: unknown,
   agentReportedModel: unknown,
+  opencodeSessionModel: unknown = null,
 ): string | null {
-  for (const candidate of [bodyModel, runModel, agentReportedModel]) {
+  for (const candidate of [bodyModel, opencodeSessionModel, runModel, agentReportedModel]) {
     if (typeof candidate === 'string' && candidate.trim()) {
       return candidate.trim();
     }

@@ -147,7 +147,13 @@ function handleOpenCodeEvent(obj: unknown, onEvent: StreamEventHandler, state: P
   const part = isRecord(obj.part) ? obj.part : {};
 
   if (obj.type === 'step_start') {
-    onEvent({ type: 'status', label: 'running' });
+    // OpenCode never reports the model in its stream (only step_start/text/
+    // step_finish), but every frame carries the OpenCode sessionID. Surface it
+    // so the daemon can later read the concrete model from OpenCode's own
+    // SQLite (session.model) for billing — see opencode-session-model.ts.
+    const sessionId =
+      typeof obj.sessionID === 'string' && obj.sessionID ? obj.sessionID : undefined;
+    onEvent({ type: 'status', label: 'running', ...(sessionId ? { sessionId } : {}) });
     return true;
   }
 

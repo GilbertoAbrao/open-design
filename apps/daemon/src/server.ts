@@ -232,6 +232,7 @@ import {
   didRunCreateDesignSystemFile,
 } from './run-artifacts.js';
 import { emitUsageWebhook, resolveUsageWebhookModel } from './usage-webhook.js';
+import { readOpencodeSessionModel } from './opencode-session-model.js';
 import {
   reportRunCompletedFromDaemon,
   reportRunFeedbackFromDaemon,
@@ -12077,6 +12078,12 @@ export async function startServer({
       if (ev?.type && SUBSTANTIVE_AGENT_EVENT_TYPES.has(ev.type)) {
         agentProducedOutput = true;
       }
+      // OpenCode surfaces its sessionID on status frames (json-event-stream.ts).
+      // Capture it so the usage webhook can read the concrete model from
+      // OpenCode's SQLite for billing — the stream itself never carries it.
+      if (ev && typeof ev === 'object' && typeof ev.sessionId === 'string' && ev.sessionId) {
+        run.opencodeSessionId = ev.sessionId;
+      }
       send('agent', ev);
     };
 
@@ -13045,6 +13052,7 @@ export async function startServer({
             usageReqBody.model,
             run.model,
             agentReportedModel,
+            readOpencodeSessionModel(run.opencodeSessionId),
           ),
           designSystemId:
             typeof usageReqBody.designSystemId === 'string'

@@ -282,6 +282,25 @@ describe('resolveUsageWebhookModel', () => {
     expect(resolveUsageWebhookModel(null, '', 'agent-x')).toBe('agent-x');
   });
 
+  it('prefers the OpenCode session model over run.model and agentReported', () => {
+    // Design/chat_panel runs: body empty, no run.model, no agent event —
+    // the model read from OpenCode's SQLite must win.
+    expect(
+      resolveUsageWebhookModel('', '', null, 'openai/gpt-5.4'),
+    ).toBe('openai/gpt-5.4');
+    // run.model is only set from the body; OpenCode db is the real id, so it
+    // outranks a stale run.model.
+    expect(
+      resolveUsageWebhookModel('', 'default', 'agent-x', 'github-copilot/claude-sonnet-4.6'),
+    ).toBe('github-copilot/claude-sonnet-4.6');
+  });
+
+  it('body model still outranks the OpenCode session model', () => {
+    expect(
+      resolveUsageWebhookModel('anthropic/claude-x', '', null, 'openai/gpt-5.4'),
+    ).toBe('anthropic/claude-x');
+  });
+
   it('trims and returns null when no source is a non-empty string', () => {
     expect(resolveUsageWebhookModel('  openai/gpt-5.4  ', null, null)).toBe(
       'openai/gpt-5.4',
