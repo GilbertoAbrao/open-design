@@ -3,6 +3,7 @@ import {
   buildUsageWebhookPayload,
   sendUsageWebhook,
   emitUsageWebhook,
+  resolveUsageWebhookModel,
   type FetchLike,
 } from '../src/usage-webhook.js';
 
@@ -256,5 +257,37 @@ describe('emitUsageWebhook', () => {
       throw new Error('boom');
     };
     await expect(emitUsageWebhook(inputs, { fetchImpl })).resolves.toBe(false);
+  });
+});
+
+describe('resolveUsageWebhookModel', () => {
+  it('prefers the request body model', () => {
+    expect(
+      resolveUsageWebhookModel('openai/gpt-5.4', 'run-model', 'agent-model'),
+    ).toBe('openai/gpt-5.4');
+  });
+
+  it('falls back to run.model when body model is empty (design runs)', () => {
+    // Design-system runs carry no body model and emit no agent/status model
+    // event, so the server-resolved run.model is the only id available.
+    expect(resolveUsageWebhookModel('', 'claude-sonnet-4.6', null)).toBe(
+      'claude-sonnet-4.6',
+    );
+    expect(resolveUsageWebhookModel(undefined, 'claude-sonnet-4.6', '')).toBe(
+      'claude-sonnet-4.6',
+    );
+  });
+
+  it('falls back to agentReportedModel when body and run model are empty', () => {
+    expect(resolveUsageWebhookModel(null, '', 'agent-x')).toBe('agent-x');
+  });
+
+  it('trims and returns null when no source is a non-empty string', () => {
+    expect(resolveUsageWebhookModel('  openai/gpt-5.4  ', null, null)).toBe(
+      'openai/gpt-5.4',
+    );
+    expect(resolveUsageWebhookModel('', '   ', undefined)).toBeNull();
+    expect(resolveUsageWebhookModel(null, null, null)).toBeNull();
+    expect(resolveUsageWebhookModel(123, {}, [])).toBeNull();
   });
 });

@@ -231,7 +231,7 @@ import {
   countNewHtmlArtifacts,
   didRunCreateDesignSystemFile,
 } from './run-artifacts.js';
-import { emitUsageWebhook } from './usage-webhook.js';
+import { emitUsageWebhook, resolveUsageWebhookModel } from './usage-webhook.js';
 import {
   reportRunCompletedFromDaemon,
   reportRunFeedbackFromDaemon,
@@ -11313,6 +11313,21 @@ export async function startServer({
       }
     }
 
+    // Persist the server-resolved model on the run so the usage webhook can
+    // bill it. Design-system runs never carry `model` in the request body and
+    // emit no `agent/status` model event, so `run.model` (set only from the
+    // body at run-create) and `agentReportedModel` are both empty for them —
+    // leaving billing with a null model. `safeModel` is the concrete id that
+    // actually ran (live id or fallback), so record it when the body didn't.
+    if (
+      !run.model &&
+      typeof safeModel === 'string' &&
+      safeModel &&
+      safeModel !== 'default'
+    ) {
+      run.model = safeModel;
+    }
+
     // Plain-streaming adapters that own a "continue most recent
     // conversation" CLI flag (today: only `agy -c`) read this signal
     // to resume upstream session state on follow-up turns. The query
@@ -13026,10 +13041,11 @@ export async function startServer({
               : null,
           projectId: usageProjectId,
           isDesignSystemRun: usageIsDesignSystemRun,
-          model:
-            typeof usageReqBody.model === 'string' && usageReqBody.model.trim()
-              ? usageReqBody.model
-              : agentReportedModel,
+          model: resolveUsageWebhookModel(
+            usageReqBody.model,
+            run.model,
+            agentReportedModel,
+          ),
           designSystemId:
             typeof usageReqBody.designSystemId === 'string'
               ? usageReqBody.designSystemId

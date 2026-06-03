@@ -198,9 +198,23 @@ export async function emitUsageWebhook(
   }
 }
 
-// Expose the hook entry on globalThis so the `@ts-nocheck`, import-free
-// `server.ts` can call it as a bare global after a side-effect
-// `require('./usage-webhook.js')`, mirroring the `run-artifacts.js` shim
-// pattern already used in this package. The named ESM exports above stay
-// the canonical surface for unit tests.
-Object.assign(globalThis, { emitUsageWebhook });
+/**
+ * Pick the model id to bill, most-trusted source first. The request body wins
+ * (the user explicitly chose a model), then the server-resolved `run.model`
+ * (the concrete id that actually ran — the only source design-system runs have,
+ * since they carry no body model and emit no `agent/status` model event), then
+ * the agent-reported model scanned from run events. Returns `null` when none is
+ * a non-empty string, so the collector/biller can fall back cleanly.
+ */
+export function resolveUsageWebhookModel(
+  bodyModel: unknown,
+  runModel: unknown,
+  agentReportedModel: unknown,
+): string | null {
+  for (const candidate of [bodyModel, runModel, agentReportedModel]) {
+    if (typeof candidate === 'string' && candidate.trim()) {
+      return candidate.trim();
+    }
+  }
+  return null;
+}
