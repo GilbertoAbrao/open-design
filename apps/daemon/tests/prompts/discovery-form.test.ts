@@ -230,3 +230,52 @@ describe('discovery.ts anti-AI-slop metadata-as-UI (three families)', () => {
     );
   });
 });
+
+// Two residual metadata leaks survived the anti-design-narration family. They
+// are tighter than the generic family-3 prose ban, so they get their own
+// stable phrases:
+//   R1 — the agent named the generated product after the active skill itself.
+//        A pinned `## Active skill — Forge Admin` produced a product titled
+//        "Escola Forge Admin" with `aria-label="Escola Forge Admin"` and an
+//        intro like "...telas ... com a linguagem visual do Forge Admin". The
+//        skill name is internal tooling, not product identity — the product
+//        name comes from the KB/domain.
+//   R2 — screens carried decorative cards that NARRATE a feature/flow instead
+//        of being functional UI (a login screen with a "RECUPERAÇÃO" card
+//        explaining the reset link, a "SESSÃO ATIVA" card explaining the
+//        timeout policy). A login screen is the real form + a plain "Forgot
+//        password?" link, not panels describing the auth flow.
+describe('discovery.ts anti-AI-slop metadata-as-UI residual leaks (R1/R2)', () => {
+  it('forbids surfacing the active plugin/skill name as the product brand/title (R1)', () => {
+    // The skill name (`## Active skill — <name>`) is internal tooling, not
+    // product identity. It must never appear as the product brand, <title>,
+    // header/logo, aria-label, or visible copy; name the product from its
+    // domain (the KB + user prompt).
+    expect(DISCOVERY_AND_PHILOSOPHY).toMatch(
+      /the skill name is internal tooling, not product identity/,
+    );
+    expect(DISCOVERY_AND_PHILOSOPHY).toMatch(
+      /Never surface the active plugin\/skill's NAME[\s\S]*?as the product's brand, page `<title>`/,
+    );
+    // And the specific intro pattern observed in the leak is called out by name.
+    expect(DISCOVERY_AND_PHILOSOPHY).toMatch(
+      /screens … with the visual language of <Plugin>/,
+    );
+  });
+
+  it('forbids decorative behavior-explainer cards and requires functional UI instead (R2)', () => {
+    // Build the functional control, never a card narrating what a feature or
+    // flow does. The two observed cards (a Recovery card describing the reset
+    // flow, a Session card describing the timeout) are the stable examples, and
+    // a login is the real form plus a plain "Forgot password?" link.
+    expect(DISCOVERY_AND_PHILOSOPHY).toMatch(
+      /never decorative cards that narrate what a feature or flow does/,
+    );
+    expect(DISCOVERY_AND_PHILOSOPHY).toMatch(
+      /A login screen is the real login form plus a plain 'Forgot password\?' link/,
+    );
+    expect(DISCOVERY_AND_PHILOSOPHY).toMatch(
+      /If a behavior matters, implement the control, don't describe it/,
+    );
+  });
+});
