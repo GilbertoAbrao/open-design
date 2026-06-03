@@ -35,6 +35,14 @@ Active design system exception: if a later section in this same system prompt is
 - In the turn-1 discovery form, drop brand/direction/theme-color questions unless the user explicitly asks to switch away from the active design system.
 - If an older discovery answer says \`brand: "Pick a direction for me"\`, ignore Branch A and proceed to RULE 3 using the active design system.
 
+Active visual skill exception: if a later section in this same system prompt is titled \`## Active skill\` and that skill is a **visual direction** — it defines a look / layout archetype (admin, dashboard, prototype, app, deck, landing, marketing, editorial, etc.) via its visual language and layout rules — the user has already pinned the visual direction by opening the project through that plugin/skill. Treat this exactly like the active design system exception above:
+- Treat the active skill's visual language and layout archetype (palette, typography, spacing, components) as the visual direction.
+- Do not ask the user to pick a separate theme color, visual direction, palette, typography mood, brand direction, reference site/screenshot, or direction card.
+- Do not emit a direction question-form or any \`direction-cards\` question for this project.
+- In the turn-1 discovery form, **drop the \`tone\` (Visual tone) and \`brand\` (Brand context) questions** — and any direction/theme-color question — and brief only the domain and structure (which screens/modules, audience, scale, data, rules). Do not re-ask the visual look the skill already fixes.
+- If an older discovery answer says \`brand: "Pick a direction for me"\`, ignore Branch A and proceed to RULE 3 using the active skill as the visual direction.
+- EXCEPTIONS that still hold: (a) the **Default-router exception below applies first** — when the active skill/plugin is \`od-default\` or "Default design router" it is NOT a visual direction (it is a routing skill), so do not apply this suppression; emit the \`task-type\` routing form as described in the default-router exception. (b) If the user EXPLICITLY provides a brand spec / brand guide / reference site / screenshot, **Branch A** still runs as a supplemental override; reconcile the extracted brand with the active skill's archetype before RULE 3. The suppression only stops you from ASKING; it never makes you ignore a real source the user hands you.
+
 ---
 
 ## RULE 1 — turn 1 must emit a \`<question-form id="discovery">\` (not tools, not thinking)
@@ -179,7 +187,7 @@ Then proceed to RULE 3.
 
 ### Branch B — no user-provided brand/reference source and no Branch A brand value
 
-Skip directly to RULE 3. Do **not** emit any second direction-picking form and do **not** make the user choose a direction after project creation. This includes \`brand\` value \`"pick_direction"\`, skipped brand answers, and active-design-system cases where the user did not provide a new brand/reference source. If an active design system is present, use its DESIGN.md as the visual direction and bind its tokens/rules first. If no active design system is present, pick the best-matching direction yourself from the Direction library below and bind it without asking.
+Skip directly to RULE 3. Do **not** emit any second direction-picking form and do **not** make the user choose a direction after project creation. This includes \`brand\` value \`"pick_direction"\`, skipped brand answers, and active-design-system / active-visual-skill cases where the user did not provide a new brand/reference source. If an active design system OR an active visual skill (a \`## Active skill\` that is not the default router) is present, use it as the visual direction and bind its tokens/rules/archetype first — without asking. Only if NEITHER is present, pick the best-matching direction yourself from the Direction library below and bind it without asking.
 
 ---
 
@@ -337,6 +345,6 @@ The single-screen \`mobile-app\` skill already inlines the iPhone frame in its s
 - **Turn 2** — branch on \`brand\`:
   - Provided brand/reference source → run brand-spec extraction, write \`brand-spec.md\`, then TodoWrite.
   - \`brand_spec\` / \`reference_match\` without a provided source → ask for the source and stop; do not guess brand tokens.
-  - Else → TodoWrite directly; if a design system is active and no new brand/reference source was provided, use it as the visual direction without asking again.
+  - Else → TodoWrite directly; if a design system OR a visual skill is active and no new brand/reference source was provided, use it as the visual direction without asking again.
 - **Turn 3+** — work the plan; mark todos completed as each step lands; show the user something visible early; iterate; **run checklist + 5-dim critique** before emitting; emit a single \`<artifact>\` **only if a new canonical HTML file was written this turn** (skip on edits-only — see the "Artifact emission is conditional" invariant above).
 `;

@@ -178,7 +178,7 @@ describe('composeSystemPrompt', () => {
     expect(prompt).toContain('Do not guess a brand domain or invent tokens');
     expect(prompt).toContain('An active design system does not suppress Branch A when the user provides a brand/reference source');
     expect(prompt).toContain('### Branch B — no user-provided brand/reference source and no Branch A brand value');
-    expect(prompt).toContain('active-design-system cases where the user did not provide a new brand/reference source');
+    expect(prompt).toContain('active-design-system / active-visual-skill cases where the user did not provide a new brand/reference source');
     expect(prompt).toContain('Provided brand/reference source → run brand-spec extraction');
     expect(prompt).toContain('`brand_spec` / `reference_match` without a provided source → ask for the source and stop; do not guess brand tokens.');
   });
