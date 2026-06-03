@@ -10,12 +10,12 @@
   "metadata": {
     "description": "WXCode-curated admin / dashboard / cockpit plugins. Pre-registered marketplace source seeded by the daemon; entries install from the wxcode-design-plugins repo.",
     "version": "0.4.0",
-    "updatedAt": "2026-06-03T00:00:00Z"
+    "updatedAt": "2026-06-03T21:23:12Z"
   },
   "plugins": [
     {
       "name": "wxcode-admin-aegis-insurance",
-      "title": "Aegis Insurance Admin",
+      "title": "Aegis Admin",
       "version": "0.1.0",
       "source": "github:GilbertoAbrao/wxcode-design-plugins@main/plugins/admin-aegis-insurance",
       "publisher": {
@@ -29,6 +29,7 @@
         "prompt:inject",
         "fs:write"
       ],
+      "description": "Institutional light-mode admin aesthetic: white cards on a cool #f6f8fb page, deep-navy sidebar (#0f2057) with teal accent (#14b8a6), navy-600 (#2563eb) as the primary interactive color, Inter type, and inline sparklines. Archetype = 240px grouped sidebar (entity switcher + labeled nav groups) + sticky topbar + 4 KPI cards + horizontal pipeline board (4 stages) + 2-column lower grid (records table + side panel) + full-width inline SVG trend chart, plus matching list, form, and detail screens.",
       "tags": [
         "wxcode-plugin",
         "wxcode",
@@ -37,23 +38,20 @@
         "operations",
         "web",
         "admin",
-        "insurance",
-        "claims",
-        "policies",
         "light-mode",
         "institutional",
         "navy-teal",
-        "carrier-ops",
-        "renewals",
-        "loss-ratio"
+        "pipeline-board",
+        "sidebar-grouped",
+        "card-surface",
+        "enterprise"
       ],
-      "description": "Institutional light-mode operations dashboard for an insurance carrier — policy & claims lifecycle management. Left sidebar with line-of-business switcher, topbar with period filter, 4 KPI cards, claims pipeline board, policies table, renewals panel, and inline SVG claims trend chart.",
       "mode": "prototype"
     },
     {
       "name": "wxcode-admin-ai-copilot",
       "title": "AI Copilot Admin",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "source": "github:GilbertoAbrao/wxcode-design-plugins@main/plugins/admin-ai-copilot",
       "publisher": {
         "id": "wxcode",
@@ -66,6 +64,7 @@
         "prompt:inject",
         "fs:write"
       ],
+      "description": "Split-pane admin aesthetic: deep-navy canvas (#0f1419), indigo accent (#6366f1), pink secondary (#ec4899), compact system-ui type, and hairline-bordered cards. Archetype = top bar with centered Cmd+K pill + 64px icon-only nav rail + scrollable widget canvas (KPI tiles \u00d7 4 + area-chart card + records table) + 380px right copilot rail (header \u00b7 thread with tool-call cards + inline artifacts + suggestion chips \u00b7 sticky composer) + 32px bottom status bar. Built for agentic admin UIs where the agent is a first-class layout region.",
       "tags": [
         "wxcode-plugin",
         "wxcode",
@@ -74,19 +73,20 @@
         "operations",
         "web",
         "admin",
-        "ai-agent",
-        "copilot",
+        "dark-mode",
+        "split-pane",
+        "indigo-accent",
         "command-palette",
-        "chat-driven",
-        "split-pane"
+        "agent-rail",
+        "tool-call-card",
+        "data-dense"
       ],
-      "description": "Admin dashboard with a permanent AI copilot rail. Deterministic widget canvas on the left, conversational agent on the right, Cmd+K command palette, inline suggestion chips, tool-call cards. The 2025 pattern for agentic admin UIs.",
       "mode": "prototype"
     },
     {
       "name": "wxcode-admin-aurora-analytics",
-      "title": "Aurora Analytics Admin",
-      "version": "0.1.0",
+      "title": "Aurora Admin",
+      "version": "0.2.0",
       "source": "github:GilbertoAbrao/wxcode-design-plugins@main/plugins/admin-aurora-analytics",
       "publisher": {
         "id": "wxcode",
@@ -99,6 +99,7 @@
         "prompt:inject",
         "fs:write"
       ],
+      "description": "Light-mode admin aesthetic: crisp white-and-slate canvas, indigo-violet accent ramp, clean Inter type, subtle card shadows, and soft 12px radius panels. Archetype = fixed 240px sidebar with grouped nav + sticky topbar (search + actions + avatar) + 4 KPI cards with inline sparklines + primary area chart + records table + right-rail side panel (donut + insight bullets + activity feed), plus matching list, form, and detail screens.",
       "tags": [
         "wxcode-plugin",
         "wxcode",
@@ -107,18 +108,19 @@
         "operations",
         "web",
         "admin",
-        "analytics",
         "light-mode",
         "indigo",
-        "clean-cards"
+        "violet",
+        "clean-cards",
+        "sidebar",
+        "sparklines"
       ],
-      "description": "Aurora Analytics Admin is a polished light-mode dashboard for product and growth teams who need at-a-glance visibility into sessions, conversion, and retention. It pairs a fixed left sidebar with a top search bar, four live KPI tiles, an area chart of weekly sessions, a recent-sessions table, and a right-rail insights panel — all rendered in a single self-contained HTML file. Designed for clarity over decoration: indigo-violet accents on a crisp slate-and-white canvas.",
       "mode": "prototype"
     },
     {
       "name": "wxcode-admin-bento-overview",
-      "title": "Bento Ops Overview",
-      "version": "0.1.0",
+      "title": "Bento Overview",
+      "version": "0.2.0",
       "source": "github:GilbertoAbrao/wxcode-design-plugins@main/plugins/admin-bento-overview",
       "publisher": {
         "id": "wxcode",
@@ -131,6 +133,7 @@
         "prompt:inject",
         "fs:write"
       ],
+      "description": "Light-mode bento-grid admin aesthetic: neutral canvas (#f6f7f9), white tiles, hairline borders, and a multi-accent palette of indigo, teal, amber, and rose. Archetype = sticky header with period chips + full-width asymmetric CSS grid of hero, chart, KPI, activity feed, donut, mini-table, and status tiles \u2014 no sidebar. Matching list, form, and detail screens complete the set.",
       "tags": [
         "wxcode-plugin",
         "wxcode",
@@ -140,21 +143,20 @@
         "web",
         "admin",
         "bento-grid",
-        "overview",
         "light-mode",
         "multi-accent",
-        "kpi",
-        "dashboard",
-        "ops",
-        "asymmetric-layout"
+        "asymmetric-layout",
+        "indigo-accent",
+        "teal-accent",
+        "data-tiles",
+        "enterprise"
       ],
-      "description": "Operations overview dashboard built on a bento-grid layout — asymmetric tiles of varied sizes spanning a neutral canvas. One hero metric, an inline SVG area chart, KPI pills, donut chart, activity feed, mini-table, and status tile. Multi-accent palette: indigo, teal, amber, rose.",
       "mode": "prototype"
     },
     {
       "name": "wxcode-admin-bloom-nonprofit",
-      "title": "Bloom Nonprofit Admin",
-      "version": "0.1.0",
+      "title": "Bloom Admin",
+      "version": "0.2.0",
       "source": "github:GilbertoAbrao/wxcode-design-plugins@main/plugins/admin-bloom-nonprofit",
       "publisher": {
         "id": "wxcode",
@@ -167,6 +169,7 @@
         "prompt:inject",
         "fs:write"
       ],
+      "description": "Warm optimistic light-mode admin aesthetic: page canvas #f7fbf9, white cards, emerald accent (#10b981) with coral counter-accent (#fb7185), soft dividers, sidebar-nav layout with entity/scope switcher and program chips, topbar with search and period tabs, 4 KPI cards with sparklines, 2-column mid-row (progress list + segment donut), full-width dual-area trend chart, and dense records table with type pills.",
       "tags": [
         "wxcode-plugin",
         "wxcode",
@@ -175,21 +178,20 @@
         "operations",
         "web",
         "admin",
-        "nonprofit",
-        "donations",
         "light-mode",
+        "warm-optimistic",
         "emerald",
         "coral",
-        "warm-optimistic",
-        "fundraising",
-        "donor-management"
+        "sidebar-nav",
+        "progress-bar",
+        "donut-chart",
+        "area-chart"
       ],
-      "description": "Warm-optimistic light-mode admin dashboard for nonprofit fundraising and donor management — org/program switcher sidebar, KPI cards, campaigns progress, donations trend chart, donor-segments donut, and recent donations table. Original archetype with emerald + coral accent palette.",
       "mode": "prototype"
     },
     {
       "name": "wxcode-admin-carbon-devops",
-      "title": "Carbon DevOps Admin",
+      "title": "Carbon Admin",
       "version": "0.1.0",
       "source": "github:GilbertoAbrao/wxcode-design-plugins@main/plugins/admin-carbon-devops",
       "publisher": {
@@ -203,6 +205,7 @@
         "prompt:inject",
         "fs:write"
       ],
+      "description": "Near-black terminal admin aesthetic: carbon canvas (#0b0d10), raised panels (#14171c), green accent (#22c55e), blue secondary (#3b82f6), monospace IDs and codes on every key cell, amber/red state pills. Archetype = entity-switcher navbar with env pill switcher + icon rail + 4 KPI tiles with sparklines + pipeline board with stage chips + inline SVG bar chart + severity feed side panel + dense records table, plus matching list, form, and detail screens.",
       "tags": [
         "wxcode-plugin",
         "wxcode",
@@ -211,23 +214,20 @@
         "operations",
         "web",
         "admin",
-        "devops",
-        "ci-cd",
         "dark-mode",
         "terminal-vibe",
-        "pipelines",
-        "deployments",
-        "platform-engineering",
         "monospace",
-        "green-accent"
+        "green-accent",
+        "status-board",
+        "data-dense",
+        "stage-chips"
       ],
-      "description": "Dark-mode CI/CD operations dashboard — terminal-inspired admin for pipeline runs, deploy frequency, build health, and incident tracking. Original archetype built for DevOps and platform engineering teams.",
       "mode": "prototype"
     },
     {
       "name": "wxcode-admin-cargo-fleet",
       "title": "Cargo Fleet Admin",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "source": "github:GilbertoAbrao/wxcode-design-plugins@main/plugins/admin-cargo-fleet",
       "publisher": {
         "id": "wxcode",
@@ -240,6 +240,7 @@
         "prompt:inject",
         "fs:write"
       ],
+      "description": "Industrial-clean light-mode admin aesthetic: white/slate canvas, dark-navy sidebar, orange-amber accent family, crisp status pills, and compact bordered cards. Archetype = branded sidebar with entity switcher and grouped nav + topbar with search and context filter + 4 KPI cards + 2-column middle (Kanban status board + abstract network visualization) + full-width records table with status pills, plus matching list, form, and detail screens.",
       "tags": [
         "wxcode-plugin",
         "wxcode",
@@ -248,22 +249,21 @@
         "operations",
         "web",
         "admin",
-        "logistics",
-        "fleet",
-        "shipments",
         "light-mode",
         "industrial-clean",
         "orange-accent",
         "kanban",
-        "status-board"
+        "status-board",
+        "network-visualization",
+        "data-table",
+        "enterprise"
       ],
-      "description": "Industrial-clean logistics admin for fleet & shipment operations — left hub/region sidebar, topbar with region filter, 4 KPI cards (in-transit / on-time rate / active fleet / warehouse utilization), a Kanban-style shipment status board, an original abstract route/region SVG visualization, and a live active-shipments table. Orange-amber accent on white/slate canvas.",
       "mode": "prototype"
     },
     {
       "name": "wxcode-admin-circle-social",
-      "title": "Circle Community Admin",
-      "version": "0.1.0",
+      "title": "Circle Admin",
+      "version": "0.2.0",
       "source": "github:GilbertoAbrao/wxcode-design-plugins@main/plugins/admin-circle-social",
       "publisher": {
         "id": "wxcode",
@@ -276,6 +276,7 @@
         "prompt:inject",
         "fs:write"
       ],
+      "description": "Friendly light-mode admin aesthetic: white card surfaces on a soft grey canvas (#f8f9fc), blue (#3b82f6) and violet (#8b5cf6) dual-accent, system font, 12px rounded cards, hairline borders, subtle shadows, and crisp role/status pills. Archetype = left sidebar (brand mark + context switcher + grouped nav) + sticky topbar + 4 KPI cards + action-queue panel + side panel + area chart + records table, plus matching list, form, and detail screens.",
       "tags": [
         "wxcode-plugin",
         "wxcode",
@@ -284,21 +285,20 @@
         "operations",
         "web",
         "admin",
-        "social",
-        "community",
         "light-mode",
-        "moderation",
         "friendly",
         "blue-violet",
-        "dashboard"
+        "dual-accent",
+        "sidebar",
+        "dashboard",
+        "data-dense"
       ],
-      "description": "Friendly light-mode admin dashboard for online community and social platform operators — left sidebar with community switcher, topbar with search and date-range, 4 KPI cards, moderation queue with approve/remove actions, engagement chart, members table, and trending/flagged side panel. Original archetype for the community-ops use case.",
       "mode": "prototype"
     },
     {
       "name": "wxcode-admin-cobalt-projects",
-      "title": "Cobalt Projects Admin",
-      "version": "0.1.0",
+      "title": "Cobalt Admin",
+      "version": "0.2.0",
       "source": "github:GilbertoAbrao/wxcode-design-plugins@main/plugins/admin-cobalt-projects",
       "publisher": {
         "id": "wxcode",
@@ -311,6 +311,7 @@
         "prompt:inject",
         "fs:write"
       ],
+      "description": "Light-mode admin aesthetic: near-white canvas, cobalt-blue accent (#2563eb), white card surfaces with soft borders and subtle shadow, chromatic category chips, compact priority and status pills, sparkline KPI cards, Gantt strip, and sidebar entity list. Card-forward, clarity-first operational console skin.",
       "tags": [
         "wxcode-plugin",
         "wxcode",
@@ -319,23 +320,20 @@
         "operations",
         "web",
         "admin",
-        "project-management",
-        "tasks",
         "light-mode",
         "cobalt",
-        "gantt",
-        "timeline",
-        "work-management",
-        "focused",
+        "card-forward",
+        "sidebar-entity-list",
+        "gantt-strip",
+        "multi-category",
         "clean-cards"
       ],
-      "description": "Focused project and work-management admin dashboard — light mode with cobalt-blue accent, left sidebar project list, topbar search and view switch, 4 KPI cards, a compact gantt-style timeline strip, a My Tasks table, and a Team/Milestones side panel.",
       "mode": "prototype"
     },
     {
       "name": "wxcode-admin-coral-billing",
-      "title": "Coral Billing Admin",
-      "version": "0.1.0",
+      "title": "Coral Admin",
+      "version": "0.2.0",
       "source": "github:GilbertoAbrao/wxcode-design-plugins@main/plugins/admin-coral-billing",
       "publisher": {
         "id": "wxcode",
@@ -348,6 +346,7 @@
         "prompt:inject",
         "fs:write"
       ],
+      "description": "Clean light-mode SaaS admin aesthetic: white/near-white canvas (#f8f9fb), coral accent (#f43f5e / #fb7185), slate-blue navigation (#475569), soft-shadow cards with 1px borders, and tabular-nums on every figure. Archetype = fixed sidebar (logo + workspace switcher + grouped nav) + sticky topbar (search + period tabs + avatar) + 4 KPI cards + trend-chart card + breakdown bar card + records table + items-at-risk side panel, plus list / form / detail screens.",
       "tags": [
         "wxcode-plugin",
         "wxcode",
@@ -356,16 +355,13 @@
         "operations",
         "web",
         "admin",
-        "saas",
-        "billing",
         "light-mode",
-        "clean-fintech",
-        "coral",
-        "subscriptions",
-        "invoices",
-        "dunning"
+        "coral-accent",
+        "soft-shadow",
+        "sidebar-layout",
+        "data-dense",
+        "enterprise"
       ],
-      "description": "Clean-fintech billing operations dashboard — left sidebar, topbar with period picker, 4 KPI cards (MRR / active subscriptions / churn / ARPU), inline SVG trend chart, plan breakdown bars, invoices table, and a dunning side panel. Coral accent on white surfaces.",
       "mode": "prototype"
     },
     {
@@ -384,7 +380,7 @@
         "prompt:inject",
         "fs:write"
       ],
-      "description": "Dark admin aesthetic: deep-charcoal canvas (#191c24), violet accent (#8862e0) on a violet-to-blue gradient for primary actions, Rubik type at weight 500 headings, 4px card radius, subdued #6c7293 body text, and #2c2e33 hairline borders. Archetype = top navbar with search + user controls, left icon sidebar, KPI card row (4 tiles), 2-column grid with a chart panel and a status list, plus a full-width data table — all balanced between density and breathing room.",
+      "description": "Dark admin aesthetic: deep-charcoal canvas (#191c24), violet accent (#8862e0) on a violet-to-blue gradient for primary actions, Rubik type at weight 500 headings, 4px card radius, subdued #6c7293 body text, and #2c2e33 hairline borders. Archetype = top navbar with search + user controls, left icon sidebar, KPI card row (4 tiles), 2-column grid with a chart panel and a status list, plus a full-width data table \u2014 all balanced between density and breathing room.",
       "tags": [
         "wxcode-plugin",
         "wxcode",
@@ -440,7 +436,7 @@
     {
       "name": "wxcode-admin-dense-grid",
       "title": "Dense Grid Admin",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "source": "github:GilbertoAbrao/wxcode-design-plugins@main/plugins/admin-dense-grid",
       "publisher": {
         "id": "wxcode",
@@ -453,6 +449,7 @@
         "prompt:inject",
         "fs:write"
       ],
+      "description": "Maximum-information-density dark-mode admin aesthetic: near-black canvas (#0c0f12), blue accent (#3b82f6), green/red directional signals, all-monospace tabular figures on a 4-px grid. Archetype = slim toolbar + 2-column main grid: primary data table + secondary mini-table (left), sparkline strip + depth panel + stats strip (right). Every pixel earns its place.",
       "tags": [
         "wxcode-plugin",
         "wxcode",
@@ -461,23 +458,21 @@
         "operations",
         "web",
         "admin",
-        "data-ops",
         "dense",
         "dark-mode",
-        "trading-desk",
         "monospace",
         "compact",
-        "watchlist",
-        "order-book",
-        "high-density"
+        "high-density",
+        "tabular",
+        "data-grid",
+        "blue-accent"
       ],
-      "description": "High-density dark-mode operations dashboard in the trading-desk style — compact rows, monospace tabular figures, color-coded deltas, watchlist, positions table, order book, sparkline strip, and stats row. Maximum information per pixel with a 4-px spacing grid.",
       "mode": "prototype"
     },
     {
       "name": "wxcode-admin-ember-campaigns",
-      "title": "Ember Campaigns Admin",
-      "version": "0.1.0",
+      "title": "Ember Admin",
+      "version": "0.2.0",
       "source": "github:GilbertoAbrao/wxcode-design-plugins@main/plugins/admin-ember-campaigns",
       "publisher": {
         "id": "wxcode",
@@ -490,29 +485,29 @@
         "prompt:inject",
         "fs:write"
       ],
+      "description": "Vibrant-but-clean light-mode admin aesthetic: white/#fafafa canvas, rose-pink accent (#e11d48) on a slate neutral ramp, secondary indigo for chart contrast, #ececf0 borders. Left sidebar with brand icon + nav sections + footer cluster, sticky topbar with search + date-range + bell + avatar, 4 KPI cards with inline SVG sparklines and delta chips, a 7/5 split middle row (multi-series SVG line chart + conversion funnel bars), and a full-width records table with typed channel chips and status pills.",
       "tags": [
         "wxcode-plugin",
         "wxcode",
         "first-party",
         "prototype",
-        "marketing",
         "web",
         "admin",
-        "campaigns",
-        "analytics",
         "light-mode",
         "rose-accent",
         "vibrant",
-        "funnel",
-        "campaign-management"
+        "analytics",
+        "sidebar",
+        "sparkline",
+        "funnel-chart",
+        "multi-series-chart"
       ],
-      "description": "Vibrant-but-clean marketing command centre — left sidebar, topbar with date-range filter, 4 KPI cards (reach / CTR / spend / ROAS) with inline SVG sparklines, a multi-series campaign performance chart, a conversion funnel, and a campaigns table with channel chips and status pills. Rose-pink accent on white/slate canvas.",
       "mode": "prototype"
     },
     {
       "name": "wxcode-admin-estate-realty",
       "title": "Estate Realty Admin",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "source": "github:GilbertoAbrao/wxcode-design-plugins@main/plugins/admin-estate-realty",
       "publisher": {
         "id": "wxcode",
@@ -525,6 +520,7 @@
         "prompt:inject",
         "fs:write"
       ],
+      "description": "Refined light-mode admin aesthetic: near-white canvas (#f7f9f9), deep teal sidebar (#0f2623), teal accent (#0d9488 / #14b8a6), 12px-radius white cards with teal shadow, and tabular Inter type. Archetype = 240px teal sidebar (entity switcher + grouped nav) + sticky 60px topbar (search + filter + avatar) + 4 KPI cards with sparklines + 60/40 grid (records table + ranked leaderboard) + full-width 5-stage horizontal pipeline, plus list, form, and detail screens.",
       "tags": [
         "wxcode-plugin",
         "wxcode",
@@ -533,20 +529,20 @@
         "operations",
         "web",
         "admin",
-        "real-estate",
-        "brokerage",
         "light-mode",
         "teal-accent",
         "refined",
-        "property-management"
+        "sidebar-nav",
+        "sparkline-kpi",
+        "horizontal-pipeline",
+        "leaderboard"
       ],
-      "description": "Real-estate brokerage back-office admin — light mode, teal accent, left sidebar with brokerage switcher, 4 KPI cards (active listings, deals in progress, avg days on market, commission MTD), listings table, deals pipeline, and agent leaderboard.",
       "mode": "prototype"
     },
     {
       "name": "wxcode-admin-finance-terminal",
-      "title": "Finance Terminal Admin",
-      "version": "0.1.0",
+      "title": "Terminal Admin",
+      "version": "0.2.0",
       "source": "github:GilbertoAbrao/wxcode-design-plugins@main/plugins/admin-finance-terminal",
       "publisher": {
         "id": "wxcode",
@@ -559,6 +555,7 @@
         "prompt:inject",
         "fs:write"
       ],
+      "description": "Pure-black monospace terminal aesthetic: page canvas #0E0E0E, raised panels #1A1A1A, amber accent (#FFB800), monospace type throughout, zero-radius sharp edges, and 1px grid-line borders. Archetype = 32px status bar + 24px ticker strip + 200px F-key module rail + 3-column body (rail | center 2-row | right 2-row) + 36px command-line footer. Built for high-density real-time consoles that must scan 50+ data points without scrolling.",
       "tags": [
         "wxcode-plugin",
         "wxcode",
@@ -567,18 +564,20 @@
         "operations",
         "web",
         "admin",
-        "dense-data",
-        "finance",
         "dark-mode",
         "monospace",
-        "trading-terminal"
+        "amber-accent",
+        "dense-data",
+        "zero-radius",
+        "ticker-strip",
+        "terminal-aesthetic",
+        "enterprise"
       ],
-      "description": "Bloomberg-Terminal-style institutional admin: pure-black canvas, amber accents, dense monospace data tables, multi-panel grid for scanning 50+ data points without scrolling. Use for trading desks, treasury, risk, ops control rooms.",
       "mode": "prototype"
     },
     {
       "name": "wxcode-admin-forge-mes",
-      "title": "Forge MES Admin",
+      "title": "Forge Admin",
       "version": "0.1.0",
       "source": "github:GilbertoAbrao/wxcode-design-plugins@main/plugins/admin-forge-mes",
       "publisher": {
@@ -592,6 +591,7 @@
         "prompt:inject",
         "fs:write"
       ],
+      "description": "Dark industrial-grade admin aesthetic: near-black canvas (#0c0f14), raised steel panels, molten-orange accent (#f97316), Inter type with tabular figures, and dense hairline-bordered tables. Archetype = entity-switcher navbar + icon rail + 4 KPI tiles + 2-column status board with an alerts side panel + full-width records table with status pills, plus matching list, form, and detail screens. Built for high-density operational consoles that read at a glance.",
       "tags": [
         "wxcode-plugin",
         "wxcode",
@@ -600,24 +600,19 @@
         "operations",
         "web",
         "admin",
-        "manufacturing",
-        "mes",
         "dark-mode",
         "industrial",
-        "shop-floor",
-        "oee",
-        "production",
-        "enterprise",
+        "status-board",
+        "data-dense",
         "orange-accent",
-        "status-board"
+        "enterprise"
       ],
-      "description": "Industrial dark-mode Manufacturing Execution System dashboard — shop-floor plant switcher, OEE / output / downtime / scrap KPI tiles, production lines status board, inline SVG output trend chart, work-orders table, and real-time downtime alerts panel. Original archetype for discrete manufacturing operations teams.",
       "mode": "prototype"
     },
     {
       "name": "wxcode-admin-frost-glass",
       "title": "Frost Glass Admin",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "source": "github:GilbertoAbrao/wxcode-design-plugins@main/plugins/admin-frost-glass",
       "publisher": {
         "id": "wxcode",
@@ -630,6 +625,7 @@
         "prompt:inject",
         "fs:write"
       ],
+      "description": "Glassmorphism admin aesthetic: deep indigo-violet-teal radial gradient canvas, frosted translucent panels (backdrop-filter blur, 1px rgba-white borders, soft ambient shadow), cyan (#22d3ee) and violet (#a78bfa) dual-accent system, near-white text on dark surfaces. Archetype = glass sidebar + topbar + 4 KPI tiles with sparklines + area chart with period tabs + alerts side panel + full-width records table with status pills, plus list, form, and detail screens.",
       "tags": [
         "wxcode-plugin",
         "wxcode",
@@ -638,22 +634,21 @@
         "operations",
         "web",
         "admin",
-        "analytics",
         "glassmorphism",
         "dark-mode",
         "frosted-glass",
         "gradient-canvas",
-        "futuristic",
         "cyan-violet",
-        "dashboard"
+        "blur-panel",
+        "dark-premium",
+        "status-board"
       ],
-      "description": "Glassmorphism operations dashboard — frosted translucent cards layered over a deep indigo-violet-teal gradient canvas. Signature style: backdrop-filter blur, 1px translucent borders, soft ambient shadows, cyan and violet accents on near-black. Use when the brief calls for a dark, premium, or futuristic analytics look.",
       "mode": "prototype"
     },
     {
       "name": "wxcode-admin-glassmorphism",
       "title": "Glassmorphism Admin",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "source": "github:GilbertoAbrao/wxcode-design-plugins@main/plugins/admin-glassmorphism",
       "publisher": {
         "id": "wxcode",
@@ -666,6 +661,7 @@
         "prompt:inject",
         "fs:write"
       ],
+      "description": "Dark-mode admin built on frosted glass panels \u2014 translucent surfaces (rgba white 4%) with backdrop-filter blur over a soft aurora gradient background, cyan accent (#4dd0e1), hairline white-alpha borders, soft inner glow on actives. Archetype = glass sidebar + glass topbar + 4 KPI tiles with sparklines + 2-column main grid (area chart / top-N list) + full-width glass records table with tinted status capsules, plus matching list, form, and detail screens.",
       "tags": [
         "wxcode-plugin",
         "wxcode",
@@ -677,15 +673,17 @@
         "glassmorphism",
         "dark-mode",
         "frosted-glass",
-        "modern"
+        "aurora-gradient",
+        "backdrop-blur",
+        "modern",
+        "cyan-accent"
       ],
-      "description": "Dark-mode admin built on frosted glass panels — translucent surfaces with backdrop blur over a soft colored aurora gradient, cyan accent, hairline white-alpha borders. Modern alternative to flat-card SaaS admins.",
       "mode": "prototype"
     },
     {
       "name": "wxcode-admin-harbor-banking",
-      "title": "Harbor Banking Admin",
-      "version": "0.1.0",
+      "title": "Harbor Admin",
+      "version": "0.2.0",
       "source": "github:GilbertoAbrao/wxcode-design-plugins@main/plugins/admin-harbor-banking",
       "publisher": {
         "id": "wxcode",
@@ -698,6 +696,7 @@
         "prompt:inject",
         "fs:write"
       ],
+      "description": "Light-mode card admin aesthetic: white surfaces on a slate-tinted canvas (#f6f8fb), navy-to-blue primary gradient (#1e3a8a\u202f\u2192\u202f#2563eb), teal secondary (#0d9488), 10px card radius, hairline borders, and subtle shadows. Archetype\u202f=\u202fnarrow dark-navy entity-list sidebar + sticky topbar with search pill + hero row (stylized card SVG + 3 KPI tiles) + 2-column content area (donut chart + dense records table left; quick-action panel + scheduled items right). Optimised for high-trust, card-centric operations consoles.",
       "tags": [
         "wxcode-plugin",
         "wxcode",
@@ -706,24 +705,23 @@
         "operations",
         "web",
         "admin",
-        "banking",
-        "fintech",
         "light-mode",
         "navy-blue",
         "teal",
-        "personal-finance",
-        "transactions",
-        "payment-card",
+        "card-centric",
         "trustworthy",
-        "clean-cards"
+        "white-surface",
+        "sidebar-admin",
+        "donut-chart",
+        "kpi-tiles",
+        "records-table"
       ],
-      "description": "Digital banking / personal finance operations console — light mode, navy-blue accent, teal secondary. Left account sidebar, topbar with search and notifications, hero payment-card SVG, 3 KPI tiles, spending donut chart, recent transactions table, and quick-transfer payees panel.",
       "mode": "prototype"
     },
     {
       "name": "wxcode-admin-jetstream-airline",
-      "title": "Jetstream Airline Admin",
-      "version": "0.1.0",
+      "title": "Jetstream Admin",
+      "version": "0.2.0",
       "source": "github:GilbertoAbrao/wxcode-design-plugins@main/plugins/admin-jetstream-airline",
       "publisher": {
         "id": "wxcode",
@@ -736,6 +734,7 @@
         "prompt:inject",
         "fs:write"
       ],
+      "description": "Dark navy precision-control admin aesthetic: near-black canvas (#0a0f1a), indigo + sky-blue dual-accent on a cool-blue neutral ramp, slim 48px navbar with entity-switcher pill, icon-only rail, 4 KPI tiles, live-status board with state pills, inline SVG bar chart, full-width records table with filter chips, and a resource side panel. Built for high-density operational consoles with a cool, precision-control feel.",
       "tags": [
         "wxcode-plugin",
         "wxcode",
@@ -744,16 +743,14 @@
         "operations",
         "web",
         "admin",
-        "airline",
-        "aviation",
         "dark-mode",
-        "control-center",
-        "transport",
-        "operations-center",
-        "flights",
-        "indigo-sky"
+        "dark-navy",
+        "indigo-sky",
+        "dual-accent",
+        "status-board",
+        "control-console",
+        "dense-data"
       ],
-      "description": "Airline operations control center — dark-mode admin dashboard with slim navbar, icon rail, KPI tiles (on-time performance, flights today, load factor, delayed), live flights board, departures-by-hour SVG chart, flights table, and crew/aircraft side panel. Original archetype for aviation and transport operations.",
       "mode": "prototype"
     },
     {
@@ -792,8 +789,8 @@
     },
     {
       "name": "wxcode-admin-kinetic-fitness",
-      "title": "Kinetic Fitness Admin",
-      "version": "0.1.0",
+      "title": "Kinetic Admin",
+      "version": "0.2.0",
       "source": "github:GilbertoAbrao/wxcode-design-plugins@main/plugins/admin-kinetic-fitness",
       "publisher": {
         "id": "wxcode",
@@ -806,6 +803,7 @@
         "prompt:inject",
         "fs:write"
       ],
+      "description": "Energetic dark-green admin aesthetic: deep forest-green canvas (#0f1410), lime accent (#84cc16), Inter type with tabular figures, and dense hairline-bordered panels. Archetype = slim topbar (brand + search + entity-switcher + avatar) + icon rail + 4 KPI tiles + 2-column row (slot/schedule list with capacity bars + area-chart card) + full-width records table with status pills + 3-card personnel panel, plus matching list, form, and detail screens. Built for high-density operational consoles with an energetic, athletic character.",
       "tags": [
         "wxcode-plugin",
         "wxcode",
@@ -814,16 +812,14 @@
         "operations",
         "web",
         "admin",
-        "fitness",
-        "gym",
         "dark-mode",
-        "energetic",
         "lime-accent",
-        "schedule",
-        "members",
-        "studio-management"
+        "dark-green",
+        "energetic",
+        "capacity-bar",
+        "data-dense",
+        "enterprise"
       ],
-      "description": "Dark-mode gym and fitness studio operations dashboard — active member KPIs, live class schedule with capacity bars, weekly attendance area chart, members table with plan/status, and coach panel. Original energetic dark-green palette with lime accent.",
       "mode": "prototype"
     },
     {
@@ -862,8 +858,8 @@
     },
     {
       "name": "wxcode-admin-meadow-agri",
-      "title": "Meadow Agri Admin",
-      "version": "0.1.0",
+      "title": "Meadow Admin",
+      "version": "0.2.0",
       "source": "github:GilbertoAbrao/wxcode-design-plugins@main/plugins/admin-meadow-agri",
       "publisher": {
         "id": "wxcode",
@@ -876,6 +872,7 @@
         "prompt:inject",
         "fs:write"
       ],
+      "description": "Light-mode natural admin aesthetic: white and #f7faf5 surfaces, #e6ece1 borders, accent green (#16a34a) and earth-amber (#a16207) on a slate neutral ramp, Inter type with tabular figures, 12px soft card radii, and generous whitespace. Archetype = 240px left sidebar (entity switcher + grouped nav sections) + full-width topbar with search + context badge + avatar + 4 KPI cards + status board with inline SVG trend chart + telemetry readings table + right context panel + task side card. Built for calm operational oversight interfaces.",
       "tags": [
         "wxcode-plugin",
         "wxcode",
@@ -884,23 +881,21 @@
         "operations",
         "web",
         "admin",
-        "agriculture",
-        "farm",
         "light-mode",
         "natural",
-        "green",
-        "earth",
-        "field-management",
-        "sensors",
-        "yield-forecast"
+        "green-accent",
+        "earth-amber",
+        "status-board",
+        "sidebar-nav",
+        "calm-ops",
+        "data-dense"
       ],
-      "description": "Original agriculture farm-management admin dashboard — light mode, natural green and earth-amber palette, left sidebar with farm/region switcher, 4 KPI cards, fields status board, yield forecast chart, sensors table, and weather plus tasks side panel.",
       "mode": "prototype"
     },
     {
       "name": "wxcode-admin-meridian-people",
-      "title": "Meridian People Admin",
-      "version": "0.1.0",
+      "title": "Meridian Admin",
+      "version": "0.2.0",
       "source": "github:GilbertoAbrao/wxcode-design-plugins@main/plugins/admin-meridian-people",
       "publisher": {
         "id": "wxcode",
@@ -913,6 +908,7 @@
         "prompt:inject",
         "fs:write"
       ],
+      "description": "Warm-professional light-mode admin aesthetic: off-white canvas (#f8f8fb), indigo accent (#4f46e5), white sidebar and cards with hairline borders and soft shadows, Inter type, 12px card radii, 11px uppercase micro-labels, and multi-tone status pills. Archetype = 240px fixed sidebar (entity-switcher card + grouped nav sections + footer user row) + 60px topbar (title/breadcrumb + search + period tabs + bell + avatar) + 4 KPI tiles (figure + delta chip + sparkline) + 2-column grid (area-chart card + horizontal-bar breakdown card) + full-width avatar-records table + 320px side-panel (queued-approvals list), plus matching list, form, and detail screens.",
       "tags": [
         "wxcode-plugin",
         "wxcode",
@@ -921,21 +917,20 @@
         "operations",
         "web",
         "admin",
-        "hr",
-        "people",
         "light-mode",
         "warm-professional",
         "indigo-accent",
-        "headcount",
-        "workforce"
+        "sidebar-nav",
+        "soft-shadow",
+        "avatar-table",
+        "approval-panel"
       ],
-      "description": "HR and people-operations admin dashboard — warm-professional light mode with indigo accent, left sidebar org/team switcher, 4 KPI tiles (headcount, attendance, open roles, turnover), headcount-over-time chart, department breakdown, employees table, and a time-off requests panel.",
       "mode": "prototype"
     },
     {
       "name": "wxcode-admin-midnight-ops",
-      "title": "Midnight Ops Console",
-      "version": "0.1.0",
+      "title": "Midnight Ops",
+      "version": "0.2.0",
       "source": "github:GilbertoAbrao/wxcode-design-plugins@main/plugins/admin-midnight-ops",
       "publisher": {
         "id": "wxcode",
@@ -948,6 +943,7 @@
         "prompt:inject",
         "fs:write"
       ],
+      "description": "Dark navy teal-accent admin aesthetic: midnight-navy canvas (#0b1120), raised cool-grey panels, teal-to-cyan accent gradient (#14b8a6 / #22d3ee), glowing status dots, Inter type with tabular figures, and compact hairline-bordered tables. Archetype = slim navbar (logo + search + context switcher + icon actions + avatar) + compact left icon rail + 4 metric tiles with inline sparklines + full-width time-series area chart + status-list side panel + full-width records table with severity and state pills, plus matching list, form, and detail screens. Built for high-density real-time consoles.",
       "tags": [
         "wxcode-plugin",
         "wxcode",
@@ -956,12 +952,13 @@
         "operations",
         "web",
         "admin",
-        "observability",
         "dark-mode",
-        "teal",
-        "ops-console"
+        "navy",
+        "teal-accent",
+        "status-board",
+        "data-dense",
+        "enterprise"
       ],
-      "description": "A production-grade dark-mode operations and observability dashboard built for on-call engineers and SRE teams. Features a compact left icon rail, four live metric tiles with inline trend sparklines, a time-series throughput chart, an active incidents table with severity pills, and a per-service health status list — all in a high-contrast teal-on-midnight palette optimised for 3 AM focus.",
       "mode": "prototype"
     },
     {
@@ -980,6 +977,7 @@
         "prompt:inject",
         "fs:write"
       ],
+      "description": "Neo-brutalist admin aesthetic: white canvas with thick black borders (2\u20133px), hard 4px offset shadows (no blur), vibrant pastel accent blocks (coral #F5A86E, lime #8FD14F, cream #FFF5E6), monospace numerics and uppercase micro-labels, zero border-radius everywhere. Archetype = left sidebar (brand block + monospace nav glyphs + user footer) + top bar (cream search slab + lime CTA) + 4 stat tiles with coloured top-border accents + 2-column content grid (records table + activity feed) + footer meta strip, plus matching list, form, and detail screens.",
       "tags": [
         "wxcode-plugin",
         "wxcode",
@@ -990,16 +988,18 @@
         "admin",
         "neobrutalism",
         "bold-borders",
+        "hard-shadow",
+        "pastel-blocks",
+        "monospace",
         "high-contrast",
-        "pastel-blocks"
+        "zero-radius"
       ],
-      "description": "A neo-brutalist admin dashboard — thick black borders, hard 4px offset shadows, vibrant pastel blocks (coral / lime / cream), monospaced numerics. Use when the brief asks for an admin with personality: 'brutalist admin', 'pastel dashboard', 'bold borders', 'flat blocks'.",
       "mode": "prototype"
     },
     {
       "name": "wxcode-admin-onyx-crypto",
-      "title": "Onyx Crypto Admin",
-      "version": "0.1.0",
+      "title": "Onyx Admin",
+      "version": "0.2.0",
       "source": "github:GilbertoAbrao/wxcode-design-plugins@main/plugins/admin-onyx-crypto",
       "publisher": {
         "id": "wxcode",
@@ -1012,6 +1012,7 @@
         "prompt:inject",
         "fs:write"
       ],
+      "description": "Deep-obsidian admin aesthetic: near-black canvas (#0a0a0f), elevated dark panels (#14141c / #1c1c28), emerald primary accent (#10b981) with neon glow hover, violet secondary accent (#8b5cf6), Inter type with tabular-nums, neon-tinted delta chips, 10px radii, hairline borders. Archetype = wide labeled left rail (220px) + sticky topbar (context-switcher pill + entity address pill + search + icon actions) + 4 KPI sparkline cards + main grid (area chart with timeframe tabs / ranked-rows side panel) + full-width records table with delta-colored column. Matching list, form, and detail screens included.",
       "tags": [
         "wxcode-plugin",
         "wxcode",
@@ -1020,22 +1021,21 @@
         "operations",
         "web",
         "admin",
-        "crypto",
-        "web3",
         "dark-mode",
         "neon",
-        "digital-assets",
-        "portfolio",
-        "defi",
-        "sleek"
+        "obsidian",
+        "emerald-accent",
+        "violet-accent",
+        "data-dense",
+        "sleek",
+        "enterprise"
       ],
-      "description": "Dark-mode digital-asset portfolio console — left rail nav, topbar with network/wallet switcher, 4 KPI cards, area price chart, holdings table, and market movers side list. Sleek neon aesthetic with emerald and violet accents.",
       "mode": "prototype"
     },
     {
       "name": "wxcode-admin-pixel-liveops",
       "title": "Pixel LiveOps Admin",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "source": "github:GilbertoAbrao/wxcode-design-plugins@main/plugins/admin-pixel-liveops",
       "publisher": {
         "id": "wxcode",
@@ -1048,6 +1048,7 @@
         "prompt:inject",
         "fs:write"
       ],
+      "description": "Deep-space dark admin aesthetic: near-black canvas (#0c0a14), neon purple (#a855f7) and cyan (#22d3ee) dual-accent on a violet-tinted dark neutral ramp, compact tabular typography, glowing pill hover states. Archetype = full-height sidebar (entity switcher + grouped nav sections + footer user chip) + topbar (title \u00b7 search \u00b7 period-selector pills) + 4 KPI tiles with sparklines + 2-column grid (area-chart card + segments side panel) + full-width status-event table + full-width ranked items list, plus list, form, and detail screens.",
       "tags": [
         "wxcode-plugin",
         "wxcode",
@@ -1056,22 +1057,21 @@
         "operations",
         "web",
         "admin",
-        "gaming",
-        "liveops",
         "dark-mode",
         "neon",
-        "game-studio",
-        "analytics",
-        "real-time",
-        "playful-techy"
+        "violet",
+        "deep-space",
+        "dual-accent",
+        "status-event",
+        "ranked-list",
+        "sidebar-nav"
       ],
-      "description": "Dark-mode game studio live-operations dashboard — neon purple/cyan accent on deep-space backgrounds. Sidebar game switcher, topbar period filter, 4 KPI tiles (DAU / D1 retention / ARPDAU / live events), DAU chart, live events board, top in-game items table, player segments panel. Original archetype for game ops teams.",
       "mode": "prototype"
     },
     {
       "name": "wxcode-admin-pulse-crm",
-      "title": "Pulse CRM Admin",
-      "version": "0.1.0",
+      "title": "Pulse Admin",
+      "version": "0.2.0",
       "source": "github:GilbertoAbrao/wxcode-design-plugins@main/plugins/admin-pulse-crm",
       "publisher": {
         "id": "wxcode",
@@ -1084,29 +1084,29 @@
         "prompt:inject",
         "fs:write"
       ],
+      "description": "Airy light-mode admin aesthetic: white/slate canvas (#f8fafc), sky-blue accent (#0ea5e9 / #2563eb), subtle 1px borders, 10px-radius white cards with a faint drop shadow, Inter type with tabular figures. Archetype = workspace-switcher sidebar (240px) + topbar with search and filter chips + 4 KPI tiles with inline SVG sparklines and delta chips + a stage-progress strip (N columns, proportional fill bars) + a 2-column split (records table + activity/tasks side panel), plus matching list, form, and detail screens.",
       "tags": [
         "wxcode-plugin",
         "wxcode",
         "first-party",
         "prototype",
-        "sales",
+        "operations",
         "web",
         "admin",
-        "crm",
-        "pipeline",
-        "deals",
         "light-mode",
         "airy",
         "sky-blue",
-        "slate"
+        "slate",
+        "sparklines",
+        "sidebar",
+        "stage-progress"
       ],
-      "description": "Airy light-mode sales CRM admin — left sidebar with workspace switcher, topbar with search and filters, 4 pipeline KPI tiles with sparklines, horizontal pipeline-by-stage strip, recent deals table with stage pills, and a right-side activity and tasks panel. Sky-blue accent on a white/slate canvas.",
       "mode": "prototype"
     },
     {
       "name": "wxcode-admin-quartz-lms",
-      "title": "Quartz LMS Admin",
-      "version": "0.1.0",
+      "title": "Quartz Admin",
+      "version": "0.2.0",
       "source": "github:GilbertoAbrao/wxcode-design-plugins@main/plugins/admin-quartz-lms",
       "publisher": {
         "id": "wxcode",
@@ -1119,6 +1119,7 @@
         "prompt:inject",
         "fs:write"
       ],
+      "description": "Friendly light-mode admin aesthetic: near-white canvas (#faf9fc), purple accent (#9333ea), white cards with soft shadow, left sidebar with entity switcher and grouped nav, top bar with search and period selector, 4 KPI tiles, dual-line area chart, upcoming-items side panel, and records table with category tag pills and progress bars.",
       "tags": [
         "wxcode-plugin",
         "wxcode",
@@ -1127,20 +1128,18 @@
         "operations",
         "web",
         "admin",
-        "education",
-        "lms",
         "light-mode",
-        "friendly-academic",
-        "purple",
-        "learning-management"
+        "purple-accent",
+        "soft-card",
+        "category-tags",
+        "friendly-admin"
       ],
-      "description": "Friendly-academic LMS administration dashboard — purple accent, left sidebar with school/program switcher, topbar with term selector, 4 KPI tiles (active students, courses, completion rate, avg score), enrollment/completion chart, courses table with progress bars, and upcoming assignments panel.",
       "mode": "prototype"
     },
     {
       "name": "wxcode-admin-relay-helpdesk",
-      "title": "Relay Helpdesk Admin",
-      "version": "0.1.0",
+      "title": "Relay Admin",
+      "version": "0.2.0",
       "source": "github:GilbertoAbrao/wxcode-design-plugins@main/plugins/admin-relay-helpdesk",
       "publisher": {
         "id": "wxcode",
@@ -1153,6 +1152,7 @@
         "prompt:inject",
         "fs:write"
       ],
+      "description": "Friendly light-mode ops admin aesthetic: near-white slate canvas (#f8fafc), violet accent (#7c3aed / #8b5cf6), status-semantic palette (green / amber / red), Inter type, soft-shadow white cards at 10px radius, fine hairline borders. Archetype = left categorised sidebar + 56px topbar with search and filter dropdown + 4 KPI cards with sparklines + priority-tier bar strip + full-width records table with dual status pills + right load panel with presence indicators. Plus matching list, form, and detail screens.",
       "tags": [
         "wxcode-plugin",
         "wxcode",
@@ -1161,22 +1161,20 @@
         "operations",
         "web",
         "admin",
-        "helpdesk",
-        "support",
         "light-mode",
         "violet-accent",
-        "friendly",
-        "ticket-queue",
-        "sla",
-        "csat"
+        "status-semantic",
+        "soft-shadow",
+        "dual-pill",
+        "presence-indicator",
+        "sidebar-admin"
       ],
-      "description": "Friendly light-mode helpdesk operations dashboard — left inbox sidebar, topbar with search and assignee filter, 4 KPI cards (open tickets, avg first response, SLA compliance, CSAT), SLA-by-priority bar set, ticket queue table, and team load panel. Accent violet with green/amber/red status semantics.",
       "mode": "prototype"
     },
     {
       "name": "wxcode-admin-saas-bestseller",
       "title": "SaaS Admin Bestseller",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "source": "github:GilbertoAbrao/wxcode-design-plugins@main/plugins/admin-saas-bestseller",
       "publisher": {
         "id": "wxcode",
@@ -1189,6 +1187,7 @@
         "prompt:inject",
         "fs:write"
       ],
+      "description": "Polished light-mode admin aesthetic: near-white canvas (#f5f7fa), white card surfaces, indigo accent (#5369f8), soft card shadows, 12px radius, system font stack. Archetype = collapsible 256px grouped-nav sidebar + breadcrumb topbar + greeting strip + 4 stat tiles with sparklines + 8/4 mid-grid (area chart / activity feed) + full-width records table, plus matching list, form, and detail screens.",
       "tags": [
         "wxcode-plugin",
         "wxcode",
@@ -1197,20 +1196,19 @@
         "operations",
         "web",
         "admin",
-        "saas-admin",
-        "enterprise",
-        "best-seller",
         "light-mode",
         "clean-cards",
+        "indigo-accent",
+        "soft-shadow",
+        "sidebar-nav",
         "polished"
       ],
-      "description": "The market-leading SaaS admin archetype — polished light-mode dashboard with collapsible sidebar, breadcrumb topbar, 4 stat tiles, primary chart, recent table, side activity. Modeled after the Metronic / Vuexy / Velzon family that dominates Themeforest's admin category.",
       "mode": "prototype"
     },
     {
       "name": "wxcode-admin-savory-pos",
-      "title": "Savory POS Admin",
-      "version": "0.1.0",
+      "title": "Service Admin",
+      "version": "0.2.0",
       "source": "github:GilbertoAbrao/wxcode-design-plugins@main/plugins/admin-savory-pos",
       "publisher": {
         "id": "wxcode",
@@ -1223,6 +1221,7 @@
         "prompt:inject",
         "fs:write"
       ],
+      "description": "Warm light-mode service back-office aesthetic: near-white canvas (#faf8f5), amber accent (#f59e0b) with tomato alert tones (#ef4444) on white cards, dark sidebar (#1c1917) with grouped nav sections, 4 KPI tiles with inline sparklines, 3-column live state board, ranked items list with inline bars, area-fill SVG trend chart, and dense records table with status pills. Archetype = 240px grouped-nav sidebar + 60px sticky topbar + KPI tile row + state board + bottom 2-column grid + records table.",
       "tags": [
         "wxcode-plugin",
         "wxcode",
@@ -1231,22 +1230,20 @@
         "operations",
         "web",
         "admin",
-        "restaurant",
-        "pos",
         "light-mode",
         "warm-palette",
         "amber-accent",
-        "kanban",
-        "food-service",
-        "back-office"
+        "dark-sidebar",
+        "state-board",
+        "service-dashboard",
+        "grouped-nav"
       ],
-      "description": "Restaurant point-of-sale back-office admin: warm light mode, amber + tomato accent, left sidebar with venue switcher, live orders kanban (New / Cooking / Served), KPI tiles, top-selling items, sales sparkline, and recent orders table.",
       "mode": "prototype"
     },
     {
       "name": "wxcode-admin-slate-commerce",
-      "title": "Slate Commerce Admin",
-      "version": "0.1.0",
+      "title": "Slate Admin",
+      "version": "0.2.0",
       "source": "github:GilbertoAbrao/wxcode-design-plugins@main/plugins/admin-slate-commerce",
       "publisher": {
         "id": "wxcode",
@@ -1259,20 +1256,21 @@
         "prompt:inject",
         "fs:write"
       ],
+      "description": "Clean light-mode admin aesthetic: warm white canvas (#ffffff / #f9fafb), emerald accent (#10b981) for positive states and primary actions, amber (#f59e0b) for caution, Inter type with tabular figures, 10px radii, subtle card shadows, and warm slate neutrals. Archetype = fixed sidebar (entity switcher + sectioned nav + user footer) + topbar (search + range selector + notification bell + avatar) + 4 KPI cards with inline sparklines + a metric bar chart + a ranked items panel + a full-width records table with status badges, plus matching list, form, and detail screens.",
       "tags": [
         "wxcode-plugin",
         "wxcode",
         "first-party",
         "prototype",
-        "e-commerce",
+        "operations",
         "web",
         "admin",
-        "back-office",
         "light-mode",
         "emerald",
-        "orders"
+        "sparklines",
+        "data-dense",
+        "enterprise"
       ],
-      "description": "A clean, light-mode e-commerce back-office dashboard with warm neutral surfaces, emerald accents, and amber highlights. Ships with a sidebar store switcher, topbar date range selector, four KPI cards with inline sparklines, a revenue bar chart, a recent orders table with status badges, and a top products list — everything a merchant needs at a glance.",
       "mode": "prototype"
     },
     {
@@ -1311,8 +1309,8 @@
     },
     {
       "name": "wxcode-admin-sprout-iot",
-      "title": "Sprout IoT Admin",
-      "version": "0.1.0",
+      "title": "Sprout Admin",
+      "version": "0.2.0",
       "source": "github:GilbertoAbrao/wxcode-design-plugins@main/plugins/admin-sprout-iot",
       "publisher": {
         "id": "wxcode",
@@ -1325,6 +1323,7 @@
         "prompt:inject",
         "fs:write"
       ],
+      "description": "Dark technical-fresh admin aesthetic: deep navy canvas (#0c1118), raised panels, lime (#84cc16) and cyan (#22d3ee) dual accents, amber/red severity ramp, Inter type with tabular figures, and dense hairline-bordered tables. Archetype = context-switcher topbar + left label rail + 4 KPI cards + 2-column grid (multi-channel sparkline panel + severity feed) + full-width records table, plus matching list, form, and detail screens. Built for high-density live-data consoles that must read at a glance.",
       "tags": [
         "wxcode-plugin",
         "wxcode",
@@ -1333,22 +1332,19 @@
         "operations",
         "web",
         "admin",
-        "iot",
-        "telemetry",
         "dark-mode",
         "technical",
         "lime-accent",
         "cyan-accent",
-        "device-fleet",
-        "monitoring"
+        "data-dense",
+        "enterprise"
       ],
-      "description": "Dark-mode IoT device-fleet and telemetry console — left rail nav, gateway/site switcher, 4 KPI cards (online/offline/signal/alerts), multi-series sparkline telemetry panel, active alerts list, and a devices table with signal bars and firmware status.",
       "mode": "prototype"
     },
     {
       "name": "wxcode-admin-statute-legal",
-      "title": "Statute Legal Admin",
-      "version": "0.1.0",
+      "title": "Statute Admin",
+      "version": "0.2.0",
       "source": "github:GilbertoAbrao/wxcode-design-plugins@main/plugins/admin-statute-legal",
       "publisher": {
         "id": "wxcode",
@@ -1361,6 +1357,7 @@
         "prompt:inject",
         "fs:write"
       ],
+      "description": "Refined warm-white professional admin aesthetic: warm-white canvas (#faf8f6), deep-burgundy accent (#9f1239 / #be123c), gold secondary accent (#b45309), Inter type with tabular figures, and white raised cards with a 3px accent top stripe. Archetype = dark sidebar with entity-switcher grouped nav + sticky topbar with search and period selector + 4 KPI tiles + 2-column grid (records table left, deadline feed + bar chart right) + full-width items list, plus matching list, form, and detail screens. Built for authoritative yet approachable professional service consoles.",
       "tags": [
         "wxcode-plugin",
         "wxcode",
@@ -1369,22 +1366,21 @@
         "operations",
         "web",
         "admin",
-        "legal",
-        "case-management",
-        "law-firm",
-        "matter-management",
         "light-mode",
-        "refined-professional",
+        "warm-white",
         "burgundy",
-        "gold-accent"
+        "gold-accent",
+        "dark-sidebar",
+        "professional",
+        "refined",
+        "enterprise"
       ],
-      "description": "Refined light-mode law firm dashboard for case and matter management — practice-area sidebar, KPI tiles for active cases / billable hours / deadlines / realization rate, matters table with status pills, upcoming deadlines panel, matters-by-practice chart, and recent documents list. Burgundy-gold accent palette on warm white surfaces.",
       "mode": "prototype"
     },
     {
       "name": "wxcode-admin-sterling-bankops",
-      "title": "Sterling Bank Ops Admin",
-      "version": "0.1.0",
+      "title": "Sterling Admin",
+      "version": "0.2.0",
       "source": "github:GilbertoAbrao/wxcode-design-plugins@main/plugins/admin-sterling-bankops",
       "publisher": {
         "id": "wxcode",
@@ -1397,6 +1393,7 @@
         "prompt:inject",
         "fs:write"
       ],
+      "description": "Sober light-mode admin aesthetic: white card surfaces on a cool-grey page, slate-blue structural chrome with an emerald positive accent, grouped-nav sidebar with entity switcher, white topbar with period tabs, 4 KPI cards, action-queue panel with inline approve/reject, severity-feed side panel, records table with status pills, and an inline bar chart. Built for clarity and institutional trust.",
       "tags": [
         "wxcode-plugin",
         "wxcode",
@@ -1405,24 +1402,23 @@
         "operations",
         "web",
         "admin",
-        "banking",
-        "back-office",
-        "retail-banking",
-        "approvals",
-        "transactions",
         "light-mode",
         "slate-blue",
         "emerald",
+        "sober",
+        "institutional",
         "trust",
-        "finance"
+        "approval-queue",
+        "severity-feed",
+        "bar-chart",
+        "dense-table"
       ],
-      "description": "Retail banking back-office operations dashboard — sober slate-blue and emerald palette, left sidebar with branch switcher, topbar with period picker, 4 KPI cards, an approvals queue, a transactions table, a risk/exceptions panel, and an inline SVG throughput chart. Designed for trust and clarity.",
       "mode": "prototype"
     },
     {
       "name": "wxcode-admin-talent-ats",
-      "title": "Talent ATS Admin",
-      "version": "0.1.0",
+      "title": "Light Indigo Admin",
+      "version": "0.2.0",
       "source": "github:GilbertoAbrao/wxcode-design-plugins@main/plugins/admin-talent-ats",
       "publisher": {
         "id": "wxcode",
@@ -1435,6 +1431,7 @@
         "prompt:inject",
         "fs:write"
       ],
+      "description": "Light admin aesthetic: white sidebar on a near-white canvas, indigo accent (#4f46e5) + pink secondary (#ec4899), 1px slate borders, 12px-radius cards with a whisper shadow. Archetype = left sidebar (entity switcher + grouped nav) + topbar (search + period picker + avatar) + 4 KPI cards with sparklines + a kanban-style stage board + a conversion funnel chart + an upcoming-items side panel + a full-width records table, plus matching list, form, and detail screens.",
       "tags": [
         "wxcode-plugin",
         "wxcode",
@@ -1443,23 +1440,21 @@
         "operations",
         "web",
         "admin",
-        "recruiting",
-        "ats",
         "light-mode",
-        "hr",
-        "hiring",
-        "pipeline",
+        "indigo-accent",
+        "pink-accent",
         "kanban",
-        "indigo",
-        "pink-accent"
+        "stage-board",
+        "sparklines",
+        "funnel-chart",
+        "left-sidebar"
       ],
-      "description": "Recruiting & applicant-tracking dashboard archetype — left sidebar with requisition switcher, topbar with period picker and avatar, 4 KPI cards (open roles / candidates / interviews / time-to-hire), kanban-style hiring pipeline, recruiting funnel SVG, candidates table, and upcoming-interviews side panel. Indigo + pink accent, light HR aesthetic.",
       "mode": "prototype"
     },
     {
       "name": "wxcode-admin-vault-treasury",
-      "title": "Vault Treasury Admin",
-      "version": "0.1.0",
+      "title": "Vault Admin",
+      "version": "0.2.0",
       "source": "github:GilbertoAbrao/wxcode-design-plugins@main/plugins/admin-vault-treasury",
       "publisher": {
         "id": "wxcode",
@@ -1472,6 +1467,7 @@
         "prompt:inject",
         "fs:write"
       ],
+      "description": "Deep-navy / amber-gold admin aesthetic: #0a0f1e canvas, raised navy panels (#121a2e / #1b2640), amber-gold accent (#f59e0b), cool-navy neutral ramp, Inter tabular figures, signed-amount rows (green / red), 8\u201310px radii. Archetype = labeled 220px rail nav with grouped sections + 60px topbar (entity switcher + period tabs + avatar) + 4 KPI cards with inline sparklines + 2-column (7fr area chart / 5fr allocation donut) + full-width records table with status pills, plus matching list, form, and detail screens. Built for calm, high-clarity operational consoles that communicate magnitude at a glance.",
       "tags": [
         "wxcode-plugin",
         "wxcode",
@@ -1480,22 +1476,21 @@
         "operations",
         "web",
         "admin",
-        "finance",
-        "treasury",
         "dark-mode",
+        "deep-navy",
         "amber-gold",
-        "corporate",
-        "premium",
-        "cashflow",
-        "deep-navy"
+        "labeled-rail",
+        "data-dense",
+        "area-chart",
+        "donut-chart",
+        "enterprise"
       ],
-      "description": "Premium dark-mode corporate treasury dashboard — amber/gold accent on deep navy, left rail nav, entity/period switcher, 4 KPI cards (balance · inflows · outflows · runway), cashflow SVG area chart, allocation donut, recent transactions table with status pills.",
       "mode": "prototype"
     },
     {
       "name": "wxcode-admin-verdant-clinic",
-      "title": "Verdant Clinic Admin",
-      "version": "0.1.0",
+      "title": "Verdant Admin",
+      "version": "0.2.0",
       "source": "github:GilbertoAbrao/wxcode-design-plugins@main/plugins/admin-verdant-clinic",
       "publisher": {
         "id": "wxcode",
@@ -1508,6 +1503,7 @@
         "prompt:inject",
         "fs:write"
       ],
+      "description": "Calm light-mode admin aesthetic: near-white #f7faf9 canvas, white cards with emerald-to-teal accent (#10b981 / #0d9488), slate text hierarchy, and tri-tone status pills. Archetype = left sidebar (entity-switcher + sectioned nav + user chip) + 60px topbar + 4 KPI cards with sparklines + 2-column main grid (schedule board + chart panel) + full-width records table, plus matching list, form, and detail screens.",
       "tags": [
         "wxcode-plugin",
         "wxcode",
@@ -1516,22 +1512,19 @@
         "operations",
         "web",
         "admin",
-        "healthcare",
-        "clinic",
         "light-mode",
         "emerald-teal",
-        "calm-clinical",
-        "triage",
-        "schedule",
-        "patient-management"
+        "calm",
+        "status-pills",
+        "sidebar-nav",
+        "data-table"
       ],
-      "description": "Calm, clinical light-mode admin dashboard for clinic and healthcare operations — left sidebar with department switcher, topbar with search and clinician avatar, 4 KPI cards (patients today, appointments, avg wait, bed occupancy), today's appointment schedule, vitals occupancy mini-chart, and a recent patients table. Emerald-to-teal accent palette with triage status colors.",
       "mode": "prototype"
     },
     {
       "name": "wxcode-admin-volt-energy",
-      "title": "Volt Energy Admin",
-      "version": "0.1.0",
+      "title": "Volt Admin",
+      "version": "0.2.0",
       "source": "github:GilbertoAbrao/wxcode-design-plugins@main/plugins/admin-volt-energy",
       "publisher": {
         "id": "wxcode",
@@ -1544,6 +1537,7 @@
         "prompt:inject",
         "fs:write"
       ],
+      "description": "Deep-navy control-room admin aesthetic: near-black canvas (#0a0e14), raised panels, amber (#fbbf24) + cyan (#22d3ee) dual-accent on a steel-blue neutral ramp, Inter type with tabular figures, and dense hairline-bordered tables. Archetype = region-switcher navbar + icon rail + 4 KPI tiles + full-width status board (entity rows with state pills) + dual-series SVG trend chart + alerts panel + entity side panel, plus matching list, form, and detail screens. Built for real-time operational consoles that must read at a glance.",
       "tags": [
         "wxcode-plugin",
         "wxcode",
@@ -1552,22 +1546,22 @@
         "operations",
         "web",
         "admin",
-        "energy",
-        "utilities",
         "dark-mode",
-        "control-room",
-        "grid-operations",
+        "dual-accent",
         "amber-accent",
         "cyan-accent",
-        "infrastructure"
+        "navy-canvas",
+        "status-board",
+        "data-dense",
+        "control-room",
+        "enterprise"
       ],
-      "description": "Dark-mode utility grid operations control-room dashboard — KPI tiles, regions/sites status board, dual-series load/generation chart, alerts table, and sites side panel. Amber + cyan accent on deep navy. Original archetype for energy and infrastructure operations.",
       "mode": "prototype"
     },
     {
       "name": "wxcode-admin-voyage-travel",
-      "title": "Voyage Travel Admin",
-      "version": "0.1.0",
+      "title": "Voyage Admin",
+      "version": "0.2.0",
       "source": "github:GilbertoAbrao/wxcode-design-plugins@main/plugins/admin-voyage-travel",
       "publisher": {
         "id": "wxcode",
@@ -1580,6 +1574,7 @@
         "prompt:inject",
         "fs:write"
       ],
+      "description": "Airy light-mode admin aesthetic: white-and-pale-blue canvas (#f6fafc), sky-blue accent (#0ea5e9), coral secondary accent (#fb7185), grouped sidebar navigation with entity-switcher pill, 60px topbar with centered search and date-range chip, 4 KPI cards with sparklines and delta badges, a two-column content grid (entity board + breakdown chart), a dense records table, and a donut side panel. Archetype = sidebar nav + 4 KPI cards + two-column board/chart grid + records table + donut panel, plus matching list, form, and detail screens.",
       "tags": [
         "wxcode-plugin",
         "wxcode",
@@ -1588,17 +1583,14 @@
         "operations",
         "web",
         "admin",
-        "travel",
-        "booking",
         "light-mode",
         "airy",
         "sky-accent",
         "coral-accent",
-        "travel-agency",
-        "itinerary",
-        "occupancy"
+        "sidebar-nav",
+        "data-dense",
+        "enterprise"
       ],
-      "description": "Airy light-mode operations dashboard for travel agencies — region/agency switcher sidebar, topbar with date-range picker, 4 KPI cards, itinerary board, destinations breakdown, recent bookings table, and occupancy side panel. Sky-and-coral accent palette; original copy and invented data.",
       "mode": "prototype"
     }
   ]
