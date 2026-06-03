@@ -20,7 +20,9 @@ test('opencode json stream emits text and usage events', () => {
   );
 
   assert.deepEqual(events, [
-    { type: 'status', label: 'running' },
+    // step_start surfaces the OpenCode sessionID so the daemon can read the
+    // concrete model from OpenCode's SQLite for usage billing.
+    { type: 'status', label: 'running', sessionId: 'ses-1' },
     { type: 'text_delta', delta: 'hello' },
     {
       type: 'usage',
