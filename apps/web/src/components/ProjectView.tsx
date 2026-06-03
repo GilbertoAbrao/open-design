@@ -4385,7 +4385,7 @@ export function ProjectView({
               selectedId={project.designSystemId ?? null}
               onChange={handleChangeDesignSystemId}
             />
-            {hasProjectInstructions ? (
+            {hasProjectInstructions && !isWxcodeEmbedHost() ? (
               <button
                 type="button"
                 className={`project-instructions-chip${instructionsMode !== 'closed' ? ' is-open' : ''}`}

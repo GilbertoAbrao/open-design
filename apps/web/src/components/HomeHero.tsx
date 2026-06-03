@@ -56,6 +56,7 @@ import {
 import { PreviewSurface } from './plugins-home/cards/PreviewSurface';
 import { curatedPluginPriorityForChip } from './plugins-home/curatedPriority';
 import { inferPluginPreview } from './plugins-home/preview';
+import { isWxcodeEmbedHost } from './wxcode-embed';
 
 export interface HomeHeroSubmitHandler {
   (): void;
@@ -1150,7 +1151,7 @@ export const HomeHero = forwardRef<HTMLTextAreaElement, Props>(function HomeHero
           locale={locale}
           onPick={pickExamplePluginPreset}
         />
-      ) : activePromptExamples.length > 0 ? (
+      ) : activePromptExamples.length > 0 && !isWxcodeEmbedHost() ? (
         <div
           className="home-hero__prompt-examples"
           data-testid="home-hero-prompt-examples"
