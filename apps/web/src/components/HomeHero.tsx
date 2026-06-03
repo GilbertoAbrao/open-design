@@ -2638,7 +2638,15 @@ function homeHeroExamplePluginsForChip(
   plugins: InstalledPluginRecord[],
   locale: Locale,
 ): InstalledPluginRecord[] {
+  // In the WXCode embed, the welcome screen only surfaces the curated WXCode
+  // plugins (those whose manifest tags include 'wxcode-plugin'). Standalone OD
+  // is unchanged. Applied first so it composes as an AND with the chip/query
+  // filters below.
+  const wxcodeEmbed = isWxcodeEmbedHost();
   const presets = plugins
+    .filter((plugin) => (
+      !wxcodeEmbed || (plugin.manifest?.tags?.includes('wxcode-plugin') ?? false)
+    ))
     .filter((plugin) => (
       pluginMatchesExampleChip(plugin, chipId) ||
       curatedPluginPriorityForChip(plugin, chipId) !== null
