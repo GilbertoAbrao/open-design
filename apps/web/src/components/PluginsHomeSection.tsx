@@ -26,6 +26,7 @@ import { usePluginFacets } from './plugins-home/usePluginFacets';
 import { useSavedPluginIds } from './plugins-home/savedPlugins';
 import type { PluginUseAction } from './plugins-home/useActions';
 import { Toast } from './Toast';
+import { isWxcodeEmbedHost } from './wxcode-embed';
 
 const INITIAL_PLUGIN_RENDER_LIMIT = 60;
 const PLUGIN_RENDER_BATCH_SIZE = 60;
@@ -81,6 +82,20 @@ export function PluginsHomeSection({
   const [saveToast, setSaveToast] = useState<string | null>(null);
   const [renderLimit, setRenderLimit] = useState(INITIAL_PLUGIN_RENDER_LIMIT);
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
+  // In the WXCode Design embed the catalog must surface ONLY the curated
+  // first-party plugins (those tagged `wxcode-plugin`). Standalone Open Design
+  // keeps the full catalog. This is the catalog-grid twin of HomeHero's
+  // `homeHeroExamplePluginsForChip` filter — both welcome plugin surfaces must
+  // apply the same embed scope or non-wxcode plugins leak into the embed.
+  const scopedPlugins = useMemo(
+    () =>
+      isWxcodeEmbedHost()
+        ? plugins.filter(
+            (plugin) => plugin.manifest?.tags?.includes('wxcode-plugin') ?? false,
+          )
+        : plugins,
+    [plugins],
+  );
   const {
     visiblePlugins,
     savedList,
@@ -96,7 +111,7 @@ export function PluginsHomeSection({
     setQuery,
     totalVisible,
   } = usePluginFacets({
-    plugins,
+    plugins: scopedPlugins,
     savedPluginIds,
     preferDefaultFacet,
     presetSelection,

@@ -66,3 +66,49 @@ describe('PluginsHomeSection restrictCategory (WXCode embed)', () => {
     expect(screen.getByTestId('plugins-home-pill-category-deck')).toBeTruthy();
   });
 });
+
+function taggedPlugin(id: string, tags: string[]): InstalledPluginRecord {
+  const record = plugin(id, 'prototype');
+  (record.manifest as { tags?: string[] }).tags = tags;
+  return record;
+}
+
+describe('PluginsHomeSection wxcode-plugin tag filter (WXCode embed)', () => {
+  afterEach(() => {
+    delete document.documentElement.dataset.odHost;
+  });
+
+  it('lists ONLY wxcode-plugin-tagged plugins in the embed catalog grid', () => {
+    document.documentElement.dataset.odHost = 'wxcode';
+    render(
+      <PluginsHomeSection
+        {...baseProps}
+        plugins={[
+          taggedPlugin('wx-admin', ['wxcode-plugin', 'prototype']),
+          taggedPlugin('official-admin', ['prototype']),
+        ]}
+        restrictCategory="prototype"
+        presetSelection={{ category: 'prototype', subcategory: null }}
+      />,
+    );
+
+    expect(screen.getByTestId('plugins-home-details-wx-admin')).toBeTruthy();
+    expect(screen.queryByTestId('plugins-home-details-official-admin')).toBeNull();
+  });
+
+  it('keeps the full catalog (both plugins) outside the embed', () => {
+    render(
+      <PluginsHomeSection
+        {...baseProps}
+        plugins={[
+          taggedPlugin('wx-admin', ['wxcode-plugin', 'prototype']),
+          taggedPlugin('official-admin', ['prototype']),
+        ]}
+        presetSelection={{ category: 'prototype', subcategory: null }}
+      />,
+    );
+
+    expect(screen.getByTestId('plugins-home-details-wx-admin')).toBeTruthy();
+    expect(screen.getByTestId('plugins-home-details-official-admin')).toBeTruthy();
+  });
+});
