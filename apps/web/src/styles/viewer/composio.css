@@ -1156,7 +1156,15 @@
   border-radius: 999px;
   padding: 3px;
   gap: 2px;
-  flex-shrink: 0;
+  /* Many example screens (dashboard / list / form / charts / widgets / …) can
+     overflow the modal width. Let the pill shrink within the toolbar row and
+     scroll its tabs horizontally instead of clipping the trailing ones. The
+     pill still hugs its content when only a few tabs fit (inline-flex). */
+  flex-shrink: 1;
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: auto;
+  scrollbar-width: thin;
 }
 .ds-modal-tab {
   background: transparent;
@@ -1167,6 +1175,9 @@
   font-weight: 500;
   color: var(--text-muted);
   cursor: pointer;
+  /* Keep each tab's full label; the strip scrolls rather than squashing tabs. */
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 .ds-modal-tab:hover { color: var(--text); }
 .ds-modal-tab.active {
