@@ -1142,7 +1142,7 @@ export const HomeHero = forwardRef<HTMLTextAreaElement, Props>(function HomeHero
         </RailGroup>
       )}
 
-      {activeExamplePlugins.length > 0 && activeChipId ? (
+      {!isWxcodeEmbedHost() && activeExamplePlugins.length > 0 && activeChipId ? (
         <PluginPromptPresets
           chipId={activeChipId}
           plugins={activeExamplePlugins}
