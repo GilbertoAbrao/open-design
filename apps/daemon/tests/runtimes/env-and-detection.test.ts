@@ -24,6 +24,22 @@ test('spawnEnvForAgent strips ANTHROPIC_API_KEY for the claude adapter', () => {
   assert.equal(env.OD_DAEMON_URL, 'http://127.0.0.1:7456');
 });
 
+test('spawnEnvForAgent never passes WXCODE_TELEMETRY credentials to OpenCode', () => {
+  const env = spawnEnvForAgent('opencode', {
+    PATH: '/usr/bin',
+    WXCODE_TELEMETRY_ENABLED: 'true',
+    WXCODE_TELEMETRY_TOKEN: 'dedicated-token',
+    Wxcode_Telemetry_Endpoint: 'https://traceway.wxcode.ai/api/otel',
+    WXCODE_DESIGN_TELEMETRY_TOKEN: 'design-token',
+    Wxcode_Design_Telemetry_Endpoint: 'https://design.traceway.wxcode.ai/api/otel',
+  });
+
+  assert.deepEqual(
+    Object.keys(env).filter((key) => (key.toUpperCase().startsWith('WXCODE_TELEMETRY_') || key.toUpperCase().startsWith('WXCODE_DESIGN_TELEMETRY_'))),
+    [],
+  );
+});
+
 test('spawnEnvForAgent applies configured Claude Code env before auth stripping', () => {
   const env = spawnEnvForAgent(
     'claude',
@@ -604,7 +620,7 @@ test('detectAgents applies configured env while probing the CLI', async () => {
       } else {
         writeFileSync(
           bin,
-          '#!/bin/sh\nif [ "$1" = "--version" ]; then echo "$CLAUDE_CONFIG_DIR"; exit 0; fi\nif [ "$1" = "-p" ]; then echo "--add-dir --include-partial-messages"; exit 0; fi\nexit 0\n',
+          '#!/bin/sh\nif [ "$1" = "--version" ]; then echo "$CLAUDE_CONFIG_DIR|${WXCODE_TELEMETRY_TOKEN:-none}|${Wxcode_Design_Telemetry_Token:-none}"; exit 0; fi\nif [ "$1" = "-p" ]; then echo "--add-dir --include-partial-messages"; exit 0; fi\nexit 0\n',
         );
         chmodSync(bin, 0o755);
       }
@@ -612,12 +628,16 @@ test('detectAgents applies configured env while probing the CLI', async () => {
       process.env.OD_AGENT_HOME = dir;
 
       const agents = await detectAgents({
-        claude: { CLAUDE_CONFIG_DIR: '/tmp/claude-config-probe' },
+        claude: {
+          CLAUDE_CONFIG_DIR: '/tmp/claude-config-probe',
+          WXCODE_TELEMETRY_TOKEN: 'chat-token',
+          Wxcode_Design_Telemetry_Token: 'design-token',
+        },
       });
 
       const detected = agents.find((agent) => agent.id === 'claude');
       assert.equal(detected?.available, true);
-      assert.equal(detected?.version, '/tmp/claude-config-probe');
+      assert.equal(detected?.version, '/tmp/claude-config-probe|none|none');
     });
   } finally {
     rmSync(dir, { recursive: true, force: true });

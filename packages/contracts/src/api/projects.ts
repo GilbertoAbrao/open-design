@@ -87,6 +87,36 @@ export interface DesignSystemReviewEntry {
   agentTask?: DesignSystemReviewAgentTask;
 }
 
+export type WxcodeDesignGitProvider = 'forgejo';
+
+export type WxcodeDesignGitStatus =
+  | 'linked'
+  | 'dirty'
+  | 'clean'
+  | 'pushed'
+  | 'pull_requested'
+  | 'merged'
+  | 'conflicted';
+
+export interface WxcodeDesignGitRef {
+  provider: WxcodeDesignGitProvider;
+  repositoryUrl?: string;
+  repositoryPath?: string;
+  branch?: string;
+  commitSha?: string;
+  pullRequestUrl?: string;
+  status?: WxcodeDesignGitStatus;
+  lastSyncedAt?: string;
+}
+
+export interface WxcodeProjectMetadata {
+  tenantId?: string;
+  knowledgeBaseId?: string;
+  designId?: string;
+  activePrototypePath?: string;
+  git?: WxcodeDesignGitRef;
+}
+
 export interface ProjectMetadata {
   kind: ProjectKind;
   intent?: 'live-artifact';
@@ -159,6 +189,9 @@ export interface ProjectMetadata {
   // Stored on design-system projects so the review overview can remember
   // which generated sections were accepted or sent back for another pass.
   designSystemReview?: Record<string, DesignSystemReviewEntry>;
+  // WXK-specific integration metadata. Kept under one optional namespace so
+  // upstream Open Design project metadata remains otherwise unchanged.
+  wxcode?: WxcodeProjectMetadata;
 }
 
 export interface Project {
@@ -275,6 +308,29 @@ export interface ReplaceProjectWorkingDirResponse {
   project: Project;
   baseDir: string;
   entryFile: string | null;
+}
+
+export interface UpdateWxcodeProjectBindingRequest {
+  tenantId?: string | null;
+  knowledgeBaseId?: string | null;
+  designId?: string | null;
+  activePrototypePath?: string | null;
+  git?: {
+    provider?: WxcodeDesignGitProvider | null;
+    repositoryUrl?: string | null;
+    repositoryPath?: string | null;
+    branch?: string | null;
+    commitSha?: string | null;
+    pullRequestUrl?: string | null;
+    status?: WxcodeDesignGitStatus | null;
+    lastSyncedAt?: string | null;
+  } | null;
+}
+
+export interface WxcodeProjectBindingResponse {
+  project: Project;
+  resolvedDir: string;
+  wxcode: WxcodeProjectMetadata;
 }
 
 export interface ConversationsResponse {

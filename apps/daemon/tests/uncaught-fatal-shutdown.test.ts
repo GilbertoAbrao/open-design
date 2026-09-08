@@ -30,8 +30,13 @@ interface FakeAnalyticsService {
   shutdown: () => Promise<void>;
 }
 
+interface FakeTracewayTelemetry {
+  shutdown: () => Promise<void>;
+}
+
 function buildFatalShutdown(
   analyticsService: FakeAnalyticsService,
+  tracewayTelemetry: FakeTracewayTelemetry,
   exitFn: (code: number) => void,
 ): (eventName: string, properties: Record<string, unknown>) => void {
   // Mirrors `triggerFatalShutdown` in apps/daemon/src/server.ts. Kept in
@@ -41,6 +46,7 @@ function buildFatalShutdown(
   return (eventName, properties) => {
     if (fatalShuttingDown) return;
     fatalShuttingDown = true;
+    const tracewayFlush = tracewayTelemetry.shutdown();
     // Await captureSafety BEFORE shutdown — the real captureSafety does
     // an internal `await readInstallationIdSafe()`, so a sync
     // fire-and-forget here would let shutdown() drain an empty queue.
@@ -55,6 +61,7 @@ function buildFatalShutdown(
         // capture must never block the exit path
       }
       await analyticsService.shutdown();
+      await tracewayFlush;
     })();
     void Promise.race([
       flushSequence,
@@ -67,6 +74,7 @@ function buildFatalShutdown(
 
 let captureSafetyMock: ReturnType<typeof vi.fn<(args: CaptureSafetyArgs) => Promise<void>>>;
 let shutdownMock: ReturnType<typeof vi.fn<() => Promise<void>>>;
+let tracewayShutdownMock: ReturnType<typeof vi.fn<() => Promise<void>>>;
 let exitMock: ReturnType<typeof vi.fn<(code: number) => void>>;
 let analytics: FakeAnalyticsService;
 let exit: (code: number) => void;
@@ -74,6 +82,7 @@ let exit: (code: number) => void;
 beforeEach(() => {
   captureSafetyMock = vi.fn<(args: CaptureSafetyArgs) => Promise<void>>().mockResolvedValue(undefined);
   shutdownMock = vi.fn<() => Promise<void>>().mockResolvedValue(undefined);
+  tracewayShutdownMock = vi.fn<() => Promise<void>>().mockResolvedValue(undefined);
   exitMock = vi.fn<(code: number) => void>();
   analytics = {
     captureSafety: captureSafetyMock,
@@ -89,7 +98,7 @@ afterEach(() => {
 
 describe('daemon fatal-shutdown helper', () => {
   it('flushes posthog-node and exits with code 1 on uncaughtException', async () => {
-    const fatal = buildFatalShutdown(analytics, exit);
+    const fatal = buildFatalShutdown(analytics, { shutdown: tracewayShutdownMock }, exit);
 
     fatal('daemon_uncaught_exception', { error_message: 'boom' });
 
@@ -101,6 +110,7 @@ describe('daemon fatal-shutdown helper', () => {
     // shutdown() resolved synchronously — let the microtask queue drain.
     await vi.runAllTimersAsync();
     expect(shutdownMock).toHaveBeenCalledTimes(1);
+    expect(tracewayShutdownMock).toHaveBeenCalledTimes(1);
     expect(exitMock).toHaveBeenCalledWith(1);
   });
 
@@ -108,7 +118,7 @@ describe('daemon fatal-shutdown helper', () => {
     // Simulate posthog-node never resolving — network hang during exit.
     shutdownMock.mockReturnValue(new Promise<void>(() => undefined));
 
-    const fatal = buildFatalShutdown(analytics, exit);
+    const fatal = buildFatalShutdown(analytics, { shutdown: tracewayShutdownMock }, exit);
     fatal('daemon_uncaught_exception', { error_message: 'stuck-flush' });
 
     // Advance just past the bounded timeout.
@@ -118,13 +128,14 @@ describe('daemon fatal-shutdown helper', () => {
   });
 
   it('captures only once even when multiple faults fire before exit completes', async () => {
-    const fatal = buildFatalShutdown(analytics, exit);
+    const fatal = buildFatalShutdown(analytics, { shutdown: tracewayShutdownMock }, exit);
 
     fatal('daemon_uncaught_exception', { error_message: 'first' });
     fatal('daemon_unhandled_rejection', { error_message: 'second' });
     fatal('daemon_uncaught_exception', { error_message: 'third' });
 
     expect(captureSafetyMock).toHaveBeenCalledTimes(1);
+    expect(tracewayShutdownMock).toHaveBeenCalledTimes(1);
     expect(captureSafetyMock).toHaveBeenCalledWith(
       expect.objectContaining({ properties: { error_message: 'first' } }),
     );
@@ -138,7 +149,7 @@ describe('daemon fatal-shutdown helper', () => {
   it('still tries to exit when captureSafety itself throws', async () => {
     captureSafetyMock.mockRejectedValue(new Error('posthog client died'));
 
-    const fatal = buildFatalShutdown(analytics, exit);
+    const fatal = buildFatalShutdown(analytics, { shutdown: tracewayShutdownMock }, exit);
     fatal('daemon_uncaught_exception', { error_message: 'capture-explodes' });
 
     await vi.runAllTimersAsync();
@@ -168,8 +179,12 @@ describe('daemon fatal-shutdown helper', () => {
       events.push('shutdown-flush');
     });
 
-    const fatal = buildFatalShutdown(analytics, exit);
+    const fatal = buildFatalShutdown(analytics, { shutdown: tracewayShutdownMock }, exit);
     fatal('daemon_uncaught_exception', { error_message: 'order-check' });
+
+    // Traceway begins draining immediately; it must not wait for PostHog's
+    // asynchronous installation-id lookup.
+    expect(tracewayShutdownMock).toHaveBeenCalledTimes(1);
 
     // After 50ms only capture has run — shutdown is waiting on its own timer.
     await vi.advanceTimersByTimeAsync(50);
@@ -188,8 +203,10 @@ describe('daemon fatal-shutdown helper', () => {
     // Capture hangs forever (e.g. installationId read stuck on FS).
     captureSafetyMock.mockImplementation(() => new Promise<void>(() => undefined));
 
-    const fatal = buildFatalShutdown(analytics, exit);
+    const fatal = buildFatalShutdown(analytics, { shutdown: tracewayShutdownMock }, exit);
     fatal('daemon_uncaught_exception', { error_message: 'capture-hangs' });
+
+    expect(tracewayShutdownMock).toHaveBeenCalledTimes(1);
 
     // shutdown must NOT run while capture is still pending — that was
     // the original race the previous round of review identified.

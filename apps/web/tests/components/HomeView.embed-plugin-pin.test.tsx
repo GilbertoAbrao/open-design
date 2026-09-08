@@ -11,7 +11,11 @@ import { HomeView } from '../../src/components/HomeView';
 // Both plugins must categorize as `prototype` (manifest.od.mode === 'prototype')
 // so they survive the embed's `restrictCategory="prototype"` filter on the
 // Plugins home section.
-function makePrototypePlugin(id: string, title: string): InstalledPluginRecord {
+function makePrototypePlugin(
+  id: string,
+  title: string,
+  tags: string[] = ['fixture'],
+): InstalledPluginRecord {
   return {
     id,
     title,
@@ -28,7 +32,7 @@ function makePrototypePlugin(id: string, title: string): InstalledPluginRecord {
       title,
       version: '1.0.0',
       description: `${title} fixture`,
-      tags: ['fixture'],
+      tags,
       od: {
         kind: 'scenario',
         taskKind: 'new-generation',
@@ -41,7 +45,7 @@ function makePrototypePlugin(id: string, title: string): InstalledPluginRecord {
   };
 }
 
-const ADMIN_PLUGIN = makePrototypePlugin('admin-dashboard', 'Admin Dashboard');
+const ADMIN_PLUGIN = makePrototypePlugin('admin-dashboard', 'Admin Dashboard', ['fixture', 'wxcode-plugin']);
 const WEB_PROTOTYPE_PLUGIN = makePrototypePlugin('example-web-prototype', 'Web Prototype');
 
 // The fixed first prompt the embed auto-sends on confirm. Keep in sync with

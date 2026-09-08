@@ -45,6 +45,7 @@ export function spawnEnvForAgent(
     baseEnv,
     expandConfiguredEnv(configuredEnv),
   );
+  stripTracewayTelemetry(env);
   if (agentId === 'amr') {
     Object.assign(env, amrVelaProfileEnv(env));
     if (!env.OPENCODE_TEST_HOME?.trim() && env.OD_DATA_DIR?.trim()) {
@@ -72,6 +73,18 @@ export function spawnEnvForAgent(
     return env;
   }
   return env;
+}
+
+// Traceway credentials belong to the trusted daemon process only. Agent
+// adapters execute third-party CLIs (including OpenCode) with access to their
+// inherited environment, so never let WXCODE telemetry credentials cross this
+// boundary. Comparison is case-insensitive for Windows parity.
+export function stripTracewayTelemetry(env: NodeJS.ProcessEnv): void {
+  const prefixes = ['WXCODE_TELEMETRY_', 'WXCODE_DESIGN_TELEMETRY_'];
+  for (const key of Object.keys(env)) {
+    const upper = key.toUpperCase();
+    if (prefixes.some((prefix) => upper.startsWith(prefix))) delete env[key];
+  }
 }
 
 // Remove `secretKeys` from `env` unless `baseUrlKey` is set to a non-empty
