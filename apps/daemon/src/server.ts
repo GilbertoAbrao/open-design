@@ -5322,6 +5322,10 @@ export async function startServer({
   ): void => {
     if (fatalShuttingDown) return;
     fatalShuttingDown = true;
+    // Start draining the Traceway batch before any awaited analytics work.
+    // The outer race below preserves the one-second fatal-exit budget even if
+    // the collector is unavailable or its shutdown never resolves.
+    const tracewayFlush = tracewayTelemetry.shutdown();
     // CRITICAL — wait for captureSafety to ENQUEUE the event in
     // posthog-node's local buffer before starting shutdown(). The
     // captureSafety implementation does an `await readInstallationIdSafe()`
@@ -5339,6 +5343,7 @@ export async function startServer({
         // capture must never block the exit path
       }
       await analyticsService.shutdown();
+      await tracewayFlush;
     })();
     // Race the enqueue+shutdown sequence against a bounded timeout. If
     // posthog-node hangs on a slow flush (or the installationId read
@@ -13950,6 +13955,7 @@ export async function startServer({
     } catch (error) {
       endStartupSpan(error);
       cleanupDaemonBackgroundWork();
+      void tracewayTelemetry.shutdown();
       reject(error);
       return;
     }
@@ -13963,6 +13969,7 @@ export async function startServer({
     server.on('error', (error) => {
       endStartupSpan(error);
       cleanupDaemonBackgroundWork();
+      void tracewayTelemetry.shutdown();
       reject(error);
     });
   });

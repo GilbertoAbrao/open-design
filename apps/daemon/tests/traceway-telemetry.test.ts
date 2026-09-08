@@ -6,6 +6,7 @@ import {
   type ReadableSpan,
   type SpanExporter,
 } from '@opentelemetry/sdk-trace-node';
+import { resourceFromAttributes } from '@opentelemetry/resources';
 import {
   PrivacySpanExporter,
   installTracewayHttpTracing,
@@ -14,6 +15,7 @@ import {
   recordTracewayException,
   routeTemplate,
   sanitizeSpan,
+  startTracewayTelemetry,
 } from '../src/traceway-telemetry.js';
 
 const VALID_TRACE_ID = '8a3970f1-7b8e-4a28-91bd-dad10ef3d0d7';
@@ -138,42 +140,78 @@ describe('Traceway privacy boundary', () => {
       name: 'untrusted-name',
       attributes: { code: 'private' },
       events: [],
-      spanContext: () => ({ traceId: '0'.repeat(32), spanId: '0'.repeat(16), traceFlags: 1 }),
+      spanContext: () => ({
+        traceId: '0'.repeat(32),
+        spanId: '0'.repeat(16),
+        traceFlags: 1,
+        traceState: 'private-header-derived-tracestate',
+      }),
       startTime: [0, 0],
       endTime: [1, 0],
-      status: { code: 0 },
-      links: [],
+      status: { code: 0, message: 'private-status-message-and-stack' },
+      links: [{
+        context: { traceId: '1'.repeat(32), spanId: '2'.repeat(16), traceFlags: 1 },
+        attributes: { prompt: 'private-link-content', 'http.url': 'https://private.example/link' },
+      }],
       duration: [1, 0],
       ended: true,
       resource: {
-        attributes: { 'service.name': 'open-design-daemon' },
+        attributes: {
+          'service.name': 'untrusted-service',
+          'service.namespace': 'untrusted-namespace',
+          'service.version': '1.2.3',
+          'deployment.environment.name': 'production',
+          'resource.secret': 'private-resource-content',
+        },
         merge: vi.fn(),
         getRawAttributes: vi.fn(() => []),
       },
-      instrumentationScope: { name: 'test' },
+      instrumentationScope: {
+        name: 'private-scope-name',
+        version: 'private-scope-version',
+        schemaUrl: 'https://private.example/schema',
+      },
       droppedAttributesCount: 0,
       droppedEventsCount: 0,
       droppedLinksCount: 0,
     } as unknown as ReadableSpan;
     exporter.export([readableSpan], () => {});
-    expect(delegate.export).toHaveBeenCalledWith([
-      expect.objectContaining({
-        name: 'open-design.operation',
-        attributes: {},
-        spanContext: readableSpan.spanContext,
-        resource: readableSpan.resource,
-      }),
-    ], expect.any(Function));
+    const exported = vi.mocked(delegate.export).mock.calls[0]?.[0][0];
+    expect(exported).toMatchObject({
+      name: 'open-design.operation',
+      attributes: {},
+      status: { code: 0 },
+      links: [],
+      instrumentationScope: { name: 'open-design-daemon' },
+    });
+    expect(exported?.status).not.toHaveProperty('message');
+    expect(exported?.spanContext()).not.toHaveProperty('traceState');
+    expect(exported?.instrumentationScope).not.toHaveProperty('version');
+    expect(exported?.instrumentationScope).not.toHaveProperty('schemaUrl');
+    expect(exported?.resource.attributes).toEqual({
+      'service.name': 'open-design-daemon',
+      'service.namespace': 'wxcode',
+      'service.version': '1.2.3',
+      'deployment.environment.name': 'production',
+    });
   });
 
   it('exports a real SDK span through the privacy boundary without a collector', async () => {
     const memory = new InMemorySpanExporter();
     const provider = new NodeTracerProvider({
+      resource: resourceFromAttributes({
+        'service.name': 'untrusted-service',
+        'service.namespace': 'untrusted-namespace',
+        'service.version': '1.2.3',
+        'deployment.environment.name': 'test',
+        'resource.secret': 'private-resource-content',
+      }),
       spanProcessors: [new SimpleSpanProcessor(new PrivacySpanExporter(memory))],
     });
-    const span = provider.getTracer('synthetic-smoke').startSpan('critique.run');
+    const span = provider.getTracer('private-scope-name', 'private-scope-version').startSpan('critique.run');
     span.setAttribute('prompt', 'never-export-this');
     span.setAttribute('http.route', '/api/projects/:projectId/critique');
+    span.setStatus({ code: 2, message: 'private-status-message-and-stack' });
     recordTracewayException(span, new Error('private detail'));
     span.end();
     await provider.forceFlush();
@@ -183,6 +221,28 @@ describe('Traceway privacy boundary', () => {
     expect(exported?.events).toEqual([
       expect.objectContaining({ name: 'exception', attributes: { 'exception.type': 'Error' } }),
     ]);
+    expect(exported?.status).toEqual({ code: 2 });
+    expect(exported?.instrumentationScope).toEqual({ name: 'open-design-daemon' });
+    expect(exported?.resource.attributes).toEqual({
+      'service.name': 'open-design-daemon',
+      'service.namespace': 'wxcode',
+      'service.version': '1.2.3',
+      'deployment.environment.name': 'test',
+    });
     await provider.shutdown();
+  });
+
+  it('can start a fresh provider after a controlled shutdown', async () => {
+    const env = {
+      WXCODE_TELEMETRY_ENABLED: 'true',
+      WXCODE_TELEMETRY_TOKEN: 'dedicated-token',
+      WXCODE_TELEMETRY_ENVIRONMENT: 'test',
+      WXCODE_TELEMETRY_VERSION: 'test-version',
+    };
+    const first = startTracewayTelemetry(env);
+    await first.shutdown();
+    const second = startTracewayTelemetry(env);
+    expect(second).not.toBe(first);
+    await second.shutdown();
   });
 });

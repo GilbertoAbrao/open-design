@@ -5,6 +5,7 @@ import {
   trace,
   type Attributes,
   type Span,
+  type SpanContext,
 } from '@opentelemetry/api';
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
 import { resourceFromAttributes } from '@opentelemetry/resources';
@@ -29,6 +30,12 @@ const SAFE_ATTRIBUTE_KEYS = new Set([
   'http.route',
   'http.response.status_code',
   TRACEWAY_TRACE_ID,
+]);
+const RESOURCE_ATTRIBUTE_KEYS = new Set([
+  'service.name',
+  'service.namespace',
+  'service.version',
+  'deployment.environment.name',
 ]);
 
 export interface TracewayConfig {
@@ -121,7 +128,8 @@ export function startTracewayTelemetry(env: NodeJS.ProcessEnv = process.env): Tr
     });
     provider.register();
 
-    startedTelemetry = {
+    let shutdownPromise: Promise<void> | null = null;
+    const telemetry: TracewayTelemetry = {
       enabled: true,
       recordFatalException(error: unknown): void {
         const span = trace.getTracer(SERVICE_NAME).startSpan('daemon.fatal');
@@ -129,23 +137,35 @@ export function startTracewayTelemetry(env: NodeJS.ProcessEnv = process.env): Tr
         span.end();
       },
       async shutdown(): Promise<void> {
-        try {
-          await Promise.race([
-            provider.shutdown(),
-            new Promise<void>((resolve) => {
-              const timeout = setTimeout(resolve, 3_000);
-              timeout.unref?.();
-            }),
-          ]);
-        } catch {
-          // Collector failures are deliberately fail-open.
-        }
+        if (shutdownPromise) return shutdownPromise;
+        const activeTelemetry = startedTelemetry;
+        shutdownPromise = (async () => {
+          try {
+            await Promise.race([
+              provider.shutdown(),
+              new Promise<void>((resolve) => {
+                const timeout = setTimeout(resolve, 3_000);
+                timeout.unref?.();
+              }),
+            ]);
+          } catch {
+            // Collector failures are deliberately fail-open.
+          } finally {
+            // The OTel API retains its global provider after shutdown. Remove
+            // the provider this module registered so another daemon lifecycle
+            // does not silently write to a stopped processor.
+            trace.disable();
+            if (startedTelemetry === activeTelemetry) startedTelemetry = null;
+          }
+        })();
+        return shutdownPromise;
       },
       startLifecycleSpan(name): Span {
         return trace.getTracer(SERVICE_NAME).startSpan(name);
       },
     };
-    return startedTelemetry;
+    startedTelemetry = telemetry;
+    return telemetry;
   } catch {
     return disabledTelemetry;
   }
@@ -206,15 +226,50 @@ export class PrivacySpanExporter implements SpanExporter {
 
 export function sanitizeSpan(span: ReadableSpan): ReadableSpan {
   return {
-    ...span,
+    // The OTLP transformer serializes more than attributes and events. Build
+    // the exported shape field-by-field instead of spreading an untrusted span.
+    name: SAFE_SPAN_NAMES.has(span.name) ? span.name : 'open-design.operation',
+    kind: span.kind,
+    spanContext: () => sanitizeSpanContext(span.spanContext()),
+    ...(span.parentSpanContext ? { parentSpanContext: sanitizeSpanContext(span.parentSpanContext) } : {}),
+    startTime: span.startTime,
+    endTime: span.endTime,
+    status: { code: span.status?.code ?? SpanStatusCode.UNSET },
     attributes: sanitizeAttributes(span.attributes),
+    links: [],
     events: span.events.flatMap((event) => {
       if (event.name !== 'exception') return [];
       const type = event.attributes?.['exception.type'];
       if (typeof type !== 'string' || !isSafeExceptionType(type)) return [];
       return [{ ...event, attributes: { 'exception.type': type } }];
     }),
-    name: SAFE_SPAN_NAMES.has(span.name) ? span.name : 'open-design.operation',
+    duration: span.duration,
+    ended: span.ended,
+    resource: resourceFromAttributes(sanitizeResourceAttributes(span.resource?.attributes ?? {})),
+    instrumentationScope: { name: SERVICE_NAME },
+    droppedAttributesCount: 0,
+    droppedEventsCount: 0,
+    droppedLinksCount: 0,
+  };
+}
+
+function sanitizeResourceAttributes(attributes: Attributes): Attributes {
+  const safe: Attributes = {};
+  for (const key of RESOURCE_ATTRIBUTE_KEYS) {
+    const value = attributes[key];
+    if (key === 'service.name') safe[key] = SERVICE_NAME;
+    else if (key === 'service.namespace') safe[key] = SERVICE_NAMESPACE;
+    else if (typeof value === 'string' && isSafeResourceValue(value)) safe[key] = value;
+    else safe[key] = 'unknown';
+  }
+  return safe;
+}
+
+function sanitizeSpanContext(spanContext: SpanContext): SpanContext {
+  return {
+    traceId: isTraceId(spanContext.traceId) ? spanContext.traceId.toLowerCase() : '0'.repeat(32),
+    spanId: isSpanId(spanContext.spanId) ? spanContext.spanId.toLowerCase() : '0'.repeat(16),
+    traceFlags: spanContext.traceFlags === 1 ? 1 : 0,
   };
 }
 
@@ -274,6 +329,18 @@ function safeExceptionType(error: unknown): string {
 
 function isSafeExceptionType(value: string): boolean {
   return /^[A-Za-z][A-Za-z0-9_.-]{0,95}$/u.test(value);
+}
+
+function isSafeResourceValue(value: string): boolean {
+  return /^[A-Za-z0-9_.-]{1,128}$/u.test(value);
+}
+
+function isTraceId(value: string): boolean {
+  return /^[0-9a-f]{32}$/iu.test(value);
+}
+
+function isSpanId(value: string): boolean {
+  return /^[0-9a-f]{16}$/iu.test(value);
 }
 
 function isTelemetryEnabled(value: string | undefined): boolean {
