@@ -243,6 +243,11 @@ import {
   readAnalyticsContext,
   readPublicConfigResponse,
 } from './analytics.js';
+import {
+  installTracewayHttpTracing,
+  recordTracewayException,
+  startTracewayTelemetry,
+} from './traceway-telemetry.js';
 import { observePendingInstallerApplyAttempts } from './update-apply-observations.js';
 import {
   agentIdToTracking,
@@ -426,6 +431,7 @@ import { registerDesignSystemToolRoutes } from './design-system-tool-routes.js';
 import { registerDeployRoutes, registerDeploymentCheckRoutes } from './deploy-routes.js';
 import { registerMediaRoutes } from './media-routes.js';
 import { registerProjectRoutes, registerProjectArtifactRoutes, registerProjectFileRoutes, registerProjectUploadRoutes } from './project-routes.js';
+import { registerWxcodeProjectBindingRoutes } from './wxcode-project-binding-routes.js';
 import { registerFinalizeRoutes, registerImportRoutes, registerProjectExportRoutes } from './import-export-routes.js';
 import { registerHandoffRoutes } from './handoff-routes.js';
 import { EmptyTranscriptError, synthesizeHandoffPrompt } from './handoff-design.js';
@@ -3828,7 +3834,17 @@ export async function startServer({
     );
   }
 
+  const tracewayTelemetry = startTracewayTelemetry();
+  const startupSpan = tracewayTelemetry.startLifecycleSpan('daemon.start');
+  let startupSpanEnded = false;
+  const endStartupSpan = (error?: unknown) => {
+    if (startupSpanEnded) return;
+    startupSpanEnded = true;
+    if (error != null) recordTracewayException(startupSpan, error);
+    startupSpan.end();
+  };
   const app = express();
+  if (tracewayTelemetry.enabled) installTracewayHttpTracing(app);
   app.use(express.json({ limit: '4mb' }));
 
   // Plan §3.K1 — bearer-token middleware.
@@ -5306,6 +5322,10 @@ export async function startServer({
   ): void => {
     if (fatalShuttingDown) return;
     fatalShuttingDown = true;
+    // Start draining the Traceway batch before any awaited analytics work.
+    // The outer race below preserves the one-second fatal-exit budget even if
+    // the collector is unavailable or its shutdown never resolves.
+    const tracewayFlush = tracewayTelemetry.shutdown();
     // CRITICAL — wait for captureSafety to ENQUEUE the event in
     // posthog-node's local buffer before starting shutdown(). The
     // captureSafety implementation does an `await readInstallationIdSafe()`
@@ -5323,6 +5343,7 @@ export async function startServer({
         // capture must never block the exit path
       }
       await analyticsService.shutdown();
+      await tracewayFlush;
     })();
     // Race the enqueue+shutdown sequence against a bounded timeout. If
     // posthog-node hangs on a slow flush (or the installationId read
@@ -5340,6 +5361,7 @@ export async function startServer({
     });
   };
   process.on('uncaughtException', (error) => {
+    tracewayTelemetry.recordFatalException(error);
     triggerFatalShutdown('daemon_uncaught_exception', {
       error_message: error?.message ?? String(error),
       error_name: error?.name ?? 'Error',
@@ -5350,6 +5372,7 @@ export async function startServer({
     });
   });
   process.on('unhandledRejection', (reason) => {
+    tracewayTelemetry.recordFatalException(reason);
     const asError = reason instanceof Error ? reason : null;
     triggerFatalShutdown('daemon_unhandled_rejection', {
       error_message: asError?.message ?? (typeof reason === 'string' ? reason : String(reason)),
@@ -5652,6 +5675,13 @@ export async function startServer({
     ids: idDeps,
     telemetry: { reportFinalizedMessage },
     validation: validationDeps,
+  });
+  registerWxcodeProjectBindingRoutes(app, {
+    db,
+    http: httpDeps,
+    paths: pathDeps,
+    projectStore: projectStoreDeps,
+    projectFiles: projectFileDeps,
   });
   registerImportRoutes(app, {
     db,
@@ -13854,8 +13884,17 @@ export async function startServer({
       if (daemonShutdownStarted) return;
       daemonShutdownStarted = true;
       daemonShuttingDown = true;
-      await design.runs.shutdownActive({ graceMs: resolveChatRunShutdownGraceMs() });
-      await design.analytics.shutdown();
+      const shutdownSpan = tracewayTelemetry.startLifecycleSpan('daemon.shutdown');
+      try {
+        await design.runs.shutdownActive({ graceMs: resolveChatRunShutdownGraceMs() });
+        await design.analytics.shutdown();
+      } catch (error) {
+        recordTracewayException(shutdownSpan, error);
+        throw error;
+      } finally {
+        shutdownSpan.end();
+        await tracewayTelemetry.shutdown();
+      }
     };
     let server;
     try {
@@ -13910,10 +13949,13 @@ export async function startServer({
           console.log(`[od] daemon listening on ${url}`);
         }
         daemonUrl = url;
+        endStartupSpan();
         resolve(returnServer ? { url, server, shutdown: shutdownDaemonRuns } : url);
       });
     } catch (error) {
+      endStartupSpan(error);
       cleanupDaemonBackgroundWork();
+      void tracewayTelemetry.shutdown();
       reject(error);
       return;
     }
@@ -13925,7 +13967,9 @@ export async function startServer({
     // EACCES / EADDRNOTAVAIL even on the same Node). Wire the event so the
     // returned Promise always settles instead of hanging forever.
     server.on('error', (error) => {
+      endStartupSpan(error);
       cleanupDaemonBackgroundWork();
+      void tracewayTelemetry.shutdown();
       reject(error);
     });
   });
