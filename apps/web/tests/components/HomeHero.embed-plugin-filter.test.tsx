@@ -75,22 +75,20 @@ function renderedPresetPluginIds(): string[] {
     .filter(Boolean);
 }
 
-describe('HomeHero welcome plugin filter in the WXCode embed', () => {
+describe('HomeHero welcome plugin presets in the WXCode embed', () => {
   afterEach(() => {
     cleanup();
     document.documentElement.removeAttribute('data-od-host');
   });
 
-  it('lists only wxcode-plugin-tagged plugins inside the WXCode embed', () => {
+  it('hides plugin presets inside the WXCode embed', () => {
     document.documentElement.setAttribute('data-od-host', 'wxcode');
     renderHeroWithPlugins([
       makePrototypePlugin('prototype-curated', ['wxcode-plugin']),
       makePrototypePlugin('prototype-upstream', ['fixture']),
     ]);
 
-    const ids = renderedPresetPluginIds();
-    expect(ids).toContain('prototype-curated');
-    expect(ids).not.toContain('prototype-upstream');
+    expect(screen.queryByTestId('home-hero-plugin-presets')).toBeNull();
   });
 
   it('lists all matching plugins outside the WXCode embed', () => {
