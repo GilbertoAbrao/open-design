@@ -77,11 +77,13 @@ export function spawnEnvForAgent(
 
 // Traceway credentials belong to the trusted daemon process only. Agent
 // adapters execute third-party CLIs (including OpenCode) with access to their
-// inherited environment, so never let any WXCODE_TELEMETRY_* value cross this
+// inherited environment, so never let WXCODE telemetry credentials cross this
 // boundary. Comparison is case-insensitive for Windows parity.
-function stripTracewayTelemetry(env: NodeJS.ProcessEnv): void {
+export function stripTracewayTelemetry(env: NodeJS.ProcessEnv): void {
+  const prefixes = ['WXCODE_TELEMETRY_', 'WXCODE_DESIGN_TELEMETRY_'];
   for (const key of Object.keys(env)) {
-    if (key.toUpperCase().startsWith('WXCODE_TELEMETRY_')) delete env[key];
+    const upper = key.toUpperCase();
+    if (prefixes.some((prefix) => upper.startsWith(prefix))) delete env[key];
   }
 }
 

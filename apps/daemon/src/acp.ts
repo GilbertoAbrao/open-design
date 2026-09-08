@@ -1,6 +1,7 @@
 import { spawn, type ChildProcess } from 'node:child_process';
 import type { Writable } from 'node:stream';
 import path from 'node:path';
+import { stripTracewayTelemetry } from './runtimes/env.js';
 
 const ACP_PROTOCOL_VERSION = 1;
 const DEFAULT_TIMEOUT_MS = 15_000;
@@ -328,10 +329,12 @@ export async function detectAcpModels({
 }: DetectAcpModelsOptions): Promise<ModelOption[]> {
   const effectiveTimeoutMs = resolveAcpTimeoutMs(env, timeoutMs);
   return await new Promise<ModelOption[]>((resolve, reject) => {
+    const childEnv = { ...env };
+    stripTracewayTelemetry(childEnv);
     const child = spawn(bin, args, {
       cwd,
       stdio: ['pipe', 'pipe', 'pipe'],
-      env: { ...env },
+      env: childEnv,
     });
     child.stdout.setEncoding('utf8');
     child.stderr.setEncoding('utf8');

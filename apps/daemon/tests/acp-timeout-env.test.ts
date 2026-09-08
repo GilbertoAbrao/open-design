@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { chmodSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { chmodSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { test, vi } from 'vitest';
@@ -122,6 +122,50 @@ test('detectAcpModels treats OD_ACP_TIMEOUT_MS=0 as disabling the ACP probe time
     });
 
     assert.deepEqual(models, [{ id: 'default', label: 'Default (CLI config)' }]);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('detectAcpModels strips both telemetry prefixes from the real ACP child environment', async () => {
+  const dir = mkdtempSync(join(tmpdir(), 'od-acp-env-'));
+  const script = join(dir, 'env-probe.mjs');
+  const output = join(dir, 'env-names.json');
+  writeFileSync(
+    script,
+    [
+      'import { writeFileSync } from "node:fs";',
+      'import { env, stdin, stdout } from "node:process";',
+      'writeFileSync(env.OD_ENV_PROBE_OUTPUT, JSON.stringify(Object.keys(env).filter((key) => key.toUpperCase().startsWith("WXCODE_TELEMETRY_") || key.toUpperCase().startsWith("WXCODE_DESIGN_TELEMETRY_"))));',
+      'stdin.setEncoding("utf8");',
+      'let buffer = "";',
+      'stdin.on("data", (chunk) => {',
+      '  buffer += chunk;',
+      '  for (;;) {',
+      '    const index = buffer.indexOf("\\n");',
+      '    if (index < 0) break;',
+      '    const message = JSON.parse(buffer.slice(0, index));',
+      '    buffer = buffer.slice(index + 1);',
+      '    const result = message.method === "initialize" ? { protocolVersion: 1 } : { sessionId: "env-probe" };',
+      '    stdout.write(JSON.stringify({ jsonrpc: "2.0", id: message.id, result }) + "\\n");',
+      '  }',
+      '});',
+      'stdin.resume();',
+    ].join("\n"),
+    'utf8',
+  );
+  try {
+    await detectAcpModels({
+      bin: process.execPath,
+      args: [script],
+      env: {
+        OD_ENV_PROBE_OUTPUT: output,
+        WXCODE_TELEMETRY_TOKEN: 'chat-token',
+        Wxcode_Design_Telemetry_Token: 'design-token',
+      },
+      timeoutMs: 2_000,
+    });
+    assert.deepEqual(JSON.parse(readFileSync(output, 'utf8')), []);
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }
