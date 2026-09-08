@@ -24,6 +24,20 @@ test('spawnEnvForAgent strips ANTHROPIC_API_KEY for the claude adapter', () => {
   assert.equal(env.OD_DAEMON_URL, 'http://127.0.0.1:7456');
 });
 
+test('spawnEnvForAgent never passes WXCODE_TELEMETRY credentials to OpenCode', () => {
+  const env = spawnEnvForAgent('opencode', {
+    PATH: '/usr/bin',
+    WXCODE_TELEMETRY_ENABLED: 'true',
+    WXCODE_TELEMETRY_TOKEN: 'dedicated-token',
+    Wxcode_Telemetry_Endpoint: 'https://traceway.wxcode.ai/api/otel',
+  });
+
+  assert.deepEqual(
+    Object.keys(env).filter((key) => key.toUpperCase().startsWith('WXCODE_TELEMETRY_')),
+    [],
+  );
+});
+
 test('spawnEnvForAgent applies configured Claude Code env before auth stripping', () => {
   const env = spawnEnvForAgent(
     'claude',

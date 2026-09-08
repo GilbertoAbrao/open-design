@@ -243,6 +243,11 @@ import {
   readAnalyticsContext,
   readPublicConfigResponse,
 } from './analytics.js';
+import {
+  installTracewayHttpTracing,
+  recordTracewayException,
+  startTracewayTelemetry,
+} from './traceway-telemetry.js';
 import { observePendingInstallerApplyAttempts } from './update-apply-observations.js';
 import {
   agentIdToTracking,
@@ -3829,7 +3834,17 @@ export async function startServer({
     );
   }
 
+  const tracewayTelemetry = startTracewayTelemetry();
+  const startupSpan = tracewayTelemetry.startLifecycleSpan('daemon.start');
+  let startupSpanEnded = false;
+  const endStartupSpan = (error?: unknown) => {
+    if (startupSpanEnded) return;
+    startupSpanEnded = true;
+    if (error != null) recordTracewayException(startupSpan, error);
+    startupSpan.end();
+  };
   const app = express();
+  if (tracewayTelemetry.enabled) installTracewayHttpTracing(app);
   app.use(express.json({ limit: '4mb' }));
 
   // Plan §3.K1 — bearer-token middleware.
@@ -5341,6 +5356,7 @@ export async function startServer({
     });
   };
   process.on('uncaughtException', (error) => {
+    tracewayTelemetry.recordFatalException(error);
     triggerFatalShutdown('daemon_uncaught_exception', {
       error_message: error?.message ?? String(error),
       error_name: error?.name ?? 'Error',
@@ -5351,6 +5367,7 @@ export async function startServer({
     });
   });
   process.on('unhandledRejection', (reason) => {
+    tracewayTelemetry.recordFatalException(reason);
     const asError = reason instanceof Error ? reason : null;
     triggerFatalShutdown('daemon_unhandled_rejection', {
       error_message: asError?.message ?? (typeof reason === 'string' ? reason : String(reason)),
@@ -13862,8 +13879,17 @@ export async function startServer({
       if (daemonShutdownStarted) return;
       daemonShutdownStarted = true;
       daemonShuttingDown = true;
-      await design.runs.shutdownActive({ graceMs: resolveChatRunShutdownGraceMs() });
-      await design.analytics.shutdown();
+      const shutdownSpan = tracewayTelemetry.startLifecycleSpan('daemon.shutdown');
+      try {
+        await design.runs.shutdownActive({ graceMs: resolveChatRunShutdownGraceMs() });
+        await design.analytics.shutdown();
+      } catch (error) {
+        recordTracewayException(shutdownSpan, error);
+        throw error;
+      } finally {
+        shutdownSpan.end();
+        await tracewayTelemetry.shutdown();
+      }
     };
     let server;
     try {
@@ -13918,9 +13944,11 @@ export async function startServer({
           console.log(`[od] daemon listening on ${url}`);
         }
         daemonUrl = url;
+        endStartupSpan();
         resolve(returnServer ? { url, server, shutdown: shutdownDaemonRuns } : url);
       });
     } catch (error) {
+      endStartupSpan(error);
       cleanupDaemonBackgroundWork();
       reject(error);
       return;
@@ -13933,6 +13961,7 @@ export async function startServer({
     // EACCES / EADDRNOTAVAIL even on the same Node). Wire the event so the
     // returned Promise always settles instead of hanging forever.
     server.on('error', (error) => {
+      endStartupSpan(error);
       cleanupDaemonBackgroundWork();
       reject(error);
     });
