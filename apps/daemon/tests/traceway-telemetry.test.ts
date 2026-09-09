@@ -79,6 +79,7 @@ describe('Traceway configuration', () => {
 describe('Traceway privacy boundary', () => {
   it('normalizes handled model failures to a bounded stable vocabulary', () => {
     expect(normalizeTracewayModelErrorCode('AGENT_AUTH_REQUIRED')).toBe('AGENT_AUTH_REQUIRED');
+    expect(normalizeTracewayModelErrorCode('AGENT_UNAVAILABLE')).toBe('AGENT_UNAVAILABLE');
     expect(normalizeTracewayModelErrorCode('AMR_AUTH_REQUIRED')).toBe('AMR_AUTH_REQUIRED');
     expect(normalizeTracewayModelErrorCode('AMR_INSUFFICIENT_BALANCE')).toBe('AMR_INSUFFICIENT_BALANCE');
     expect(normalizeTracewayModelErrorCode('RATE_LIMITED')).toBe('RATE_LIMITED');

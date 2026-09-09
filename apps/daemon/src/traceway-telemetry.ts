@@ -64,6 +64,7 @@ export interface TracewayTelemetry {
 export type TracewayModelErrorCode =
   | 'AGENT_AUTH_REQUIRED'
   | 'AGENT_EXECUTION_FAILED'
+  | 'AGENT_UNAVAILABLE'
   | 'AMR_AUTH_REQUIRED'
   | 'AMR_INSUFFICIENT_BALANCE'
   | 'RATE_LIMITED'
@@ -72,6 +73,7 @@ export type TracewayModelErrorCode =
 const TRACEWAY_MODEL_ERROR_CODES = new Set<TracewayModelErrorCode>([
   'AGENT_AUTH_REQUIRED',
   'AGENT_EXECUTION_FAILED',
+  'AGENT_UNAVAILABLE',
   'AMR_AUTH_REQUIRED',
   'AMR_INSUFFICIENT_BALANCE',
   'RATE_LIMITED',
