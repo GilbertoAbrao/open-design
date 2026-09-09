@@ -7,10 +7,13 @@ import {
   type SpanExporter,
 } from '@opentelemetry/sdk-trace-node';
 import { resourceFromAttributes } from '@opentelemetry/resources';
+import { SpanKind } from '@opentelemetry/api';
 import {
+  createTracewayModelErrorRecorder,
   PrivacySpanExporter,
   installTracewayHttpTracing,
   isCanonicalTracewayTraceId,
+  normalizeTracewayModelErrorCode,
   readTracewayConfig,
   recordTracewayException,
   routeTemplate,
@@ -74,6 +77,56 @@ describe('Traceway configuration', () => {
 });
 
 describe('Traceway privacy boundary', () => {
+  it('normalizes handled model failures to a bounded stable vocabulary', () => {
+    expect(normalizeTracewayModelErrorCode('AGENT_AUTH_REQUIRED')).toBe('AGENT_AUTH_REQUIRED');
+    expect(normalizeTracewayModelErrorCode('AGENT_UNAVAILABLE')).toBe('AGENT_UNAVAILABLE');
+    expect(normalizeTracewayModelErrorCode('AMR_AUTH_REQUIRED')).toBe('AMR_AUTH_REQUIRED');
+    expect(normalizeTracewayModelErrorCode('AMR_INSUFFICIENT_BALANCE')).toBe('AMR_INSUFFICIENT_BALANCE');
+    expect(normalizeTracewayModelErrorCode('RATE_LIMITED')).toBe('RATE_LIMITED');
+    expect(normalizeTracewayModelErrorCode('provider said token=private')).toBe('AGENT_EXECUTION_FAILED');
+    expect(normalizeTracewayModelErrorCode(undefined)).toBe('AGENT_EXECUTION_FAILED');
+  });
+
+  it('records only the first handled model failure for a run', () => {
+    const record = vi.fn();
+    const recordOnce = createTracewayModelErrorRecorder(record);
+
+    recordOnce('AMR_AUTH_REQUIRED');
+    recordOnce('RATE_LIMITED');
+    recordOnce('private provider message');
+
+    expect(record).toHaveBeenCalledTimes(1);
+    expect(record).toHaveBeenCalledWith('AMR_AUTH_REQUIRED');
+  });
+
+  it('exports a handled model failure as an error span without payload attributes', async () => {
+    const memory = new InMemorySpanExporter();
+    const provider = new NodeTracerProvider({
+      spanProcessors: [new SimpleSpanProcessor(new PrivacySpanExporter(memory))],
+    });
+    const span = provider.getTracer('test').startSpan('daemon.model_error', {
+      kind: SpanKind.CONSUMER,
+    });
+    recordTracewayException(span, normalizeTracewayModelErrorCode('private provider detail'));
+    span.setAttribute('model', 'private-model');
+    span.setAttribute('prompt', 'private prompt');
+    span.end();
+    await provider.forceFlush();
+
+    const [exported] = memory.getFinishedSpans();
+    expect(exported?.name).toBe('daemon.model_error');
+    expect(exported?.kind).toBe(SpanKind.CONSUMER);
+    expect(exported?.status).toEqual({ code: 2 });
+    expect(exported?.attributes).toEqual({});
+    expect(exported?.events).toEqual([
+      expect.objectContaining({
+        name: 'exception',
+        attributes: { 'exception.type': 'AGENT_EXECUTION_FAILED' },
+      }),
+    ]);
+    await provider.shutdown();
+  });
+
   it('exports only the allowlisted HTTP/correlation attributes and exception type', () => {
     const span = {
       name: 'critique.run',
