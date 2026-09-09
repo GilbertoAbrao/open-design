@@ -1,0 +1,163 @@
+name: Bump chat-runtime pin
+
+# When this repo publishes, wxcode-chat's runtime image must be rebuilt with
+# the new commit baked in. wxcode-chat pins the four dependency repos in the
+# versioned file .wxk/runtime-pins.json; this workflow updates only this
+# repo's key there and opens an auto-merge PR against wxcode-chat's prod
+# branch. That merge is what triggers wxcode-chat's own
+# build-image-chat-runtime.yml.
+#
+# push (not workflow_dispatch/schedule/repository_dispatch) is the trigger on
+# purpose: those three only fire for workflows living on a repo's DEFAULT
+# branch, and this repo publishes from 'main'.
+
+on:
+  push:
+    branches: [main]
+    # Mirrors every rule in wxk-release's config/deploy-scopes/open-design.json
+    # whose component list contains "wxcode-chat-runtime", plus this workflow.
+    # A path Canon considers runtime-relevant but that is missing here would
+    # leave the pin stale and the runtime image built from older sources.
+    paths:
+      - "apps/**"
+      - "packages/**"
+      - "skills/**"
+      - "design-systems/**"
+      - "craft/**"
+      - "prompt-templates/**"
+      - "assets/**"
+      - "plugins/_official/**"
+      - "tools/**"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - "pnpm-workspace.yaml"
+      - "deploy/Dockerfile"
+      - ".github/workflows/bump-chat-runtime-pin.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  # Two pushes in quick succession would otherwise race to open PRs against
+  # the same pin key. Do not cancel in progress: a cancelled run leaves a
+  # pushed branch with no PR behind it.
+  group: bump-chat-runtime-pin
+  cancel-in-progress: false
+
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.WXK_DEPLOY_GITHUB_TOKEN }}
+      CHAT_REPO: GilbertoAbrao/wxcode-chat
+      CHAT_BASE: prod
+      PIN_KEY: open-design
+      SOURCE_SHA: ${{ github.sha }}
+    steps:
+      - name: Validate forwarding secret
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -z "${GH_TOKEN:-}" ]; then
+            echo "Missing required secret: WXK_DEPLOY_GITHUB_TOKEN" >&2
+            echo "This workflow cannot update wxcode-chat's runtime pin without it." >&2
+            exit 1
+          fi
+
+      - name: Checkout wxcode-chat prod
+        uses: actions/checkout@v5
+        with:
+          repository: GilbertoAbrao/wxcode-chat
+          ref: prod
+          path: wxcode-chat
+          token: ${{ secrets.WXK_DEPLOY_GITHUB_TOKEN }}
+
+      - name: Bump pin and open auto-merge pull request
+        working-directory: wxcode-chat
+        shell: bash
+        run: |
+          set -euo pipefail
+          pins=".wxk/runtime-pins.json"
+          if [ ! -f "$pins" ]; then
+            echo "Missing pin file on ${CHAT_REPO}@${CHAT_BASE}: $pins" >&2
+            exit 1
+          fi
+
+          current="$(jq -r --arg k "$PIN_KEY" '.[$k] // ""' "$pins")"
+          if [ -z "$current" ] || [ "$current" = "null" ]; then
+            echo "Pin key '$PIN_KEY' is absent from $pins" >&2
+            exit 1
+          fi
+
+          if [ "$current" = "$SOURCE_SHA" ]; then
+            echo "Pin for '$PIN_KEY' is already $SOURCE_SHA -- nothing to do."
+            {
+              echo "## chat-runtime pin"
+              echo ""
+              echo "- pin_key: \`$PIN_KEY\`"
+              echo "- state: already up to date at \`$SOURCE_SHA\`"
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          short="${SOURCE_SHA:0:12}"
+          branch="bump/${PIN_KEY}-${short}"
+
+          tmp="$(mktemp)"
+          trap 'rm -f "$tmp"' EXIT
+          jq --arg k "$PIN_KEY" --arg v "$SOURCE_SHA" '.[$k] = $v' "$pins" > "$tmp"
+          # Only this repo's key may move. Anything else is a bug in the jq
+          # program above, and silently rewriting a sibling's pin would
+          # rebuild the runtime from sources nobody published.
+          if [ "$(jq -S 'del(.[$ENV.PIN_KEY])' "$pins")" != "$(jq -S 'del(.[$ENV.PIN_KEY])' "$tmp")" ]; then
+            echo "Refusing to commit: keys other than '$PIN_KEY' changed" >&2
+            exit 1
+          fi
+          cp "$tmp" "$pins"
+
+          git config user.name "wxk-release-bot"
+          git config user.email "wxk-release-bot@users.noreply.github.com"
+          git checkout -b "$branch"
+          git add .wxk/runtime-pins.json
+          git commit -m "chore: bump ${PIN_KEY} pin to ${short}"
+
+          if git ls-remote --exit-code origin "refs/heads/${branch}" >/dev/null 2>&1; then
+            echo "Branch ${branch} already exists on ${CHAT_REPO}; not force-pushing."
+          else
+            git push origin "HEAD:refs/heads/${branch}"
+          fi
+
+          pr="$(gh pr list --repo "$CHAT_REPO" --base "$CHAT_BASE" --head "$branch" \
+            --state open --json number --jq '.[0].number // empty')"
+          if [ -z "$pr" ]; then
+            body="$(printf '%s\n' \
+              "Automated by ${PIN_KEY}'s bump-chat-runtime-pin workflow." \
+              "" \
+              "Moves .wxk/runtime-pins.json[\"${PIN_KEY}\"]" \
+              "  from ${current}" \
+              "  to   ${SOURCE_SHA}" \
+              "" \
+              "Merging this rebuilds the chat-runtime image via build-image-chat-runtime.yml.")"
+            gh pr create --repo "$CHAT_REPO" \
+              --base "$CHAT_BASE" \
+              --head "$branch" \
+              --title "chore: bump ${PIN_KEY} pin to ${short}" \
+              --body "$body"
+            pr="$(gh pr list --repo "$CHAT_REPO" --base "$CHAT_BASE" --head "$branch" \
+              --state open --json number --jq '.[0].number // empty')"
+          fi
+          if [ -z "$pr" ]; then
+            echo "Pull request could not be found after creation for ${branch}" >&2
+            exit 1
+          fi
+
+          gh pr merge --repo "$CHAT_REPO" --auto --merge "$pr"
+
+          {
+            echo "## chat-runtime pin"
+            echo ""
+            echo "- pin_key: \`$PIN_KEY\`"
+            echo "- from: \`$current\`"
+            echo "- to: \`$SOURCE_SHA\`"
+            echo "- pull_request: ${CHAT_REPO}#${pr}"
+          } >> "$GITHUB_STEP_SUMMARY"
