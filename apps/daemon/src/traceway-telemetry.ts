@@ -24,7 +24,14 @@ const SERVICE_NAME = 'open-design-daemon';
 const SERVICE_NAMESPACE = 'wxcode';
 const TRACEWAY_TRACE_ID = 'traceway.distributed_trace_id';
 const CANONICAL_UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/u;
-const SAFE_SPAN_NAMES = new Set(['daemon.start', 'daemon.shutdown', 'daemon.fatal', 'http.server', 'critique.run']);
+const SAFE_SPAN_NAMES = new Set([
+  'daemon.start',
+  'daemon.shutdown',
+  'daemon.fatal',
+  'daemon.model_error',
+  'http.server',
+  'critique.run',
+]);
 const SAFE_ATTRIBUTE_KEYS = new Set([
   'http.request.method',
   'http.route',
@@ -49,13 +56,34 @@ export interface TracewayConfig {
 export interface TracewayTelemetry {
   readonly enabled: boolean;
   recordFatalException(error: unknown): void;
+  recordHandledModelError(code: TracewayModelErrorCode): void;
   shutdown(): Promise<void>;
   startLifecycleSpan(name: 'daemon.start' | 'daemon.shutdown'): Span;
 }
 
+export type TracewayModelErrorCode =
+  | 'AGENT_AUTH_REQUIRED'
+  | 'AGENT_EXECUTION_FAILED'
+  | 'AGENT_UNAVAILABLE'
+  | 'AMR_AUTH_REQUIRED'
+  | 'AMR_INSUFFICIENT_BALANCE'
+  | 'RATE_LIMITED'
+  | 'UPSTREAM_UNAVAILABLE';
+
+const TRACEWAY_MODEL_ERROR_CODES = new Set<TracewayModelErrorCode>([
+  'AGENT_AUTH_REQUIRED',
+  'AGENT_EXECUTION_FAILED',
+  'AGENT_UNAVAILABLE',
+  'AMR_AUTH_REQUIRED',
+  'AMR_INSUFFICIENT_BALANCE',
+  'RATE_LIMITED',
+  'UPSTREAM_UNAVAILABLE',
+]);
+
 const disabledTelemetry: TracewayTelemetry = {
   enabled: false,
   recordFatalException: () => {},
+  recordHandledModelError: () => {},
   shutdown: async () => {},
   startLifecycleSpan: () => trace.getTracer(SERVICE_NAME).startSpan('daemon.start'),
 };
@@ -96,6 +124,28 @@ export function recordTracewayException(span: Span, error: unknown): void {
 }
 
 /**
+ * Normalize the terminal model-service classes before they reach the tracing
+ * boundary. The daemon must not derive an exception type from provider text.
+ */
+export function normalizeTracewayModelErrorCode(value: unknown): TracewayModelErrorCode {
+  return typeof value === 'string' && TRACEWAY_MODEL_ERROR_CODES.has(value as TracewayModelErrorCode)
+    ? value as TracewayModelErrorCode
+    : 'AGENT_EXECUTION_FAILED';
+}
+
+/** Create a run-local, first-error-wins recorder for handled model failures. */
+export function createTracewayModelErrorRecorder(
+  record: (code: TracewayModelErrorCode) => void,
+): (code: unknown) => void {
+  let recorded = false;
+  return (code: unknown): void => {
+    if (recorded) return;
+    recorded = true;
+    record(normalizeTracewayModelErrorCode(code));
+  };
+}
+
+/**
  * Starts the Node tracing SDK without auto-instrumentations. Manual spans are
  * intentional: automatic HTTP instrumentation records URLs and headers that
  * this daemon must never export.
@@ -132,8 +182,19 @@ export function startTracewayTelemetry(env: NodeJS.ProcessEnv = process.env): Tr
     const telemetry: TracewayTelemetry = {
       enabled: true,
       recordFatalException(error: unknown): void {
-        const span = trace.getTracer(SERVICE_NAME).startSpan('daemon.fatal');
+        const span = trace.getTracer(SERVICE_NAME).startSpan('daemon.fatal', {
+          // Traceway promotes CONSUMER spans to Tasks. These daemon lifecycle
+          // signals are not HTTP requests and intentionally carry no content.
+          kind: SpanKind.CONSUMER,
+        });
         recordTracewayException(span, error);
+        span.end();
+      },
+      recordHandledModelError(code: TracewayModelErrorCode): void {
+        const span = trace.getTracer(SERVICE_NAME).startSpan('daemon.model_error', {
+          kind: SpanKind.CONSUMER,
+        });
+        recordTracewayException(span, normalizeTracewayModelErrorCode(code));
         span.end();
       },
       async shutdown(): Promise<void> {
@@ -161,7 +222,7 @@ export function startTracewayTelemetry(env: NodeJS.ProcessEnv = process.env): Tr
         return shutdownPromise;
       },
       startLifecycleSpan(name): Span {
-        return trace.getTracer(SERVICE_NAME).startSpan(name);
+        return trace.getTracer(SERVICE_NAME).startSpan(name, { kind: SpanKind.CONSUMER });
       },
     };
     startedTelemetry = telemetry;

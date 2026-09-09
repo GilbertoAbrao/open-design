@@ -252,6 +252,7 @@ import {
   readPublicConfigResponse,
 } from './analytics.js';
 import {
+  createTracewayModelErrorRecorder,
   installTracewayHttpTracing,
   recordTracewayException,
   startTracewayTelemetry,
@@ -10716,6 +10717,12 @@ export async function startServer({
     }
     if (run.cancelRequested || design.runs.isTerminal(run.status)) return;
     const runId = run.id;
+    // SSE can surface multiple representations of a single provider failure
+    // (structured error frame, stdin failure, then non-zero close). Export one
+    // content-free terminal signal per run instead of duplicating its Issue.
+    const recordTracewayModelError = createTracewayModelErrorRecorder(
+      (code) => tracewayTelemetry.recordHandledModelError(code),
+    );
 
     // Auto-memory hook. Pulls explicit "remember:" / "我是 X" / "I prefer Y"
     // markers out of the just-arrived user message and writes them as MD
@@ -11272,6 +11279,7 @@ export async function startServer({
     // for signed-out users, and a `const` declared later in the same outer
     // function scope would hit a TDZ ReferenceError before initialization.
     const sendAmrAccountFailure = (failure) => {
+      recordTracewayModelError(failure.code);
       send('error', createSseErrorPayload(
         failure.code,
         failure.message,
@@ -11661,6 +11669,7 @@ export async function startServer({
         `Phase details: spawned agent ${userFacingAgentLabel(agentId, resolvedBin)}; stdout arrived: ${childStdoutSeen ? 'yes' : 'no'}; ` +
         `last agent event: ${lastAgentEventPhase}; largest tool result observed: ${lastToolResultChars} chars. ` +
         'Retry the turn, pick a different model, or start a new conversation if the prior context is very large.';
+      recordTracewayModelError('AGENT_EXECUTION_FAILED');
       send('error', createSseErrorPayload('AGENT_EXECUTION_FAILED', message, { retryable: true }));
       design.runs.finish(run, 'failed', 1, null);
       if (acpSession?.abort) {
@@ -11720,6 +11729,7 @@ export async function startServer({
     if (!resolvedBin || !agentLaunch.launchPath) {
       revokeToolToken('child_exit');
       unregisterChatAgentEventSink();
+      recordTracewayModelError('AGENT_UNAVAILABLE');
       send('error', createSseErrorPayload(
         'AGENT_UNAVAILABLE',
         `Agent "${def.name}" (\`${def.bin}\`) is not installed or not on PATH. ` +
@@ -11890,6 +11900,7 @@ export async function startServer({
           // reading stdin — the process exit/close handlers already route
           // the underlying failure to SSE via stderr, so swallow these here.
           if (err.code !== 'EPIPE' && err.code !== 'EOF' && err.message !== 'write EOF') {
+            recordTracewayModelError('AGENT_EXECUTION_FAILED');
             send(
               'error',
               createSseErrorPayload(
@@ -11904,6 +11915,7 @@ export async function startServer({
     } catch (err) {
       revokeToolToken('child_exit');
       unregisterChatAgentEventSink();
+      recordTracewayModelError('AGENT_EXECUTION_FAILED');
       send('error', createSseErrorPayload('AGENT_EXECUTION_FAILED', `spawn failed: ${err.message}`));
       design.runs.finish(run, 'failed', 1, null);
       return;
@@ -12062,6 +12074,7 @@ export async function startServer({
           send('stderr', { chunk });
         });
         child.on('error', (err) => {
+          recordTracewayModelError('AGENT_EXECUTION_FAILED');
           send('error', createSseErrorPayload('AGENT_EXECUTION_FAILED', err.message));
         });
 
@@ -12110,9 +12123,11 @@ export async function startServer({
           } else if (succeeded) {
             design.runs.finish(run, 'succeeded', 0, null);
           } else {
+            recordTracewayModelError('AGENT_EXECUTION_FAILED');
             design.runs.finish(run, 'failed', 1, null);
           }
         } catch (err) {
+          recordTracewayModelError('AGENT_EXECUTION_FAILED');
           send('error', createSseErrorPayload('AGENT_EXECUTION_FAILED', err instanceof Error ? err.message : String(err)));
           design.runs.finish(run, 'failed', 1, null);
         } finally {
@@ -12170,6 +12185,7 @@ export async function startServer({
         clearInactivityWatchdog();
         const authFailure = classifyAgentAuthFailure(agentId, failureText);
         if (authFailure?.status === 'missing') {
+          recordTracewayModelError('AGENT_AUTH_REQUIRED');
           send('error', createSseErrorPayload(
             'AGENT_AUTH_REQUIRED',
             authFailure.message ?? cursorAuthGuidance(),
@@ -12182,6 +12198,7 @@ export async function startServer({
         // …), so the chat shows an accurate reason instead of the generic
         // execution-failed bucket.
         const serviceCode = classifyAgentServiceFailure(failureText);
+        recordTracewayModelError(serviceCode ?? 'AGENT_EXECUTION_FAILED');
         if (serviceCode) {
           send('error', createSseErrorPayload(serviceCode, agentStreamError, {
             details: ev.raw ? { raw: ev.raw } : undefined,
@@ -12306,6 +12323,7 @@ export async function startServer({
             if (agentStreamError) return;
             agentStreamError = String(payload?.message || 'Pi session error');
             clearInactivityWatchdog();
+            recordTracewayModelError('AGENT_EXECUTION_FAILED');
             send('error', createSseErrorPayload(
               'AGENT_EXECUTION_FAILED',
               agentStreamError,
@@ -12346,6 +12364,7 @@ export async function startServer({
               return;
             }
           }
+          if (event === 'error') recordTracewayModelError('AGENT_EXECUTION_FAILED');
           send(event, data);
         },
         ...(acpStageTimeoutMs !== undefined ? { stageTimeoutMs: acpStageTimeoutMs } : {}),
@@ -12392,6 +12411,7 @@ export async function startServer({
       clearInactivityWatchdog();
       revokeToolToken('child_exit');
       unregisterChatAgentEventSink();
+      recordTracewayModelError('AGENT_EXECUTION_FAILED');
       send('error', createSseErrorPayload('AGENT_EXECUTION_FAILED', err.message));
       design.runs.finish(run, 'failed', 1, null);
     });
@@ -12401,6 +12421,7 @@ export async function startServer({
       revokeToolToken('child_exit');
       unregisterChatAgentEventSink();
       if (acpSession?.hasFatalError()) {
+        recordTracewayModelError('AGENT_EXECUTION_FAILED');
         return design.runs.finish(run, 'failed', code ?? 1, signal ?? null);
       }
       if (agentStreamError) {
@@ -12424,6 +12445,7 @@ export async function startServer({
           `${agentStderrTail}\n${agentStdoutTail}`,
         );
         if (authFailure?.status === 'missing') {
+          recordTracewayModelError('AGENT_AUTH_REQUIRED');
           send('error', createSseErrorPayload(
             'AGENT_AUTH_REQUIRED',
             authFailure.message ?? cursorAuthGuidance(),
@@ -12441,6 +12463,7 @@ export async function startServer({
         trackingSubstantiveOutput &&
         !agentProducedOutput
       ) {
+        recordTracewayModelError('AGENT_EXECUTION_FAILED');
         send('error', createSseErrorPayload(
           'AGENT_EXECUTION_FAILED',
           'Agent completed without producing any output. The model or provider may have returned an empty response — check the agent logs for upstream errors.',
@@ -12454,6 +12477,7 @@ export async function startServer({
         isPluginAuthoringRun(db, run) &&
         !(await hasGeneratedPluginArtifacts(cwd))
       ) {
+        recordTracewayModelError('AGENT_EXECUTION_FAILED');
         send('error', createSseErrorPayload(
           'AGENT_EXECUTION_FAILED',
           'Plugin authoring ended before generating the required generated-plugin artifacts.',
@@ -12482,6 +12506,7 @@ export async function startServer({
           `${agentStderrTail}\n${agentStdoutTail}`,
         );
         if (authFailure?.status === 'missing') {
+          recordTracewayModelError('AGENT_AUTH_REQUIRED');
           send('error', createSseErrorPayload(
             'AGENT_AUTH_REQUIRED',
             authFailure.message ?? `${def.name} authentication required. Please re-authenticate and retry.`,
@@ -12544,6 +12569,7 @@ export async function startServer({
             : useAntigravityAuthFallback
               ? antigravityAuthGuidance()
               : `${def.name} returned an empty response. This may indicate an expired session — try re-authenticating the agent.`;
+        recordTracewayModelError(errorCode);
         send('error', createSseErrorPayload(
           errorCode,
           msg,
@@ -12590,6 +12616,7 @@ export async function startServer({
         const serviceCode = classifyAgentServiceFailure(
           `${agentStderrTail}\n${agentStdoutTail}`,
         );
+        recordTracewayModelError(serviceCode ?? 'AGENT_EXECUTION_FAILED');
         if (diagnostic) {
           send('error', createSseErrorPayload(
             serviceCode ?? 'AGENT_EXECUTION_FAILED',
