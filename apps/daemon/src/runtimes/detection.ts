@@ -6,6 +6,10 @@ import { spawnEnvForAgent } from './env.js';
 import { probeAgentAuthStatus } from './auth.js';
 import { agentCapabilities } from './capabilities.js';
 import { installMetaForAgent } from './metadata.js';
+import {
+  filterCodexModelsForAuth,
+  probeCodexAuthMode,
+} from './codex-auth-models.js';
 import type {
   DetectedAgent,
   RuntimeAgentDef,
@@ -177,7 +181,16 @@ async function probe(
     }
     agentCapabilities.set(def.id, caps);
   }
-  const modelResult = await fetchModels(def, launch.launchPath, probeEnv);
+  const fetchedModelResult = await fetchModels(def, launch.launchPath, probeEnv);
+  const modelResult = def.id === 'codex'
+    ? {
+        ...fetchedModelResult,
+        models: filterCodexModelsForAuth(
+          fetchedModelResult.models,
+          await probeCodexAuthMode(launch.launchPath, probeEnv),
+        ),
+      }
+    : fetchedModelResult;
   const auth = await probeAgentAuthStatus(def.id, launch.launchPath, probeEnv);
   return {
     ...stripFns(def),
