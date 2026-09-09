@@ -176,12 +176,18 @@ export function startTracewayTelemetry(env: NodeJS.ProcessEnv = process.env): Tr
     const telemetry: TracewayTelemetry = {
       enabled: true,
       recordFatalException(error: unknown): void {
-        const span = trace.getTracer(SERVICE_NAME).startSpan('daemon.fatal');
+        const span = trace.getTracer(SERVICE_NAME).startSpan('daemon.fatal', {
+          // Traceway promotes CONSUMER spans to Tasks. These daemon lifecycle
+          // signals are not HTTP requests and intentionally carry no content.
+          kind: SpanKind.CONSUMER,
+        });
         recordTracewayException(span, error);
         span.end();
       },
       recordHandledModelError(code: TracewayModelErrorCode): void {
-        const span = trace.getTracer(SERVICE_NAME).startSpan('daemon.model_error');
+        const span = trace.getTracer(SERVICE_NAME).startSpan('daemon.model_error', {
+          kind: SpanKind.CONSUMER,
+        });
         recordTracewayException(span, normalizeTracewayModelErrorCode(code));
         span.end();
       },
@@ -210,7 +216,7 @@ export function startTracewayTelemetry(env: NodeJS.ProcessEnv = process.env): Tr
         return shutdownPromise;
       },
       startLifecycleSpan(name): Span {
-        return trace.getTracer(SERVICE_NAME).startSpan(name);
+        return trace.getTracer(SERVICE_NAME).startSpan(name, { kind: SpanKind.CONSUMER });
       },
     };
     startedTelemetry = telemetry;
