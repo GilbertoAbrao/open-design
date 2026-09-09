@@ -1,5 +1,9 @@
 import type { RuntimeModelOption } from './types.js';
 import { execAgentFile } from './invocation.js';
+import {
+  formatModelProviderError,
+  isOpenAiChatGptModelProviderError,
+} from './model-provider-errors.js';
 
 export type CodexAuthMode = 'chatgpt' | null;
 
@@ -59,33 +63,10 @@ export function codexModelCompatibilityError(
   return `Model "${model}" is not available when Codex is signed in with ChatGPT. Choose a Codex-compatible model, or sign in with an API key account, then retry.`;
 }
 
-function codexProviderDetail(raw: string): string {
-  const trimmed = raw.trim();
-  const jsonStart = trimmed.indexOf('{');
-  if (jsonStart >= 0) {
-    try {
-      const parsed = JSON.parse(trimmed.slice(jsonStart)) as { detail?: unknown };
-      if (typeof parsed.detail === 'string' && parsed.detail.trim()) {
-        return parsed.detail.trim();
-      }
-    } catch {
-      // Preserve the original text when the provider's JSON is malformed.
-    }
-  }
-  return trimmed;
-}
-
 export function formatCodexModelProviderError(raw: string): string {
-  if (raw.startsWith('Codex rejected the selected model.')) return raw;
-  const detail = codexProviderDetail(raw);
-  return `Codex rejected the selected model. Choose a different Codex model or sign in with a different account, then retry. Technical detail: ${detail}`;
+  return formatModelProviderError(raw, 'Codex');
 }
 
 export function isCodexModelProviderError(raw: string): boolean {
-  return (
-    /model/i.test(raw) &&
-    /not supported/i.test(raw) &&
-    /codex/i.test(raw) &&
-    /chatgpt\s+account/i.test(raw)
-  );
+  return isOpenAiChatGptModelProviderError(raw);
 }

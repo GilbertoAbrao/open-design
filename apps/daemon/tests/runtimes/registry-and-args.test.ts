@@ -365,6 +365,76 @@ exit 2
   }
 });
 
+test('opencode detection filters the OAuth-incompatible model family from a live picker catalog', async () => {
+  const dir = mkdtempSync(join(tmpdir(), 'od-agents-opencode-live-models-'));
+  try {
+    await withEnvSnapshot(['PATH', 'OD_AGENT_HOME', 'OPENCODE_BIN'], async () => {
+      const opencodeBin = join(dir, 'opencode');
+      writeFileSync(
+        opencodeBin,
+        `#!/bin/sh
+if [ "$1" = "--version" ]; then echo "opencode 1.16.2"; exit 0; fi
+if [ "$1" = "models" ]; then printf '%s\\n' 'openai/gpt-5.4' 'openai/gpt-5.3-codex'; exit 0; fi
+if [ "$1" = "auth" ] && [ "$2" = "list" ]; then printf '\\033[32m●  OpenAI oauth\\033[0m\\n'; exit 0; fi
+exit 2
+`,
+      );
+      chmodSync(opencodeBin, 0o755);
+      process.env.OD_AGENT_HOME = dir;
+      process.env.PATH = dir;
+      delete process.env.OPENCODE_BIN;
+
+      const agents = await detectAgents();
+      const detected = agents.find((agent) => agent.id === 'opencode');
+
+      assert.ok(detected);
+      assert.equal(detected.available, true);
+      assert.equal(detected.modelsSource, 'live');
+      assert.deepEqual(detected.models.map((model: { id: string }) => model.id), [
+        'default',
+        'openai/gpt-5.3-codex',
+      ]);
+    });
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('opencode detection fails open when auth output does not contain the exact OAuth status line', async () => {
+  const dir = mkdtempSync(join(tmpdir(), 'od-agents-opencode-ambiguous-auth-'));
+  try {
+    await withEnvSnapshot(['PATH', 'OD_AGENT_HOME', 'OPENCODE_BIN'], async () => {
+      const opencodeBin = join(dir, 'opencode');
+      writeFileSync(
+        opencodeBin,
+        `#!/bin/sh
+if [ "$1" = "--version" ]; then echo "opencode 1.16.2"; exit 0; fi
+if [ "$1" = "models" ]; then printf '%s\\n' 'openai/gpt-5.4' 'openai/gpt-5.3-codex'; exit 0; fi
+if [ "$1" = "auth" ] && [ "$2" = "list" ]; then echo 'OpenAI oauth session might be available'; exit 0; fi
+exit 2
+`,
+      );
+      chmodSync(opencodeBin, 0o755);
+      process.env.OD_AGENT_HOME = dir;
+      process.env.PATH = dir;
+      delete process.env.OPENCODE_BIN;
+
+      const agents = await detectAgents();
+      const detected = agents.find((agent) => agent.id === 'opencode');
+
+      assert.ok(detected);
+      assert.equal(detected.modelsSource, 'live');
+      assert.deepEqual(detected.models.map((model: { id: string }) => model.id), [
+        'default',
+        'openai/gpt-5.4',
+        'openai/gpt-5.3-codex',
+      ]);
+    });
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
 test('codex picker includes gpt-5.1 model family', () => {
   const pickerModels = new Set(codex.fallbackModels.map((model) => model.id));
 

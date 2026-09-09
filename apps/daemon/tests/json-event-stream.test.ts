@@ -90,6 +90,24 @@ test('opencode json stream preserves nested error messages', () => {
   ]);
 });
 
+test('opencode json stream makes a rejected ChatGPT model actionable while preserving provider detail', () => {
+  const { events, handler } = collectEvents('opencode');
+  const detail = "The 'gpt-5.4' model is not supported when using Codex with a ChatGPT account.";
+
+  handler.feed(`${JSON.stringify({
+    type: 'error',
+    error: { message: detail },
+  })}\n`);
+
+  assert.deepEqual(events, [
+    {
+      type: 'error',
+      message: `OpenCode rejected the selected model. Choose a different OpenCode model or sign in with a different account, then retry. Technical detail: ${detail}`,
+      raw: JSON.stringify({ type: 'error', error: { message: detail } }),
+    },
+  ]);
+});
+
 test('opencode json stream falls back to error name when data has no message', () => {
   const { events, handler } = collectEvents('opencode');
 
