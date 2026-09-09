@@ -1,3 +1,4 @@
+import { existsSync, readFileSync } from 'node:fs';
 import { DEFAULT_MODEL_OPTION, clampCodexReasoning } from './shared.js';
 import type { RuntimeModelOption } from '../types.js';
 import type { RuntimeAgentDef } from '../types.js';
@@ -24,7 +25,9 @@ export function parseCodexDebugModels(stdout: string): RuntimeModelOption[] | nu
       name?: unknown;
       visibility?: unknown;
     };
-    if (entry.visibility === 'hidden') continue;
+    const visibility =
+      typeof entry.visibility === 'string' ? entry.visibility.trim().toLowerCase() : null;
+    if (visibility === 'hide' || visibility === 'hidden') continue;
     const id =
       typeof entry.slug === 'string'
         ? entry.slug.trim()
@@ -47,11 +50,27 @@ export function parseCodexDebugModels(stdout: string): RuntimeModelOption[] | nu
 export function codexNeedsDangerFullAccessSandbox(
   platform: NodeJS.Platform = process.platform,
   env: NodeJS.ProcessEnv = process.env,
+  isContainerRuntime: () => boolean = detectContainerRuntime,
 ): boolean {
   if (platform === 'win32') return true;
+  if (env.OD_CODEX_FORCE_DANGER_FULL_ACCESS?.trim() === '1') return true;
   // WSL reports `linux` but Codex still hits the Windows read-only
   // workspace-write sandbox path when launched from there (#2834).
-  return Boolean(env.WSL_DISTRO_NAME?.trim());
+  if (env.WSL_DISTRO_NAME?.trim()) return true;
+  // Docker/Podman-style containers often cannot create the user namespaces
+  // Codex uses for Linux workspace-write sandboxing. The container itself is
+  // the external sandbox, so use Codex's unsandboxed mode there.
+  return platform === 'linux' && isContainerRuntime();
+}
+
+function detectContainerRuntime(): boolean {
+  if (existsSync('/.dockerenv') || existsSync('/run/.containerenv')) return true;
+  try {
+    const cgroup = readFileSync('/proc/1/cgroup', 'utf8');
+    return /\b(docker|kubepods|containerd|podman|orbstack)\b/i.test(cgroup);
+  } catch {
+    return false;
+  }
 }
 
 export const codexAgentDef = {

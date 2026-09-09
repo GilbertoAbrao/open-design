@@ -211,6 +211,396 @@ console.log(JSON.stringify({ type: 'item.completed', item: { type: 'agent_messag
     }
   });
 
+  it('blocks an incompatible OpenCode request model only when OpenAI OAuth and a live catalog are both available', async () => {
+    const root = await fsp.mkdtemp(join(tmpdir(), 'od-opencode-oauth-request-run-'));
+    tempDirs.push(root);
+    const spawnMarker = join(root, 'spawned.json');
+    process.env.OD_TEST_OPENCODE_SPAWN_FILE = spawnMarker;
+    try {
+      await withFakeAgent(
+        'opencode',
+        `
+const fs = require('node:fs');
+const args = process.argv.slice(2);
+if (args[0] === 'auth' && args[1] === 'list') {
+  console.log('\\x1b[32m●  OpenAI oauth\\x1b[0m');
+  process.exit(0);
+}
+if (args[0] === 'models') {
+  console.log('openai/gpt-5.3-codex');
+  process.exit(0);
+}
+fs.writeFileSync(process.env.OD_TEST_OPENCODE_SPAWN_FILE, JSON.stringify(args));
+console.log(JSON.stringify({ type: 'text', part: { text: 'unexpected spawn' } }));
+`,
+        async () => {
+          const response = await fetch(`${baseUrl}/api/chat`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              agentId: 'opencode',
+              message: 'hello',
+              model: 'openai/gpt-5.4',
+            }),
+          });
+          const body = await response.text();
+
+          expect(response.ok).toBe(true);
+          expect(body).toContain('AGENT_EXECUTION_FAILED');
+          expect(body).toContain('gpt-5.4');
+          expect(body).toContain('Choose a different OpenCode model');
+          expect(existsSync(spawnMarker)).toBe(false);
+        },
+      );
+    } finally {
+      delete process.env.OD_TEST_OPENCODE_SPAWN_FILE;
+    }
+  });
+
+  it('blocks an incompatible OpenCode app-config model before spawn', async () => {
+    const root = await fsp.mkdtemp(join(tmpdir(), 'od-opencode-oauth-config-run-'));
+    tempDirs.push(root);
+    const spawnMarker = join(root, 'spawned.json');
+    const configResponse = await fetch(`${baseUrl}/api/app-config`);
+    const config = (await configResponse.json()) as {
+      config: { agentModels?: Record<string, { model?: string }> };
+    };
+    process.env.OD_TEST_OPENCODE_SPAWN_FILE = spawnMarker;
+    try {
+      await fetch(`${baseUrl}/api/app-config`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', Origin: baseUrl },
+        body: JSON.stringify({ agentModels: { opencode: { model: 'gpt-5.4' } } }),
+      });
+      await withFakeAgent(
+        'opencode',
+        `
+const fs = require('node:fs');
+const args = process.argv.slice(2);
+if (args[0] === 'auth' && args[1] === 'list') {
+  console.log('●  OpenAI oauth');
+  process.exit(0);
+}
+if (args[0] === 'models') {
+  console.log('openai/gpt-5.3-codex');
+  process.exit(0);
+}
+fs.writeFileSync(process.env.OD_TEST_OPENCODE_SPAWN_FILE, JSON.stringify(args));
+`,
+        async () => {
+          const response = await fetch(`${baseUrl}/api/chat`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ agentId: 'opencode', message: 'hello' }),
+          });
+          const body = await response.text();
+
+          expect(body).toContain('AGENT_EXECUTION_FAILED');
+          expect(body).toContain('gpt-5.4');
+          expect(existsSync(spawnMarker)).toBe(false);
+        },
+      );
+    } finally {
+      await fetch(`${baseUrl}/api/app-config`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', Origin: baseUrl },
+        body: JSON.stringify({ agentModels: config.config.agentModels ?? null }),
+      });
+      delete process.env.OD_TEST_OPENCODE_SPAWN_FILE;
+    }
+  });
+
+  it('fails open for an environment model when the OpenCode OAuth probe is unavailable', async () => {
+    const root = await fsp.mkdtemp(join(tmpdir(), 'od-opencode-oauth-env-fail-open-'));
+    tempDirs.push(root);
+    const spawnMarker = join(root, 'spawned.json');
+    const originalDefaultModel = process.env.OPENCODE_DEFAULT_MODEL;
+    process.env.OPENCODE_DEFAULT_MODEL = 'gpt-5.4';
+    process.env.OD_TEST_OPENCODE_SPAWN_FILE = spawnMarker;
+    try {
+      await withFakeAgent(
+        'opencode',
+        `
+const fs = require('node:fs');
+const args = process.argv.slice(2);
+if (args[0] === 'auth' && args[1] === 'list') process.exit(1);
+if (args[0] === 'models') {
+  console.log('openai/gpt-5.3-codex');
+  process.exit(0);
+}
+fs.writeFileSync(process.env.OD_TEST_OPENCODE_SPAWN_FILE, JSON.stringify(args));
+console.log(JSON.stringify({ type: 'text', part: { text: 'spawned' } }));
+`,
+        async () => {
+          const response = await fetch(`${baseUrl}/api/chat`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ agentId: 'opencode', message: 'hello' }),
+          });
+          const body = await response.text();
+
+          expect(body).toContain('"status":"succeeded"');
+          expect(JSON.parse(readFileSync(spawnMarker, 'utf8'))).not.toContain('-m');
+        },
+      );
+    } finally {
+      if (originalDefaultModel == null) delete process.env.OPENCODE_DEFAULT_MODEL;
+      else process.env.OPENCODE_DEFAULT_MODEL = originalDefaultModel;
+      delete process.env.OD_TEST_OPENCODE_SPAWN_FILE;
+    }
+  });
+
+  it('blocks an incompatible OpenCode environment model before spawn when the guard is active', async () => {
+    const root = await fsp.mkdtemp(join(tmpdir(), 'od-opencode-oauth-env-run-'));
+    tempDirs.push(root);
+    const spawnMarker = join(root, 'spawned.json');
+    const originalDefaultModel = process.env.OPENCODE_DEFAULT_MODEL;
+    process.env.OPENCODE_DEFAULT_MODEL = 'gpt-5.4';
+    process.env.OD_TEST_OPENCODE_SPAWN_FILE = spawnMarker;
+    try {
+      await withFakeAgent(
+        'opencode',
+        `
+const fs = require('node:fs');
+const args = process.argv.slice(2);
+if (args[0] === 'auth' && args[1] === 'list') {
+  console.log('●  OpenAI oauth');
+  process.exit(0);
+}
+if (args[0] === 'models') {
+  console.log('openai/gpt-5.3-codex');
+  process.exit(0);
+}
+fs.writeFileSync(process.env.OD_TEST_OPENCODE_SPAWN_FILE, JSON.stringify(args));
+`,
+        async () => {
+          const response = await fetch(`${baseUrl}/api/chat`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ agentId: 'opencode', message: 'hello' }),
+          });
+          const body = await response.text();
+
+          expect(body).toContain('AGENT_EXECUTION_FAILED');
+          expect(body).toContain('gpt-5.4');
+          expect(existsSync(spawnMarker)).toBe(false);
+        },
+      );
+    } finally {
+      if (originalDefaultModel == null) delete process.env.OPENCODE_DEFAULT_MODEL;
+      else process.env.OPENCODE_DEFAULT_MODEL = originalDefaultModel;
+      delete process.env.OD_TEST_OPENCODE_SPAWN_FILE;
+    }
+  });
+
+  it('fails open for an environment model when the live OpenCode catalog is unavailable', async () => {
+    const root = await fsp.mkdtemp(join(tmpdir(), 'od-opencode-oauth-catalog-fail-open-'));
+    tempDirs.push(root);
+    const spawnMarker = join(root, 'spawned.json');
+    const originalDefaultModel = process.env.OPENCODE_DEFAULT_MODEL;
+    process.env.OPENCODE_DEFAULT_MODEL = 'gpt-5.4';
+    process.env.OD_TEST_OPENCODE_SPAWN_FILE = spawnMarker;
+    try {
+      await withFakeAgent(
+        'opencode',
+        `
+const fs = require('node:fs');
+const args = process.argv.slice(2);
+if (args[0] === 'auth' && args[1] === 'list') {
+  console.log('●  OpenAI oauth');
+  process.exit(0);
+}
+if (args[0] === 'models') process.exit(1);
+fs.writeFileSync(process.env.OD_TEST_OPENCODE_SPAWN_FILE, JSON.stringify(args));
+console.log(JSON.stringify({ type: 'text', part: { text: 'spawned' } }));
+`,
+        async () => {
+          const response = await fetch(`${baseUrl}/api/chat`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ agentId: 'opencode', message: 'hello' }),
+          });
+          const body = await response.text();
+
+          expect(body).toContain('"status":"succeeded"');
+          expect(JSON.parse(readFileSync(spawnMarker, 'utf8'))).not.toContain('-m');
+        },
+      );
+    } finally {
+      if (originalDefaultModel == null) delete process.env.OPENCODE_DEFAULT_MODEL;
+      else process.env.OPENCODE_DEFAULT_MODEL = originalDefaultModel;
+      delete process.env.OD_TEST_OPENCODE_SPAWN_FILE;
+    }
+  });
+
+  it('fails open for an environment model when OpenCode returns an empty live catalog', async () => {
+    const root = await fsp.mkdtemp(join(tmpdir(), 'od-opencode-oauth-empty-catalog-fail-open-'));
+    tempDirs.push(root);
+    const spawnMarker = join(root, 'spawned.json');
+    const originalDefaultModel = process.env.OPENCODE_DEFAULT_MODEL;
+    process.env.OPENCODE_DEFAULT_MODEL = 'gpt-5.4';
+    process.env.OD_TEST_OPENCODE_SPAWN_FILE = spawnMarker;
+    try {
+      await withFakeAgent(
+        'opencode',
+        `
+const fs = require('node:fs');
+const args = process.argv.slice(2);
+if (args[0] === 'auth' && args[1] === 'list') {
+  console.log('●  OpenAI oauth');
+  process.exit(0);
+}
+if (args[0] === 'models') process.exit(0);
+fs.writeFileSync(process.env.OD_TEST_OPENCODE_SPAWN_FILE, JSON.stringify(args));
+console.log(JSON.stringify({ type: 'text', part: { text: 'spawned' } }));
+`,
+        async () => {
+          const response = await fetch(`${baseUrl}/api/chat`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ agentId: 'opencode', message: 'hello' }),
+          });
+          const body = await response.text();
+
+          expect(body).toContain('"status":"succeeded"');
+          expect(JSON.parse(readFileSync(spawnMarker, 'utf8'))).not.toContain('-m');
+        },
+      );
+    } finally {
+      if (originalDefaultModel == null) delete process.env.OPENCODE_DEFAULT_MODEL;
+      else process.env.OPENCODE_DEFAULT_MODEL = originalDefaultModel;
+      delete process.env.OD_TEST_OPENCODE_SPAWN_FILE;
+    }
+  });
+
+  it('blocks an OpenCode request model absent from the live catalog', async () => {
+    const root = await fsp.mkdtemp(join(tmpdir(), 'od-opencode-oauth-catalog-run-'));
+    tempDirs.push(root);
+    const spawnMarker = join(root, 'spawned.json');
+    process.env.OD_TEST_OPENCODE_SPAWN_FILE = spawnMarker;
+    try {
+      await withFakeAgent(
+        'opencode',
+        `
+const fs = require('node:fs');
+const args = process.argv.slice(2);
+if (args[0] === 'auth' && args[1] === 'list') {
+  console.log('●  OpenAI oauth');
+  process.exit(0);
+}
+if (args[0] === 'models') {
+  console.log('openai/gpt-5.3-codex');
+  process.exit(0);
+}
+fs.writeFileSync(process.env.OD_TEST_OPENCODE_SPAWN_FILE, JSON.stringify(args));
+`,
+        async () => {
+          const response = await fetch(`${baseUrl}/api/chat`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              agentId: 'opencode',
+              message: 'hello',
+              model: 'future-custom-model',
+            }),
+          });
+          const body = await response.text();
+
+          expect(body).toContain('AGENT_EXECUTION_FAILED');
+          expect(body).toContain('future-custom-model');
+          expect(existsSync(spawnMarker)).toBe(false);
+        },
+      );
+    } finally {
+      delete process.env.OD_TEST_OPENCODE_SPAWN_FILE;
+    }
+  });
+
+  it('accepts an unqualified OpenCode request model when its OpenAI-prefixed live catalog entry matches', async () => {
+    const root = await fsp.mkdtemp(join(tmpdir(), 'od-opencode-oauth-prefix-match-'));
+    tempDirs.push(root);
+    const spawnMarker = join(root, 'spawned.json');
+    process.env.OD_TEST_OPENCODE_SPAWN_FILE = spawnMarker;
+    try {
+      await withFakeAgent(
+        'opencode',
+        `
+const fs = require('node:fs');
+const args = process.argv.slice(2);
+if (args[0] === 'auth' && args[1] === 'list') {
+  console.log('●  OpenAI oauth');
+  process.exit(0);
+}
+if (args[0] === 'models') {
+  console.log('openai/gpt-5.3-codex');
+  process.exit(0);
+}
+fs.writeFileSync(process.env.OD_TEST_OPENCODE_SPAWN_FILE, JSON.stringify(args));
+console.log(JSON.stringify({ type: 'text', part: { text: 'spawned' } }));
+`,
+        async () => {
+          const response = await fetch(`${baseUrl}/api/chat`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              agentId: 'opencode',
+              message: 'hello',
+              model: 'gpt-5.3-codex',
+            }),
+          });
+          const body = await response.text();
+
+          expect(body).toContain('"status":"succeeded"');
+          expect(JSON.parse(readFileSync(spawnMarker, 'utf8'))).toContain('gpt-5.3-codex');
+        },
+      );
+    } finally {
+      delete process.env.OD_TEST_OPENCODE_SPAWN_FILE;
+    }
+  });
+
+  it('does not treat a differently cased OpenCode model id as a live-catalog match', async () => {
+    const root = await fsp.mkdtemp(join(tmpdir(), 'od-opencode-oauth-case-sensitive-match-'));
+    tempDirs.push(root);
+    const spawnMarker = join(root, 'spawned.json');
+    process.env.OD_TEST_OPENCODE_SPAWN_FILE = spawnMarker;
+    try {
+      await withFakeAgent(
+        'opencode',
+        `
+const fs = require('node:fs');
+const args = process.argv.slice(2);
+if (args[0] === 'auth' && args[1] === 'list') {
+  console.log('●  OpenAI oauth');
+  process.exit(0);
+}
+if (args[0] === 'models') {
+  console.log('openai/gpt-5.3-codex');
+  process.exit(0);
+}
+fs.writeFileSync(process.env.OD_TEST_OPENCODE_SPAWN_FILE, JSON.stringify(args));
+`,
+        async () => {
+          const response = await fetch(`${baseUrl}/api/chat`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              agentId: 'opencode',
+              message: 'hello',
+              model: 'OPENAI/GPT-5.3-CODEX',
+            }),
+          });
+          const body = await response.text();
+
+          expect(body).toContain('AGENT_EXECUTION_FAILED');
+          expect(existsSync(spawnMarker)).toBe(false);
+        },
+      );
+    } finally {
+      delete process.env.OD_TEST_OPENCODE_SPAWN_FILE;
+    }
+  });
+
   it('marks json stream runs failed when an error frame exits with code 0', async () => {
     const conversationId = `conv-${randomUUID()}`;
 

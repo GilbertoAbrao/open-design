@@ -52,6 +52,10 @@ import {
   probeCodexAuthMode,
 } from './runtimes/codex-auth-models.js';
 import {
+  openCodeModelCompatibilityError,
+  probeOpenCodeModelGuard,
+} from './runtimes/opencode-auth-models.js';
+import {
   cancelVelaLogin,
   forgetVelaLogin,
   mergeVelaEnv,
@@ -11237,11 +11241,27 @@ export async function startServer({
     }
 
     let configuredAgentEnv = {};
+    let configuredAgentModel = null;
     try {
       const appConfig = await readAppConfig(RUNTIME_DATA_DIR);
       configuredAgentEnv = agentCliEnvForAgent(appConfig.agentCliEnv, def.id);
+      configuredAgentModel = appConfig.agentModels?.[def.id]?.model ?? null;
     } catch {
       configuredAgentEnv = {};
+    }
+
+    if (
+      def.id === 'opencode'
+      && (typeof model !== 'string' || !model.trim())
+      && typeof configuredAgentModel === 'string'
+    ) {
+      safeModel = resolveModelForAgent(
+        def,
+        isKnownModel(def, configuredAgentModel)
+          ? configuredAgentModel
+          : sanitizeCustomModel(configuredAgentModel),
+      );
+      agentOptions.model = safeModel;
     }
 
     const agentLaunch = resolveAgentLaunch(def, configuredAgentEnv);
@@ -11448,6 +11468,43 @@ export async function startServer({
           { retryable: false },
         ));
         return design.runs.finish(run, 'failed', 1, null);
+      }
+    }
+
+    if (def.id === 'opencode' && agentLaunch.launchPath) {
+      const openCodeProbeEnv = applyAgentLaunchEnv(
+        spawnEnvForAgent(
+          def.id,
+          {
+            ...createAgentRuntimeEnv(process.env, daemonUrl, toolTokenGrant),
+            ...(def.env || {}),
+          },
+          configuredAgentEnv,
+        ),
+        agentLaunch,
+      );
+      const envDefault = typeof openCodeProbeEnv.OPENCODE_DEFAULT_MODEL === 'string'
+        ? openCodeProbeEnv.OPENCODE_DEFAULT_MODEL.trim()
+        : null;
+      const effectiveModel =
+        typeof agentOptions.model === 'string' && agentOptions.model !== 'default'
+          ? agentOptions.model
+          : envDefault;
+      if (effectiveModel) {
+        const guard = await probeOpenCodeModelGuard(
+          agentLaunch.launchPath,
+          openCodeProbeEnv,
+          def.listModels,
+        );
+        const compatibilityError = openCodeModelCompatibilityError(effectiveModel, guard);
+        if (compatibilityError) {
+          send('error', createSseErrorPayload(
+            'AGENT_EXECUTION_FAILED',
+            compatibilityError,
+            { retryable: false },
+          ));
+          return design.runs.finish(run, 'failed', 1, null);
+        }
       }
     }
 

@@ -2,6 +2,10 @@ import {
   formatCodexModelProviderError,
   isCodexModelProviderError,
 } from './runtimes/codex-auth-models.js';
+import {
+  formatModelProviderError,
+  isOpenAiChatGptModelProviderError,
+} from './runtimes/model-provider-errors.js';
 
 type JsonObject = Record<string, unknown>;
 type StreamEvent = Record<string, unknown>;
@@ -220,10 +224,13 @@ function handleOpenCodeEvent(obj: unknown, onEvent: StreamEventHandler, state: P
     // Shape mirrors the qoder-stream contract (`{type, message, raw}`) so
     // the daemon's existing error-handling path recognises it without
     // further wiring.
-    const message = extractErrorMessage(
+    const extractedMessage = extractErrorMessage(
       obj.error ?? obj.message,
       'OpenCode error',
     );
+    const message = isOpenAiChatGptModelProviderError(extractedMessage)
+      ? formatModelProviderError(extractedMessage, 'OpenCode')
+      : extractedMessage;
     onEvent({ type: 'error', message, raw: stringifyContent(obj) });
     return true;
   }

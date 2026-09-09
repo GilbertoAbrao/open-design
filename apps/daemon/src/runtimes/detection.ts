@@ -10,6 +10,10 @@ import {
   filterCodexModelsForAuth,
   probeCodexAuthMode,
 } from './codex-auth-models.js';
+import {
+  filterOpenCodeModelsForOpenAiOauth,
+  probeOpenCodeAuthMode,
+} from './opencode-auth-models.js';
 import type {
   DetectedAgent,
   RuntimeAgentDef,
@@ -190,7 +194,15 @@ async function probe(
           await probeCodexAuthMode(launch.launchPath, probeEnv),
         ),
       }
-    : fetchedModelResult;
+    : def.id === 'opencode' && fetchedModelResult.source === 'live'
+      ? {
+          ...fetchedModelResult,
+          models: filterOpenCodeModelsForOpenAiOauth(
+            fetchedModelResult.models,
+            await probeOpenCodeAuthMode(launch.launchPath, probeEnv),
+          ),
+        }
+      : fetchedModelResult;
   const auth = await probeAgentAuthStatus(def.id, launch.launchPath, probeEnv);
   return {
     ...stripFns(def),

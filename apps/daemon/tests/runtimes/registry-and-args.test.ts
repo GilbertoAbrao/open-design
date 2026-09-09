@@ -153,6 +153,48 @@ test('codex args use workspace-write sandbox on macOS and Linux', () => {
   }
 });
 
+test('codex detects Linux containers as requiring danger-full-access sandbox', () => {
+  withEnvSnapshot(['OD_CODEX_FORCE_DANGER_FULL_ACCESS', 'WSL_DISTRO_NAME'], () => {
+    delete process.env.OD_CODEX_FORCE_DANGER_FULL_ACCESS;
+    delete process.env.WSL_DISTRO_NAME;
+
+    assert.equal(
+      codexNeedsDangerFullAccessSandbox('linux', process.env, () => true),
+      true,
+    );
+    assert.equal(
+      codexNeedsDangerFullAccessSandbox('linux', process.env, () => false),
+      false,
+    );
+  });
+});
+
+test('codex args can force danger-full-access sandbox via env override', () => {
+  delete process.env.OD_CODEX_DISABLE_PLUGINS;
+
+  withPlatform('linux', () => {
+    withEnvSnapshot(['OD_CODEX_FORCE_DANGER_FULL_ACCESS', 'WSL_DISTRO_NAME'], () => {
+      process.env.OD_CODEX_FORCE_DANGER_FULL_ACCESS = '1';
+      delete process.env.WSL_DISTRO_NAME;
+      const args = codex.buildArgs('', [], [], {}, { cwd: '/tmp/od-project' });
+
+      assert.deepEqual(args.slice(0, 5), [
+        'exec',
+        '--json',
+        '--skip-git-repo-check',
+        '--sandbox',
+        'danger-full-access',
+      ]);
+      assert.equal(args.includes('workspace-write'), false);
+      assert.equal(
+        args.includes('sandbox_workspace_write.network_access=true'),
+        false,
+      );
+      assert.equal(args.includes('default_permissions=":workspace"'), true);
+    });
+  });
+});
+
 test('codex args use danger-full-access sandbox on WSL because workspace-write stays read-only', () => {
   delete process.env.OD_CODEX_DISABLE_PLUGINS;
 
@@ -324,6 +366,25 @@ test('codex parses live model catalog from debug models JSON', () => {
   ]);
 });
 
+test('codex model parser excludes hide and hidden visibility while preserving listed and legacy entries', () => {
+  assert.ok(codex.listModels, 'codex must define live model discovery');
+  const parsed = codex.listModels.parse(JSON.stringify({
+    models: [
+      { slug: 'gpt-reserve', visibility: ' Hide ' },
+      { slug: 'codex-auto-review', visibility: 'HIDE' },
+      { slug: 'legacy-hidden', visibility: ' hidden ' },
+      { slug: 'gpt-6-codex', display_name: 'GPT-6 Codex', visibility: ' LIST ' },
+      { slug: 'legacy-visible', display_name: 'Legacy visible' },
+    ],
+  }));
+
+  assert.deepEqual(parsed, [
+    { id: 'default', label: 'Default (CLI config)' },
+    { id: 'gpt-6-codex', label: 'GPT-6 Codex' },
+    { id: 'legacy-visible', label: 'Legacy visible' },
+  ]);
+});
+
 test('codex detection surfaces live debug models separately from fallback models', async () => {
   const dir = mkdtempSync(join(tmpdir(), 'od-agents-codex-live-models-'));
   try {
@@ -358,6 +419,76 @@ exit 2
       assert.deepEqual(detected.models.map((m: { id: string }) => m.id), [
         'default',
         'gpt-6-codex',
+      ]);
+    });
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('opencode detection filters the OAuth-incompatible model family from a live picker catalog', async () => {
+  const dir = mkdtempSync(join(tmpdir(), 'od-agents-opencode-live-models-'));
+  try {
+    await withEnvSnapshot(['PATH', 'OD_AGENT_HOME', 'OPENCODE_BIN'], async () => {
+      const opencodeBin = join(dir, 'opencode');
+      writeFileSync(
+        opencodeBin,
+        `#!/bin/sh
+if [ "$1" = "--version" ]; then echo "opencode 1.16.2"; exit 0; fi
+if [ "$1" = "models" ]; then printf '%s\\n' 'openai/gpt-5.4' 'openai/gpt-5.3-codex'; exit 0; fi
+if [ "$1" = "auth" ] && [ "$2" = "list" ]; then printf '\\033[32m●  OpenAI oauth\\033[0m\\n'; exit 0; fi
+exit 2
+`,
+      );
+      chmodSync(opencodeBin, 0o755);
+      process.env.OD_AGENT_HOME = dir;
+      process.env.PATH = dir;
+      delete process.env.OPENCODE_BIN;
+
+      const agents = await detectAgents();
+      const detected = agents.find((agent) => agent.id === 'opencode');
+
+      assert.ok(detected);
+      assert.equal(detected.available, true);
+      assert.equal(detected.modelsSource, 'live');
+      assert.deepEqual(detected.models.map((model: { id: string }) => model.id), [
+        'default',
+        'openai/gpt-5.3-codex',
+      ]);
+    });
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('opencode detection fails open when auth output does not contain the exact OAuth status line', async () => {
+  const dir = mkdtempSync(join(tmpdir(), 'od-agents-opencode-ambiguous-auth-'));
+  try {
+    await withEnvSnapshot(['PATH', 'OD_AGENT_HOME', 'OPENCODE_BIN'], async () => {
+      const opencodeBin = join(dir, 'opencode');
+      writeFileSync(
+        opencodeBin,
+        `#!/bin/sh
+if [ "$1" = "--version" ]; then echo "opencode 1.16.2"; exit 0; fi
+if [ "$1" = "models" ]; then printf '%s\\n' 'openai/gpt-5.4' 'openai/gpt-5.3-codex'; exit 0; fi
+if [ "$1" = "auth" ] && [ "$2" = "list" ]; then echo 'OpenAI oauth session might be available'; exit 0; fi
+exit 2
+`,
+      );
+      chmodSync(opencodeBin, 0o755);
+      process.env.OD_AGENT_HOME = dir;
+      process.env.PATH = dir;
+      delete process.env.OPENCODE_BIN;
+
+      const agents = await detectAgents();
+      const detected = agents.find((agent) => agent.id === 'opencode');
+
+      assert.ok(detected);
+      assert.equal(detected.modelsSource, 'live');
+      assert.deepEqual(detected.models.map((model: { id: string }) => model.id), [
+        'default',
+        'openai/gpt-5.4',
+        'openai/gpt-5.3-codex',
       ]);
     });
   } finally {
