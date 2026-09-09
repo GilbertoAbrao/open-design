@@ -7,6 +7,7 @@ import {
   type SpanExporter,
 } from '@opentelemetry/sdk-trace-node';
 import { resourceFromAttributes } from '@opentelemetry/resources';
+import { SpanKind } from '@opentelemetry/api';
 import {
   createTracewayModelErrorRecorder,
   PrivacySpanExporter,
@@ -100,7 +101,9 @@ describe('Traceway privacy boundary', () => {
     const provider = new NodeTracerProvider({
       spanProcessors: [new SimpleSpanProcessor(new PrivacySpanExporter(memory))],
     });
-    const span = provider.getTracer('test').startSpan('daemon.model_error');
+    const span = provider.getTracer('test').startSpan('daemon.model_error', {
+      kind: SpanKind.CONSUMER,
+    });
     recordTracewayException(span, normalizeTracewayModelErrorCode('private provider detail'));
     span.setAttribute('model', 'private-model');
     span.setAttribute('prompt', 'private prompt');
@@ -109,6 +112,7 @@ describe('Traceway privacy boundary', () => {
 
     const [exported] = memory.getFinishedSpans();
     expect(exported?.name).toBe('daemon.model_error');
+    expect(exported?.kind).toBe(SpanKind.CONSUMER);
     expect(exported?.status).toEqual({ code: 2 });
     expect(exported?.attributes).toEqual({});
     expect(exported?.events).toEqual([
