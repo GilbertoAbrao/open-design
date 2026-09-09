@@ -153,6 +153,48 @@ test('codex args use workspace-write sandbox on macOS and Linux', () => {
   }
 });
 
+test('codex detects Linux containers as requiring danger-full-access sandbox', () => {
+  withEnvSnapshot(['OD_CODEX_FORCE_DANGER_FULL_ACCESS', 'WSL_DISTRO_NAME'], () => {
+    delete process.env.OD_CODEX_FORCE_DANGER_FULL_ACCESS;
+    delete process.env.WSL_DISTRO_NAME;
+
+    assert.equal(
+      codexNeedsDangerFullAccessSandbox('linux', process.env, () => true),
+      true,
+    );
+    assert.equal(
+      codexNeedsDangerFullAccessSandbox('linux', process.env, () => false),
+      false,
+    );
+  });
+});
+
+test('codex args can force danger-full-access sandbox via env override', () => {
+  delete process.env.OD_CODEX_DISABLE_PLUGINS;
+
+  withPlatform('linux', () => {
+    withEnvSnapshot(['OD_CODEX_FORCE_DANGER_FULL_ACCESS', 'WSL_DISTRO_NAME'], () => {
+      process.env.OD_CODEX_FORCE_DANGER_FULL_ACCESS = '1';
+      delete process.env.WSL_DISTRO_NAME;
+      const args = codex.buildArgs('', [], [], {}, { cwd: '/tmp/od-project' });
+
+      assert.deepEqual(args.slice(0, 5), [
+        'exec',
+        '--json',
+        '--skip-git-repo-check',
+        '--sandbox',
+        'danger-full-access',
+      ]);
+      assert.equal(args.includes('workspace-write'), false);
+      assert.equal(
+        args.includes('sandbox_workspace_write.network_access=true'),
+        false,
+      );
+      assert.equal(args.includes('default_permissions=":workspace"'), true);
+    });
+  });
+});
+
 test('codex args use danger-full-access sandbox on WSL because workspace-write stays read-only', () => {
   delete process.env.OD_CODEX_DISABLE_PLUGINS;
 
