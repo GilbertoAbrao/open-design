@@ -252,6 +252,7 @@ import {
   readPublicConfigResponse,
 } from './analytics.js';
 import {
+  createTracewayModelErrorRecorder,
   installTracewayHttpTracing,
   recordTracewayException,
   startTracewayTelemetry,
@@ -10716,6 +10717,12 @@ export async function startServer({
     }
     if (run.cancelRequested || design.runs.isTerminal(run.status)) return;
     const runId = run.id;
+    // SSE can surface multiple representations of a single provider failure
+    // (structured error frame, stdin failure, then non-zero close). Export one
+    // content-free terminal signal per run instead of duplicating its Issue.
+    const recordTracewayModelError = createTracewayModelErrorRecorder(
+      (code) => tracewayTelemetry.recordHandledModelError(code),
+    );
 
     // Auto-memory hook. Pulls explicit "remember:" / "我是 X" / "I prefer Y"
     // markers out of the just-arrived user message and writes them as MD
@@ -12170,6 +12177,7 @@ export async function startServer({
         clearInactivityWatchdog();
         const authFailure = classifyAgentAuthFailure(agentId, failureText);
         if (authFailure?.status === 'missing') {
+          recordTracewayModelError('AGENT_AUTH_REQUIRED');
           send('error', createSseErrorPayload(
             'AGENT_AUTH_REQUIRED',
             authFailure.message ?? cursorAuthGuidance(),
@@ -12182,6 +12190,7 @@ export async function startServer({
         // …), so the chat shows an accurate reason instead of the generic
         // execution-failed bucket.
         const serviceCode = classifyAgentServiceFailure(failureText);
+        recordTracewayModelError(serviceCode ?? 'AGENT_EXECUTION_FAILED');
         if (serviceCode) {
           send('error', createSseErrorPayload(serviceCode, agentStreamError, {
             details: ev.raw ? { raw: ev.raw } : undefined,
@@ -12306,6 +12315,7 @@ export async function startServer({
             if (agentStreamError) return;
             agentStreamError = String(payload?.message || 'Pi session error');
             clearInactivityWatchdog();
+            recordTracewayModelError('AGENT_EXECUTION_FAILED');
             send('error', createSseErrorPayload(
               'AGENT_EXECUTION_FAILED',
               agentStreamError,
@@ -12424,6 +12434,7 @@ export async function startServer({
           `${agentStderrTail}\n${agentStdoutTail}`,
         );
         if (authFailure?.status === 'missing') {
+          recordTracewayModelError('AGENT_AUTH_REQUIRED');
           send('error', createSseErrorPayload(
             'AGENT_AUTH_REQUIRED',
             authFailure.message ?? cursorAuthGuidance(),
@@ -12590,6 +12601,7 @@ export async function startServer({
         const serviceCode = classifyAgentServiceFailure(
           `${agentStderrTail}\n${agentStdoutTail}`,
         );
+        if (serviceCode) recordTracewayModelError(serviceCode);
         if (diagnostic) {
           send('error', createSseErrorPayload(
             serviceCode ?? 'AGENT_EXECUTION_FAILED',
