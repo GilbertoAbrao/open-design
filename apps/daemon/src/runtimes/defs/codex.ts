@@ -25,7 +25,9 @@ export function parseCodexDebugModels(stdout: string): RuntimeModelOption[] | nu
       name?: unknown;
       visibility?: unknown;
     };
-    if (entry.visibility === 'hidden') continue;
+    const visibility =
+      typeof entry.visibility === 'string' ? entry.visibility.trim().toLowerCase() : null;
+    if (visibility === 'hide' || visibility === 'hidden') continue;
     const id =
       typeof entry.slug === 'string'
         ? entry.slug.trim()

@@ -366,6 +366,25 @@ test('codex parses live model catalog from debug models JSON', () => {
   ]);
 });
 
+test('codex model parser excludes hide and hidden visibility while preserving listed and legacy entries', () => {
+  assert.ok(codex.listModels, 'codex must define live model discovery');
+  const parsed = codex.listModels.parse(JSON.stringify({
+    models: [
+      { slug: 'gpt-reserve', visibility: ' Hide ' },
+      { slug: 'codex-auto-review', visibility: 'HIDE' },
+      { slug: 'legacy-hidden', visibility: ' hidden ' },
+      { slug: 'gpt-6-codex', display_name: 'GPT-6 Codex', visibility: ' LIST ' },
+      { slug: 'legacy-visible', display_name: 'Legacy visible' },
+    ],
+  }));
+
+  assert.deepEqual(parsed, [
+    { id: 'default', label: 'Default (CLI config)' },
+    { id: 'gpt-6-codex', label: 'GPT-6 Codex' },
+    { id: 'legacy-visible', label: 'Legacy visible' },
+  ]);
+});
+
 test('codex detection surfaces live debug models separately from fallback models', async () => {
   const dir = mkdtempSync(join(tmpdir(), 'od-agents-codex-live-models-'));
   try {
