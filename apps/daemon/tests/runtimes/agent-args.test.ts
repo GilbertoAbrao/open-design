@@ -756,6 +756,18 @@ test('codex buildArgs omits model_reasoning_effort when reasoning is "default"',
   );
 });
 
+test('codex buildArgs keeps the default model implicit', () => {
+  const args = codex.buildArgs(
+    '',
+    [],
+    [],
+    { model: 'default' },
+    { cwd: '/tmp/od-project' },
+  );
+
+  assert.equal(args.includes('--model'), false);
+});
+
 test('claude flags promptViaStdin and never embeds the prompt in argv', () => {
   // Long composed prompts (system prompt + design system + skill body +
   // user message) routinely exceed Linux MAX_ARG_STRLEN (~128 KB) and the

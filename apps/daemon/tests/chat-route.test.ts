@@ -169,6 +169,48 @@ describe('/api/chat', () => {
     expect(body).toContain('AGENT_UNAVAILABLE');
   });
 
+  it('revalidates Codex ChatGPT auth before argv construction and blocks a known incompatible model before spawn', async () => {
+    const root = await fsp.mkdtemp(join(tmpdir(), 'od-codex-auth-run-'));
+    tempDirs.push(root);
+    const spawnMarker = join(root, 'spawned.json');
+    process.env.OD_TEST_CODEX_SPAWN_FILE = spawnMarker;
+    try {
+      await withFakeAgent(
+        'codex',
+        `
+const fs = require('node:fs');
+const args = process.argv.slice(2);
+if (args[0] === 'login' && args[1] === 'status') {
+  console.log('Logged in using ChatGPT');
+  process.exit(0);
+}
+fs.writeFileSync(process.env.OD_TEST_CODEX_SPAWN_FILE, JSON.stringify(args));
+console.log(JSON.stringify({ type: 'item.completed', item: { type: 'agent_message', text: 'unexpected spawn' } }));
+`,
+        async () => {
+          const response = await fetch(`${baseUrl}/api/chat`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              agentId: 'codex',
+              message: 'hello',
+              model: 'gpt-5.4',
+            }),
+          });
+          const body = await response.text();
+
+          expect(response.ok).toBe(true);
+          expect(body).toContain('AGENT_EXECUTION_FAILED');
+          expect(body).toContain('Choose a Codex-compatible model');
+          expect(body).toContain('sign in with an API key');
+          expect(existsSync(spawnMarker)).toBe(false);
+        },
+      );
+    } finally {
+      delete process.env.OD_TEST_CODEX_SPAWN_FILE;
+    }
+  });
+
   it('marks json stream runs failed when an error frame exits with code 0', async () => {
     const conversationId = `conv-${randomUUID()}`;
 
@@ -212,6 +254,32 @@ process.exit(0);
           status: 'failed',
           exitCode: 0,
         });
+      },
+    );
+  });
+
+  it.each([
+    ["The 'gpt-5.4' model is not supported when using Codex with a ChatGPT account."],
+    ['Bad Request: {"detail":"The gpt-5.4 model is not supported when using Codex with a ChatGPT account."}'],
+  ])('surfaces actionable Codex model guidance for provider error: %s', async (providerDetail) => {
+    await withFakeAgent(
+      'codex',
+      `console.log(JSON.stringify({ type: 'error', message: ${JSON.stringify(providerDetail)} }));`,
+      async () => {
+        const response = await fetch(`${baseUrl}/api/chat`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ agentId: 'codex', message: 'hello' }),
+        });
+        const body = await response.text();
+
+        expect(body).toContain('Choose a different Codex model or sign in with a different account');
+        expect(body).toContain(
+          providerDetail.startsWith('Bad Request:')
+            ? 'The gpt-5.4 model is not supported when using Codex with a ChatGPT account.'
+            : providerDetail,
+        );
+        expect(body).toContain('"status":"failed"');
       },
     );
   });

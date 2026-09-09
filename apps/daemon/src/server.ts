@@ -48,6 +48,10 @@ import {
   resolveModelForAgent,
 } from './runtimes/models.js';
 import {
+  codexModelCompatibilityError,
+  probeCodexAuthMode,
+} from './runtimes/codex-auth-models.js';
+import {
   cancelVelaLogin,
   forgetVelaLogin,
   mergeVelaEnv,
@@ -11414,6 +11418,37 @@ export async function startServer({
         './runtimes/defs/antigravity.js'
       );
       antigravityModelLockRelease = await acquireAntigravityModelLock();
+    }
+
+    // The model picker may have been populated under a different Codex
+    // account than the one active now. Re-check immediately before argv is
+    // built so a stale known selection cannot reach `--model`. Unknown custom
+    // ids remain fail-open; only the explicit ChatGPT-incompatible denylist is
+    // rejected here.
+    if (def.id === 'codex' && agentLaunch.launchPath) {
+      const codexAuthProbeEnv = applyAgentLaunchEnv(
+        spawnEnvForAgent(
+          def.id,
+          {
+            ...createAgentRuntimeEnv(process.env, daemonUrl, toolTokenGrant),
+            ...(def.env || {}),
+          },
+          configuredAgentEnv,
+        ),
+        agentLaunch,
+      );
+      const compatibilityError = codexModelCompatibilityError(
+        agentOptions.model,
+        await probeCodexAuthMode(agentLaunch.launchPath, codexAuthProbeEnv),
+      );
+      if (compatibilityError) {
+        send('error', createSseErrorPayload(
+          'AGENT_EXECUTION_FAILED',
+          compatibilityError,
+          { retryable: false },
+        ));
+        return design.runs.finish(run, 'failed', 1, null);
+      }
     }
 
     const args = def.buildArgs(

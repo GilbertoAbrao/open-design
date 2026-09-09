@@ -1,3 +1,8 @@
+import {
+  formatCodexModelProviderError,
+  isCodexModelProviderError,
+} from './runtimes/codex-auth-models.js';
+
 type JsonObject = Record<string, unknown>;
 type StreamEvent = Record<string, unknown>;
 type StreamEventHandler = (event: StreamEvent) => void;
@@ -127,6 +132,12 @@ function isRecoverableCodexReconnect(message: string): boolean {
       message.includes('stream disconnected before completion')
     )
   );
+}
+
+function normalizeCodexErrorMessage(message: string): string {
+  return isCodexModelProviderError(message)
+    ? formatCodexModelProviderError(message)
+    : message;
 }
 
 function formatOpenCodeUsage(tokens: unknown): Usage | null {
@@ -334,15 +345,15 @@ function handleCodexEvent(obj: unknown, onEvent: StreamEventHandler, state: Pars
   if (!isRecord(obj)) return false;
 
 if (obj.type === 'error') {
-  const message = extractErrorMessage(obj.message ?? obj.error, 'Codex error');
+  const extractedMessage = extractErrorMessage(obj.message ?? obj.error, 'Codex error');
   // Reconnecting events are recoverable — treat as status warning, not fatal
-  if (isRecoverableCodexReconnect(message)) {
-    onEvent({ type: 'status', label: message });
+  if (isRecoverableCodexReconnect(extractedMessage)) {
+    onEvent({ type: 'status', label: extractedMessage });
     return true;
   }
   if (!state.codexErrorEmitted) {
     state.codexErrorEmitted = true;
-    onEvent({ type: 'error', message });
+    onEvent({ type: 'error', message: normalizeCodexErrorMessage(extractedMessage) });
   }
   return true;
 }
@@ -352,7 +363,9 @@ if (obj.type === 'error') {
       state.codexErrorEmitted = true;
       onEvent({
         type: 'error',
-        message: extractErrorMessage(obj.error ?? obj.message, 'Codex turn failed'),
+        message: normalizeCodexErrorMessage(
+          extractErrorMessage(obj.error ?? obj.message, 'Codex turn failed'),
+        ),
       });
     }
     return true;

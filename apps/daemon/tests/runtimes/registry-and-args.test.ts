@@ -226,7 +226,7 @@ test('codex args keep plugins enabled when OD_CODEX_DISABLE_PLUGINS is not 1', (
 });
 
 test('codex model picker includes current OpenAI choices in priority order', async () => {
-  const expectedModels = [
+  const fallbackModels = [
     'default',
     'gpt-5.5',
     'gpt-5.4',
@@ -239,8 +239,14 @@ test('codex model picker includes current OpenAI choices in priority order', asy
     'o3',
     'o4-mini',
   ];
+  const expectedChatGptModels = [
+    'default',
+    'gpt-5.3-codex',
+    'gpt-5.1-codex-mini',
+    'gpt-5-codex',
+  ];
 
-  assert.deepEqual(codex.fallbackModels.map((m) => m.id), expectedModels);
+  assert.deepEqual(codex.fallbackModels.map((m) => m.id), fallbackModels);
   assert.ok(codex.reasoningOptions, 'codex must define reasoningOptions');
   assert.deepEqual(codex.reasoningOptions.map((o) => o.id), [
     'default',
@@ -269,7 +275,7 @@ test('codex model picker includes current OpenAI choices in priority order', asy
       const codexBin = join(dir, 'codex');
       writeFileSync(
         codexBin,
-        '#!/bin/sh\nif [ "$1" = "--version" ]; then echo "codex 1.0.0"; exit 0; fi\nexit 0\n',
+        '#!/bin/sh\nif [ "$1" = "--version" ]; then echo "codex 1.0.0"; exit 0; fi\nif [ "$1" = "login" ] && [ "$2" = "status" ]; then echo "Logged in using ChatGPT"; exit 0; fi\nexit 0\n',
       );
       chmodSync(codexBin, 0o755);
       process.env.OD_AGENT_HOME = dir;
@@ -282,7 +288,7 @@ test('codex model picker includes current OpenAI choices in priority order', asy
       assert.ok(detected);
       assert.equal(detected.available, true);
       assert.equal(detected.version, 'codex 1.0.0');
-      assert.deepEqual(detected.models.map((m: { id: string }) => m.id), expectedModels);
+      assert.deepEqual(detected.models.map((m: { id: string }) => m.id), expectedChatGptModels);
     });
   } finally {
     rmSync(dir, { recursive: true, force: true });
@@ -328,7 +334,11 @@ test('codex detection surfaces live debug models separately from fallback models
         `#!/bin/sh
 if [ "$1" = "--version" ]; then echo "codex-cli 9.9.9"; exit 0; fi
 if [ "$1" = "debug" ] && [ "$2" = "models" ]; then
-  printf '%s\\n' '{"models":[{"slug":"gpt-6-codex","display_name":"GPT-6 Codex","visibility":"list"}]}'
+  printf '%s\\n' '{"models":[{"slug":"gpt-5.4","display_name":"GPT-5.4","visibility":"list"},{"slug":"gpt-6-codex","display_name":"GPT-6 Codex","visibility":"list"}]}'
+  exit 0
+fi
+if [ "$1" = "login" ] && [ "$2" = "status" ]; then
+  echo 'Logged in using ChatGPT'
   exit 0
 fi
 exit 2

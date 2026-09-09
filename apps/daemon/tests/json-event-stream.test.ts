@@ -405,6 +405,41 @@ test('codex json stream emits structured errors once', () => {
   ]);
 });
 
+test.each([
+  [
+    'error',
+    {
+      type: 'error',
+      message: "The 'gpt-5.4' model is not supported when using Codex with a ChatGPT account.",
+    },
+  ],
+  [
+    'turn.failed',
+    {
+      type: 'turn.failed',
+      error: {
+        message:
+          'Bad Request: {"detail":"The gpt-5.4 model is not supported when using Codex with a ChatGPT account."}',
+      },
+    },
+  ],
+])('codex json stream maps %s ChatGPT model errors to actionable guidance', (_kind, frame) => {
+  const { events, handler } = collectEvents('codex');
+
+  handler.feed(`${JSON.stringify(frame)}\n`);
+
+  assert.deepEqual(events, [
+    {
+      type: 'error',
+      message:
+        'Codex rejected the selected model. Choose a different Codex model or sign in with a different account, then retry. Technical detail: ' +
+        (_kind === 'turn.failed'
+          ? 'The gpt-5.4 model is not supported when using Codex with a ChatGPT account.'
+          : "The 'gpt-5.4' model is not supported when using Codex with a ChatGPT account."),
+    },
+  ]);
+});
+
 test('codex json stream emits command execution tool events', () => {
   const { events, handler } = collectEvents('codex');
 

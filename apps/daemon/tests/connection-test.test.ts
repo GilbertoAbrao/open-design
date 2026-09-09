@@ -2334,7 +2334,27 @@ process.stdin.on('end', () => {
           kind: 'not_found_model',
           model: 'dddd',
           agentName: 'Codex CLI',
-          detail: "The 'dddd' model is not supported when using Codex with a ChatGPT account.",
+          detail:
+            "Codex rejected the selected model. Choose a different Codex model or sign in with a different account, then retry. Technical detail: The 'dddd' model is not supported when using Codex with a ChatGPT account.",
+        });
+      },
+    );
+  });
+
+  it('extracts nested Codex Bad Request detail into actionable model guidance', async () => {
+    await withFakeCodex(
+      `console.log(JSON.stringify({ type: 'error', message: 'Bad Request: {"detail":"The gpt-5.4 model is not supported when using Codex with a ChatGPT account."}' }));`,
+      async () => {
+        const result = await testAgentConnection({
+          agentId: 'codex',
+          model: 'gpt-5.4',
+        });
+
+        expect(result).toMatchObject({
+          ok: false,
+          kind: 'not_found_model',
+          detail:
+            'Codex rejected the selected model. Choose a different Codex model or sign in with a different account, then retry. Technical detail: The gpt-5.4 model is not supported when using Codex with a ChatGPT account.',
         });
       },
     );
