@@ -79,6 +79,8 @@ describe('Traceway configuration', () => {
 describe('Traceway privacy boundary', () => {
   it('normalizes handled model failures to a bounded stable vocabulary', () => {
     expect(normalizeTracewayModelErrorCode('AGENT_AUTH_REQUIRED')).toBe('AGENT_AUTH_REQUIRED');
+    expect(normalizeTracewayModelErrorCode('AMR_AUTH_REQUIRED')).toBe('AMR_AUTH_REQUIRED');
+    expect(normalizeTracewayModelErrorCode('AMR_INSUFFICIENT_BALANCE')).toBe('AMR_INSUFFICIENT_BALANCE');
     expect(normalizeTracewayModelErrorCode('RATE_LIMITED')).toBe('RATE_LIMITED');
     expect(normalizeTracewayModelErrorCode('provider said token=private')).toBe('AGENT_EXECUTION_FAILED');
     expect(normalizeTracewayModelErrorCode(undefined)).toBe('AGENT_EXECUTION_FAILED');
@@ -88,12 +90,12 @@ describe('Traceway privacy boundary', () => {
     const record = vi.fn();
     const recordOnce = createTracewayModelErrorRecorder(record);
 
+    recordOnce('AMR_AUTH_REQUIRED');
     recordOnce('RATE_LIMITED');
-    recordOnce('UPSTREAM_UNAVAILABLE');
     recordOnce('private provider message');
 
     expect(record).toHaveBeenCalledTimes(1);
-    expect(record).toHaveBeenCalledWith('RATE_LIMITED');
+    expect(record).toHaveBeenCalledWith('AMR_AUTH_REQUIRED');
   });
 
   it('exports a handled model failure as an error span without payload attributes', async () => {
