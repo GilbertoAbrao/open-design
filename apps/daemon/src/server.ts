@@ -11729,7 +11729,7 @@ export async function startServer({
     if (!resolvedBin || !agentLaunch.launchPath) {
       revokeToolToken('child_exit');
       unregisterChatAgentEventSink();
-      recordTracewayModelError('AGENT_EXECUTION_FAILED');
+      recordTracewayModelError('AGENT_UNAVAILABLE');
       send('error', createSseErrorPayload(
         'AGENT_UNAVAILABLE',
         `Agent "${def.name}" (\`${def.bin}\`) is not installed or not on PATH. ` +
