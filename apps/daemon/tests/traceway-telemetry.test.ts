@@ -135,7 +135,7 @@ describe('Traceway privacy boundary', () => {
       name: 'daemon.start',
       attributes: {
         'wxcode.tenant.id': VALID_TRACE_ID,
-        'wxcode.output_project.id': VALID_TRACE_ID,
+        'wxcode.output_project.id': '6a54fe0d3a46a2461f560735',
         'tenant.slug': 'private',
         'wxcode.tenant.id.bad': VALID_TRACE_ID,
       },
@@ -143,7 +143,7 @@ describe('Traceway privacy boundary', () => {
     } as unknown as ReadableSpan);
     expect(sanitized.attributes).toEqual({
       'wxcode.tenant.id': VALID_TRACE_ID,
-      'wxcode.output_project.id': VALID_TRACE_ID,
+      'wxcode.output_project.id': '6a54fe0d3a46a2461f560735',
     });
   });
 

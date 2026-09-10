@@ -27,6 +27,7 @@ const SERVICE_NAMESPACE = 'wxcode';
 const TRACEWAY_TRACE_ID = 'traceway.distributed_trace_id';
 const WXCODE_TENANT_ID = 'wxcode.tenant.id';
 const WXCODE_OUTPUT_PROJECT_ID = 'wxcode.output_project.id';
+const CANONICAL_OUTPUT_PROJECT_ID = /^(?:[0-9a-f]{24}|[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})$/u;
 const CANONICAL_UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/u;
 const SAFE_SPAN_NAMES = new Set([
   'daemon.start',
@@ -131,13 +132,17 @@ export function isCanonicalWxcodeTenantId(value: string | undefined): value is s
   return typeof value === 'string' && CANONICAL_UUID.test(value);
 }
 
+export function isCanonicalWxcodeOutputProjectId(value: string | undefined): value is string {
+  return typeof value === 'string' && CANONICAL_OUTPUT_PROJECT_ID.test(value);
+}
+
 export function setTracewayIdentity(
   span: Span,
   tenantId: string | undefined,
   outputProjectId?: string,
 ): void {
   if (isCanonicalWxcodeTenantId(tenantId)) span.setAttribute(WXCODE_TENANT_ID, tenantId);
-  if (isCanonicalWxcodeTenantId(outputProjectId)) span.setAttribute(WXCODE_OUTPUT_PROJECT_ID, outputProjectId);
+  if (isCanonicalWxcodeOutputProjectId(outputProjectId)) span.setAttribute(WXCODE_OUTPUT_PROJECT_ID, outputProjectId);
 }
 
 export function recordTracewayException(span: Span, error: unknown): void {
@@ -363,7 +368,7 @@ export function sanitizeAttributes(attributes: Attributes): Attributes {
     if (key === TRACEWAY_TRACE_ID && typeof value === 'string' && isCanonicalTracewayTraceId(value)) {
       safe[key] = value;
     } else if ((key === WXCODE_TENANT_ID || key === WXCODE_OUTPUT_PROJECT_ID)
-      && typeof value === 'string' && isCanonicalWxcodeTenantId(value)) {
+      && typeof value === 'string' && isCanonicalWxcodeOutputProjectId(value)) {
       safe[key] = value;
     } else if (key === 'http.request.method' && typeof value === 'string' && /^[A-Z]{3,10}$/u.test(value)) {
       safe[key] = value;
