@@ -6,6 +6,7 @@ import {
   type Attributes,
   type Span,
   type SpanContext,
+  type Context,
 } from '@opentelemetry/api';
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
 import { resourceFromAttributes } from '@opentelemetry/resources';
@@ -17,12 +18,16 @@ import {
   type ReadableSpan,
   type SpanExporter,
 } from '@opentelemetry/sdk-trace-node';
+import type { SpanProcessor } from '@opentelemetry/sdk-trace-base';
 import type { Application, NextFunction, Request, Response } from 'express';
 
 const DEFAULT_ENDPOINT = 'https://traceway.wxcode.ai/api/otel';
 const SERVICE_NAME = 'open-design-daemon';
 const SERVICE_NAMESPACE = 'wxcode';
 const TRACEWAY_TRACE_ID = 'traceway.distributed_trace_id';
+const WXCODE_TENANT_ID = 'wxcode.tenant.id';
+const WXCODE_OUTPUT_PROJECT_ID = 'wxcode.output_project.id';
+const CANONICAL_OUTPUT_PROJECT_ID = /^(?:[0-9a-f]{24}|[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})$/u;
 const CANONICAL_UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/u;
 const SAFE_SPAN_NAMES = new Set([
   'daemon.start',
@@ -37,6 +42,8 @@ const SAFE_ATTRIBUTE_KEYS = new Set([
   'http.route',
   'http.response.status_code',
   TRACEWAY_TRACE_ID,
+  WXCODE_TENANT_ID,
+  WXCODE_OUTPUT_PROJECT_ID,
 ]);
 const RESOURCE_ATTRIBUTE_KEYS = new Set([
   'service.name',
@@ -51,6 +58,7 @@ export interface TracewayConfig {
   sampleRatio: number;
   token: string;
   version: string;
+  tenantId?: string;
 }
 
 export interface TracewayTelemetry {
@@ -104,6 +112,7 @@ export function readTracewayConfig(env: NodeJS.ProcessEnv = process.env): Tracew
   const version = env.WXCODE_TELEMETRY_VERSION?.trim();
   const endpoint = normalizeEndpoint(env.WXCODE_TELEMETRY_ENDPOINT ?? DEFAULT_ENDPOINT);
   if (!token || !environment || !version || !endpoint) return null;
+  const tenantId = isCanonicalWxcodeTenantId(env.WXCODE_TENANT_ID) ? env.WXCODE_TENANT_ID : undefined;
 
   return {
     endpoint,
@@ -111,11 +120,29 @@ export function readTracewayConfig(env: NodeJS.ProcessEnv = process.env): Tracew
     sampleRatio: parseSampleRatio(env.WXCODE_TELEMETRY_SAMPLE_RATIO),
     token,
     version,
+    ...(tenantId ? { tenantId } : {}),
   };
 }
 
 export function isCanonicalTracewayTraceId(value: string | undefined): value is string {
   return typeof value === 'string' && CANONICAL_UUID.test(value);
+}
+
+export function isCanonicalWxcodeTenantId(value: string | undefined): value is string {
+  return typeof value === 'string' && CANONICAL_UUID.test(value);
+}
+
+export function isCanonicalWxcodeOutputProjectId(value: string | undefined): value is string {
+  return typeof value === 'string' && CANONICAL_OUTPUT_PROJECT_ID.test(value);
+}
+
+export function setTracewayIdentity(
+  span: Span,
+  tenantId: string | undefined,
+  outputProjectId?: string,
+): void {
+  if (isCanonicalWxcodeTenantId(tenantId)) span.setAttribute(WXCODE_TENANT_ID, tenantId);
+  if (isCanonicalWxcodeOutputProjectId(outputProjectId)) span.setAttribute(WXCODE_OUTPUT_PROJECT_ID, outputProjectId);
 }
 
 export function recordTracewayException(span: Span, error: unknown): void {
@@ -169,7 +196,7 @@ export function startTracewayTelemetry(env: NodeJS.ProcessEnv = process.env): Tr
         'deployment.environment.name': config.environment,
       }),
       sampler: new ParentBasedSampler({ root: new TraceIdRatioBasedSampler(config.sampleRatio) }),
-      spanProcessors: [new BatchSpanProcessor(exporter, {
+      spanProcessors: [new TenantIdentitySpanProcessor(config.tenantId), new BatchSpanProcessor(exporter, {
         exportTimeoutMillis: 3_000,
         maxExportBatchSize: 64,
         maxQueueSize: 256,
@@ -340,6 +367,12 @@ export function sanitizeAttributes(attributes: Attributes): Attributes {
     if (!SAFE_ATTRIBUTE_KEYS.has(key)) continue;
     if (key === TRACEWAY_TRACE_ID && typeof value === 'string' && isCanonicalTracewayTraceId(value)) {
       safe[key] = value;
+    } else if (key === WXCODE_TENANT_ID
+      && typeof value === 'string' && isCanonicalWxcodeTenantId(value)) {
+      safe[key] = value;
+    } else if (key === WXCODE_OUTPUT_PROJECT_ID
+      && typeof value === 'string' && isCanonicalWxcodeOutputProjectId(value)) {
+      safe[key] = value;
     } else if (key === 'http.request.method' && typeof value === 'string' && /^[A-Z]{3,10}$/u.test(value)) {
       safe[key] = value;
     } else if (key === 'http.route' && typeof value === 'string' && isSafeRouteTemplate(value)) {
@@ -349,6 +382,19 @@ export function sanitizeAttributes(attributes: Attributes): Attributes {
     }
   }
   return safe;
+}
+
+/** Adds only the trusted runtime tenant to spans; no request data is consulted. */
+class TenantIdentitySpanProcessor implements SpanProcessor {
+  constructor(private readonly tenantId?: string) {}
+
+  onStart(span: Span, _parentContext: Context): void {
+    setTracewayIdentity(span, this.tenantId);
+  }
+
+  onEnd(): void {}
+  shutdown(): Promise<void> { return Promise.resolve(); }
+  forceFlush(): Promise<void> { return Promise.resolve(); }
 }
 
 function normalizeEndpoint(value: string): string | null {
