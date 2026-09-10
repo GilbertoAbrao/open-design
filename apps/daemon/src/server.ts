@@ -11491,13 +11491,16 @@ export async function startServer({
         ),
         agentLaunch,
       );
-      const envDefault = typeof openCodeProbeEnv.OPENCODE_DEFAULT_MODEL === 'string'
-        ? openCodeProbeEnv.OPENCODE_DEFAULT_MODEL.trim()
-        : null;
+      // OpenCode resolves its model through several config layers after this
+      // point (project files, config directories, then inline content). The
+      // daemon cannot know that final result safely, so only a concrete model
+      // that will become `-m` is eligible for this compatibility guard.
       const effectiveModel =
-        typeof agentOptions.model === 'string' && agentOptions.model !== 'default'
+        typeof agentOptions.model === 'string'
+        && agentOptions.model.length > 0
+        && agentOptions.model !== 'default'
           ? agentOptions.model
-          : envDefault;
+          : null;
       if (effectiveModel) {
         const guard = await probeOpenCodeModelGuard(
           agentLaunch.launchPath,

@@ -310,6 +310,153 @@ fs.writeFileSync(process.env.OD_TEST_OPENCODE_SPAWN_FILE, JSON.stringify(args));
     }
   });
 
+  it('does not block the OpenCode config model when the daemon default env disagrees', async () => {
+    const root = await fsp.mkdtemp(join(tmpdir(), 'od-opencode-effective-config-run-'));
+    tempDirs.push(root);
+    const spawnMarker = join(root, 'spawned.json');
+    const configPath = join(root, 'opencode.json');
+    await fsp.writeFile(
+      configPath,
+      JSON.stringify({ model: 'openai/gpt-5.6-sol' }),
+      'utf8',
+    );
+    const configResponse = await fetch(`${baseUrl}/api/app-config`);
+    const originalConfig = (await configResponse.json()) as {
+      config: { agentModels?: Record<string, { model?: string }> };
+    };
+    const originalConfigPath = process.env.OPENCODE_CONFIG;
+    const originalDefaultModel = process.env.OPENCODE_DEFAULT_MODEL;
+    const agentModels = { ...(originalConfig.config.agentModels ?? {}) };
+    delete agentModels.opencode;
+    process.env.OPENCODE_CONFIG = configPath;
+    process.env.OPENCODE_DEFAULT_MODEL = 'openai/gpt-5.4';
+    process.env.OD_TEST_OPENCODE_SPAWN_FILE = spawnMarker;
+    try {
+      await fetch(`${baseUrl}/api/app-config`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', Origin: baseUrl },
+        body: JSON.stringify({
+          agentModels: Object.keys(agentModels).length > 0 ? agentModels : null,
+        }),
+      });
+      await withFakeAgent(
+        'opencode',
+        `
+const fs = require('node:fs');
+const args = process.argv.slice(2);
+if (args[0] === 'auth' && args[1] === 'list') {
+  console.log('●  OpenAI oauth');
+  process.exit(0);
+}
+if (args[0] === 'models') {
+  console.log('openai/gpt-5.6-sol');
+  process.exit(0);
+}
+fs.writeFileSync(process.env.OD_TEST_OPENCODE_SPAWN_FILE, JSON.stringify(args));
+console.log(JSON.stringify({ type: 'text', part: { text: 'spawned' } }));
+`,
+        async () => {
+          const response = await fetch(`${baseUrl}/api/chat`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ agentId: 'opencode', message: 'hello' }),
+          });
+          const body = await response.text();
+
+          expect(response.ok).toBe(true);
+          expect(body).toContain('"status":"succeeded"');
+          expect(body).not.toContain('AGENT_EXECUTION_FAILED');
+          expect(JSON.parse(readFileSync(spawnMarker, 'utf8'))).not.toContain('-m');
+        },
+      );
+    } finally {
+      await fetch(`${baseUrl}/api/app-config`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', Origin: baseUrl },
+        body: JSON.stringify({ agentModels: originalConfig.config.agentModels ?? null }),
+      });
+      if (originalConfigPath == null) delete process.env.OPENCODE_CONFIG;
+      else process.env.OPENCODE_CONFIG = originalConfigPath;
+      if (originalDefaultModel == null) delete process.env.OPENCODE_DEFAULT_MODEL;
+      else process.env.OPENCODE_DEFAULT_MODEL = originalDefaultModel;
+      delete process.env.OD_TEST_OPENCODE_SPAWN_FILE;
+    }
+  });
+
+  it('fails open without inspecting missing or corrupt OpenCode config files', async () => {
+    const root = await fsp.mkdtemp(join(tmpdir(), 'od-opencode-config-fail-open-'));
+    tempDirs.push(root);
+    const configResponse = await fetch(`${baseUrl}/api/app-config`);
+    const originalConfig = (await configResponse.json()) as {
+      config: { agentModels?: Record<string, { model?: string }> };
+    };
+    const originalConfigPath = process.env.OPENCODE_CONFIG;
+    const originalDefaultModel = process.env.OPENCODE_DEFAULT_MODEL;
+    const agentModels = { ...(originalConfig.config.agentModels ?? {}) };
+    delete agentModels.opencode;
+    try {
+      await fetch(`${baseUrl}/api/app-config`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', Origin: baseUrl },
+        body: JSON.stringify({
+          agentModels: Object.keys(agentModels).length > 0 ? agentModels : null,
+        }),
+      });
+      for (const [label, configPath] of [
+        ['missing', join(root, 'missing-opencode.json')],
+        ['corrupt', join(root, 'corrupt-opencode.json')],
+      ] as const) {
+        if (label === 'corrupt') await fsp.writeFile(configPath, '{"model":', 'utf8');
+        const spawnMarker = join(root, `${label}-spawned.json`);
+        process.env.OPENCODE_CONFIG = configPath;
+        process.env.OPENCODE_DEFAULT_MODEL = 'openai/gpt-5.4';
+        process.env.OD_TEST_OPENCODE_SPAWN_FILE = spawnMarker;
+        await withFakeAgent(
+          'opencode',
+          `
+const fs = require('node:fs');
+const args = process.argv.slice(2);
+if (args[0] === 'auth' && args[1] === 'list') {
+  console.log('●  OpenAI oauth');
+  process.exit(0);
+}
+if (args[0] === 'models') {
+  console.log('openai/gpt-5.6-sol');
+  process.exit(0);
+}
+fs.writeFileSync(process.env.OD_TEST_OPENCODE_SPAWN_FILE, JSON.stringify(args));
+console.log(JSON.stringify({ type: 'text', part: { text: 'spawned' } }));
+`,
+          async () => {
+            const response = await fetch(`${baseUrl}/api/chat`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ agentId: 'opencode', message: label }),
+            });
+            const body = await response.text();
+
+            expect(response.ok).toBe(true);
+            expect(body).toContain('"status":"succeeded"');
+            expect(body).not.toContain('AGENT_EXECUTION_FAILED');
+            expect(JSON.parse(readFileSync(spawnMarker, 'utf8'))).not.toContain('-m');
+          },
+        );
+        delete process.env.OD_TEST_OPENCODE_SPAWN_FILE;
+      }
+    } finally {
+      await fetch(`${baseUrl}/api/app-config`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', Origin: baseUrl },
+        body: JSON.stringify({ agentModels: originalConfig.config.agentModels ?? null }),
+      });
+      if (originalConfigPath == null) delete process.env.OPENCODE_CONFIG;
+      else process.env.OPENCODE_CONFIG = originalConfigPath;
+      if (originalDefaultModel == null) delete process.env.OPENCODE_DEFAULT_MODEL;
+      else process.env.OPENCODE_DEFAULT_MODEL = originalDefaultModel;
+      delete process.env.OD_TEST_OPENCODE_SPAWN_FILE;
+    }
+  });
+
   it('fails open for an environment model when the OpenCode OAuth probe is unavailable', async () => {
     const root = await fsp.mkdtemp(join(tmpdir(), 'od-opencode-oauth-env-fail-open-'));
     tempDirs.push(root);
@@ -350,7 +497,7 @@ console.log(JSON.stringify({ type: 'text', part: { text: 'spawned' } }));
     }
   });
 
-  it('blocks an incompatible OpenCode environment model before spawn when the guard is active', async () => {
+  it('ignores the legacy environment model even when the OpenCode OAuth guard is active', async () => {
     const root = await fsp.mkdtemp(join(tmpdir(), 'od-opencode-oauth-env-run-'));
     tempDirs.push(root);
     const spawnMarker = join(root, 'spawned.json');
@@ -372,6 +519,7 @@ if (args[0] === 'models') {
   process.exit(0);
 }
 fs.writeFileSync(process.env.OD_TEST_OPENCODE_SPAWN_FILE, JSON.stringify(args));
+console.log(JSON.stringify({ type: 'text', part: { text: 'spawned' } }));
 `,
         async () => {
           const response = await fetch(`${baseUrl}/api/chat`, {
@@ -381,9 +529,9 @@ fs.writeFileSync(process.env.OD_TEST_OPENCODE_SPAWN_FILE, JSON.stringify(args));
           });
           const body = await response.text();
 
-          expect(body).toContain('AGENT_EXECUTION_FAILED');
-          expect(body).toContain('gpt-5.4');
-          expect(existsSync(spawnMarker)).toBe(false);
+          expect(body).toContain('"status":"succeeded"');
+          expect(body).not.toContain('AGENT_EXECUTION_FAILED');
+          expect(JSON.parse(readFileSync(spawnMarker, 'utf8'))).not.toContain('-m');
         },
       );
     } finally {
