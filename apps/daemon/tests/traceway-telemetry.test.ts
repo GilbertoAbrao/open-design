@@ -13,6 +13,7 @@ import {
   PrivacySpanExporter,
   installTracewayHttpTracing,
   isCanonicalTracewayTraceId,
+  isCanonicalWxcodeTenantId,
   normalizeTracewayModelErrorCode,
   readTracewayConfig,
   recordTracewayException,
@@ -73,6 +74,8 @@ describe('Traceway configuration', () => {
     expect(isCanonicalTracewayTraceId(VALID_TRACE_ID.replaceAll('-', ''))).toBe(false);
     expect(isCanonicalTracewayTraceId('8a3970f1-7b8e-0a28-91bd-dad10ef3d0d7')).toBe(false);
     expect(isCanonicalTracewayTraceId('tenant-slug')).toBe(false);
+    expect(isCanonicalWxcodeTenantId(VALID_TRACE_ID)).toBe(true);
+    expect(isCanonicalWxcodeTenantId('tenant-slug')).toBe(false);
   });
 });
 
@@ -125,6 +128,23 @@ describe('Traceway privacy boundary', () => {
       }),
     ]);
     await provider.shutdown();
+  });
+
+  it('exports only canonical WXCode identity attributes', () => {
+    const sanitized = sanitizeSpan({
+      name: 'daemon.start',
+      attributes: {
+        'wxcode.tenant.id': VALID_TRACE_ID,
+        'wxcode.output_project.id': VALID_TRACE_ID,
+        'tenant.slug': 'private',
+        'wxcode.tenant.id.bad': VALID_TRACE_ID,
+      },
+      events: [],
+    } as unknown as ReadableSpan);
+    expect(sanitized.attributes).toEqual({
+      'wxcode.tenant.id': VALID_TRACE_ID,
+      'wxcode.output_project.id': VALID_TRACE_ID,
+    });
   });
 
   it('exports only the allowlisted HTTP/correlation attributes and exception type', () => {
