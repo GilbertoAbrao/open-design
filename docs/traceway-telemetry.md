@@ -14,7 +14,7 @@ vida, falha fatal, erro de modelo e critique. O daemon nunca deriva tenant de
 header, query, body ou texto do usuário.
 
 Os únicos atributos de identidade permitidos pelo exporter são
-wxcode.tenant.id e wxcode.output_project.id; ambos exigem UUID canônico.
+wxcode.tenant.id (UUID canônico) e wxcode.output_project.id (UUID canônico ou ObjectId hexadecimal de 24 caracteres).
 wxcode.output_project.id é best effort e deve ser preenchido somente após
 lookup de binding validado. Ausência não impede a emissão. Nenhum metadata livre
 é exportado.

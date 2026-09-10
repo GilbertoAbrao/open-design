@@ -367,7 +367,10 @@ export function sanitizeAttributes(attributes: Attributes): Attributes {
     if (!SAFE_ATTRIBUTE_KEYS.has(key)) continue;
     if (key === TRACEWAY_TRACE_ID && typeof value === 'string' && isCanonicalTracewayTraceId(value)) {
       safe[key] = value;
-    } else if ((key === WXCODE_TENANT_ID || key === WXCODE_OUTPUT_PROJECT_ID)
+    } else if (key === WXCODE_TENANT_ID
+      && typeof value === 'string' && isCanonicalWxcodeTenantId(value)) {
+      safe[key] = value;
+    } else if (key === WXCODE_OUTPUT_PROJECT_ID
       && typeof value === 'string' && isCanonicalWxcodeOutputProjectId(value)) {
       safe[key] = value;
     } else if (key === 'http.request.method' && typeof value === 'string' && /^[A-Z]{3,10}$/u.test(value)) {
