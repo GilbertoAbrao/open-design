@@ -5,7 +5,7 @@
 // trust UI, but the storage layout here is the contract that lookup
 // will read against.
 
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { mkdtemp, readFile, rm } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
@@ -23,6 +23,7 @@ import {
   resolveMarketplaceFetchUrl,
   setMarketplaceTrust,
 } from '../src/plugins/marketplaces.js';
+import { upsertInstalledPlugin } from '../src/plugins/registry.js';
 
 let db: Database.Database;
 let tmpDir: string;
@@ -243,6 +244,153 @@ describe('marketplaces', () => {
     expect(trusted?.trust).toBe('trusted');
     expect(removeMarketplace(db, added.row.id)).toBe(true);
     expect(getMarketplace(db, added.row.id)).toBeNull();
+  });
+
+  it('propagates a marketplace trust change atomically to only its installed plugins', () => {
+    for (const marketplace of [
+      { id: 'official', trust: 'official' as const },
+      { id: 'community', trust: 'restricted' as const },
+    ]) {
+      const seeded = ensureMarketplaceManifest(db, {
+        id: marketplace.id,
+        url: `https://example.com/${marketplace.id}/marketplace.json`,
+        trust: marketplace.trust,
+        manifestText: VALID_MANIFEST,
+        now: 100,
+      });
+      if (!seeded.ok) throw new Error('seed failed');
+    }
+
+    upsertInstalledPlugin(db, {
+      id: 'official-plugin',
+      title: 'Official plugin',
+      version: '1.0.0',
+      sourceKind: 'marketplace',
+      source: 'github:open-design/official-plugin',
+      sourceMarketplaceId: 'official',
+      sourceMarketplaceEntryName: 'official-plugin',
+      sourceMarketplaceEntryVersion: '1.0.0',
+      marketplaceTrust: 'official',
+      resolvedSource: 'github:open-design/official-plugin',
+      resolvedRef: 'v1.0.0',
+      manifestDigest: 'sha256:official-manifest',
+      archiveIntegrity: 'sha256:official-archive',
+      trust: 'trusted',
+      capabilitiesGranted: ['fs:read'],
+      manifest: {} as never,
+      fsPath: '/plugins/official-plugin',
+      installedAt: 100,
+      updatedAt: 100,
+    });
+    upsertInstalledPlugin(db, {
+      id: 'community-plugin',
+      title: 'Community plugin',
+      version: '1.0.0',
+      sourceKind: 'marketplace',
+      source: 'github:open-design/community-plugin',
+      sourceMarketplaceId: 'community',
+      sourceMarketplaceEntryName: 'community-plugin',
+      sourceMarketplaceEntryVersion: '1.0.0',
+      marketplaceTrust: 'restricted',
+      resolvedSource: 'github:open-design/community-plugin',
+      resolvedRef: 'v1.0.0',
+      manifestDigest: 'sha256:community-manifest',
+      archiveIntegrity: 'sha256:community-archive',
+      trust: 'restricted',
+      capabilitiesGranted: ['connector:slack'],
+      manifest: {} as never,
+      fsPath: '/plugins/community-plugin',
+      installedAt: 100,
+      updatedAt: 100,
+    });
+
+    const row = (id: string) => db.prepare(`SELECT * FROM installed_plugins WHERE id = ?`).get(id);
+    const officialBefore = row('official-plugin');
+    const communityBefore = row('community-plugin');
+    const clock = vi.spyOn(Date, 'now');
+
+    try {
+      clock.mockReturnValue(200);
+      expect(setMarketplaceTrust(db, 'official', 'trusted')?.trust).toBe('trusted');
+      const trusted = row('official-plugin') as Record<string, unknown>;
+      expect(trusted.marketplace_trust).toBe('trusted');
+      expect(trusted.trust).toBe('trusted');
+      expect(trusted.updated_at).toBe(200);
+      expect(trusted.capabilities_granted).toBe((officialBefore as Record<string, unknown>).capabilities_granted);
+      expect({ ...trusted, marketplace_trust: undefined, trust: undefined, updated_at: undefined }).toEqual({
+        ...(officialBefore as Record<string, unknown>),
+        marketplace_trust: undefined,
+        trust: undefined,
+        updated_at: undefined,
+      });
+      expect(row('community-plugin')).toEqual(communityBefore);
+
+      clock.mockReturnValue(300);
+      expect(setMarketplaceTrust(db, 'official', 'trusted')?.trust).toBe('trusted');
+      expect(row('official-plugin')).toEqual(trusted);
+
+      clock.mockReturnValue(400);
+      expect(setMarketplaceTrust(db, 'official', 'restricted')?.trust).toBe('restricted');
+      const restricted = row('official-plugin') as Record<string, unknown>;
+      expect(restricted.marketplace_trust).toBe('restricted');
+      expect(restricted.trust).toBe('restricted');
+      expect(restricted.updated_at).toBe(400);
+      expect(row('community-plugin')).toEqual(communityBefore);
+
+      clock.mockReturnValue(500);
+      expect(setMarketplaceTrust(db, 'official', 'official')?.trust).toBe('official');
+      const official = row('official-plugin') as Record<string, unknown>;
+      expect(official.marketplace_trust).toBe('official');
+      expect(official.trust).toBe('trusted');
+      expect(official.updated_at).toBe(500);
+
+      const pluginsBeforeMissingMarketplace = db.prepare(`SELECT * FROM installed_plugins ORDER BY id`).all();
+      expect(setMarketplaceTrust(db, 'missing', 'trusted')).toBeNull();
+      expect(db.prepare(`SELECT * FROM installed_plugins ORDER BY id`).all()).toEqual(pluginsBeforeMissingMarketplace);
+    } finally {
+      clock.mockRestore();
+    }
+  });
+
+  it('rolls back the marketplace trust when propagation to an installed plugin fails', () => {
+    const seeded = ensureMarketplaceManifest(db, {
+      id: 'official',
+      url: 'https://example.com/official/marketplace.json',
+      trust: 'official',
+      manifestText: VALID_MANIFEST,
+      now: 100,
+    });
+    if (!seeded.ok) throw new Error('seed failed');
+    upsertInstalledPlugin(db, {
+      id: 'official-plugin',
+      title: 'Official plugin',
+      version: '1.0.0',
+      sourceKind: 'marketplace',
+      source: 'github:open-design/official-plugin',
+      sourceMarketplaceId: 'official',
+      marketplaceTrust: 'official',
+      trust: 'trusted',
+      capabilitiesGranted: [],
+      manifest: {} as never,
+      fsPath: '/plugins/official-plugin',
+      installedAt: 100,
+      updatedAt: 100,
+    });
+    db.exec(`
+      CREATE TRIGGER abort_marketplace_trust_propagation
+      BEFORE UPDATE OF marketplace_trust ON installed_plugins
+      WHEN OLD.source_marketplace_id = 'official'
+      BEGIN
+        SELECT RAISE(ABORT, 'forced');
+      END;
+    `);
+
+    expect(() => setMarketplaceTrust(db, 'official', 'trusted')).toThrow('forced');
+    expect(getMarketplace(db, 'official')?.trust).toBe('official');
+    expect(db.prepare(`SELECT marketplace_trust, trust FROM installed_plugins WHERE id = ?`).get('official-plugin')).toEqual({
+      marketplace_trust: 'official',
+      trust: 'trusted',
+    });
   });
 
   it('upserts a fixed built-in marketplace manifest', () => {

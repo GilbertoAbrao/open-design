@@ -343,9 +343,26 @@ export function setMarketplaceTrust(
   id: string,
   trust: MarketplaceTrustTier,
 ): MarketplaceRow | null {
-  const info = db.prepare(`UPDATE plugin_marketplaces SET trust = ? WHERE id = ?`).run(trust, id);
-  if (info.changes === 0) return null;
-  return getMarketplace(db, id);
+  return db.transaction(() => {
+    const existing = getMarketplace(db, id);
+    if (!existing) return null;
+    // Avoid rewriting installed plugin rows when the requested tier is
+    // already effective. This keeps repeated trust changes idempotent.
+    if (existing.trust === trust) return existing;
+
+    const now = Date.now();
+    db.prepare(`UPDATE plugin_marketplaces SET trust = ? WHERE id = ?`).run(trust, id);
+    // Keep capabilities_granted intact: individual grants and revocations use
+    // their own API and must not be implicitly revoked by marketplace trust.
+    db.prepare(`
+      UPDATE installed_plugins
+         SET marketplace_trust = ?,
+             trust = ?,
+             updated_at = ?
+       WHERE source_marketplace_id = ?
+    `).run(trust, trust === 'restricted' ? 'restricted' : 'trusted', now, id);
+    return getMarketplace(db, id);
+  })();
 }
 
 export interface RefreshMarketplaceResult {
