@@ -49,6 +49,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       GH_TOKEN: ${{ secrets.WXK_DEPLOY_GITHUB_TOKEN }}
+      DOCS_READ_TOKEN: ${{ secrets.WXK_DOCUMENTATION_READ_TOKEN || secrets.WXK_DEPLOY_GITHUB_TOKEN }}
       CHAT_REPO: GilbertoAbrao/wxcode-chat
       CHAT_BASE: prod
       PIN_KEY: open-design
@@ -71,7 +72,7 @@ jobs:
           repository: GilbertoAbrao/wxk-support
           ref: ${{ env.WXK_SUPPORT_COMMIT }}
           path: .external/wxk-support
-          token: ${{ secrets.WXK_DEPLOY_GITHUB_TOKEN }}
+          token: ${{ secrets.WXK_DOCUMENTATION_READ_TOKEN || secrets.WXK_DEPLOY_GITHUB_TOKEN }}
           persist-credentials: false
 
       - name: Checkout wxcode-chat prod
@@ -173,7 +174,7 @@ jobs:
           body_file="$(mktemp)"
           trap 'rm -f "$tmp" "$body_file"' EXIT
           docs_status=0
-          python3 "$GITHUB_WORKSPACE/.external/wxk-support/scripts/user_documentation_pr.py" propagate-pr \
+          GH_TOKEN="$DOCS_READ_TOKEN" python3 "$GITHUB_WORKSPACE/.external/wxk-support/scripts/user_documentation_pr.py" propagate-pr \
             --repo "$CHAT_REPO" \
             --pr-number "$pr" \
             --source-repo "$GITHUB_REPOSITORY" \
@@ -190,7 +191,7 @@ jobs:
             exit "$docs_status"
           fi
 
-          python3 "$GITHUB_WORKSPACE/.external/wxk-support/scripts/user_documentation_pr.py" check-pr \
+          GH_TOKEN="$DOCS_READ_TOKEN" python3 "$GITHUB_WORKSPACE/.external/wxk-support/scripts/user_documentation_pr.py" check-pr \
             --repo "$CHAT_REPO" \
             --pr-number "$pr" \
             --gh-command gh
