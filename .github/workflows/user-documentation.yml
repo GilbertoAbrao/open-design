@@ -28,7 +28,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.WXK_DOCUMENTATION_READ_TOKEN || secrets.WXK_DEPLOY_GITHUB_TOKEN }}
           TOOL_DIR: ${{ runner.temp }}/user-documentation
-          WXK_SUPPORT_COMMIT: __WXK_SUPPORT_DEV_TIME_COMMIT__
+          WXK_SUPPORT_COMMIT: f09f0af883dbf971b963211e0f0d5cc1466be152
         run: |
           set -euo pipefail
           test -n "${GH_TOKEN:-}" || {
