@@ -1,0 +1,62 @@
+name: User documentation
+
+on:
+  pull_request_target:
+    types: [opened, edited, synchronize, reopened, ready_for_review]
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: Optional PR to validate; only a PR-triggered run proves required-check attachment
+        required: false
+        type: string
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: user-documentation-${{ github.repository }}-${{ github.event.pull_request.number || inputs.pr_number || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  user-documentation:
+    name: User documentation
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Download the trusted validator
+        env:
+          GH_TOKEN: ${{ secrets.WXK_DOCUMENTATION_READ_TOKEN || secrets.WXK_DEPLOY_GITHUB_TOKEN }}
+          TOOL_DIR: ${{ runner.temp }}/user-documentation
+          WXK_SUPPORT_COMMIT: __WXK_SUPPORT_DEV_TIME_COMMIT__
+        run: |
+          set -euo pipefail
+          test -n "${GH_TOKEN:-}" || {
+            echo "::error::Missing approved credential: WXK_DOCUMENTATION_READ_TOKEN or WXK_DEPLOY_GITHUB_TOKEN"
+            exit 1
+          }
+          install -d -m 0700 "$TOOL_DIR"
+          for script in user_documentation.py user_documentation_pr.py; do
+            gh api \
+              -H "Accept: application/vnd.github.raw+json" \
+              "repos/GilbertoAbrao/wxk-support/contents/scripts/${script}?ref=${WXK_SUPPORT_COMMIT}" \
+              >"${TOOL_DIR}/${script}"
+            test -s "${TOOL_DIR}/${script}"
+          done
+
+      - name: Check pull request evidence
+        if: github.event_name == 'pull_request_target' || inputs.pr_number != ''
+        env:
+          GH_TOKEN: ${{ secrets.WXK_DOCUMENTATION_READ_TOKEN || secrets.WXK_DEPLOY_GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number || inputs.pr_number }}
+          TOOL_DIR: ${{ runner.temp }}/user-documentation
+        run: |
+          set -euo pipefail
+          python3 "$TOOL_DIR/user_documentation_pr.py" check-pr \
+            --repo "$GITHUB_REPOSITORY" \
+            --pr-number "$PR_NUMBER" \
+            --gh-command gh
+
+      - name: Explain manual retrieval-only run
+        if: github.event_name == 'workflow_dispatch' && inputs.pr_number == ''
+        run: echo "Validator retrieval succeeded. Supply a PR number for live validation; only pull_request_target attaches this check to a PR."
