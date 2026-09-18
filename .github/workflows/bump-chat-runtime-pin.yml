@@ -53,6 +53,7 @@ jobs:
       CHAT_BASE: prod
       PIN_KEY: open-design
       SOURCE_SHA: ${{ github.sha }}
+      WXK_SUPPORT_COMMIT: f09f0af883dbf971b963211e0f0d5cc1466be152
     steps:
       - name: Validate forwarding secret
         shell: bash
@@ -63,6 +64,15 @@ jobs:
             echo "This workflow cannot update wxcode-chat's runtime pin without it." >&2
             exit 1
           fi
+
+      - name: Checkout documentation evidence helper
+        uses: actions/checkout@v5
+        with:
+          repository: GilbertoAbrao/wxk-support
+          ref: ${{ env.WXK_SUPPORT_COMMIT }}
+          path: .external/wxk-support
+          token: ${{ secrets.WXK_DEPLOY_GITHUB_TOKEN }}
+          persist-credentials: false
 
       - name: Checkout wxcode-chat prod
         uses: actions/checkout@v5
@@ -138,11 +148,14 @@ jobs:
               "  to   ${SOURCE_SHA}" \
               "" \
               "Merging this rebuilds the chat-runtime image via build-image-chat-runtime.yml.")"
+            initial_body_file="$(mktemp)"
+            printf '%s\n' "$body" > "$initial_body_file"
             gh pr create --repo "$CHAT_REPO" \
               --base "$CHAT_BASE" \
               --head "$branch" \
               --title "chore: bump ${PIN_KEY} pin to ${short}" \
-              --body "$body"
+              --body-file "$initial_body_file"
+            rm -f "$initial_body_file"
             pr="$(gh pr list --repo "$CHAT_REPO" --base "$CHAT_BASE" --head "$branch" \
               --state open --json number --jq '.[0].number // empty')"
           fi
@@ -151,7 +164,42 @@ jobs:
             exit 1
           fi
 
-          gh pr merge --repo "$CHAT_REPO" --auto --merge "$pr"
+          pr_state="$(gh pr view --repo "$CHAT_REPO" "$pr" --json headRefOid,autoMergeRequest)"
+          pr_head="$(printf '%s' "$pr_state" | jq -r .headRefOid)"
+          if [ "$(printf '%s' "$pr_state" | jq -r '.autoMergeRequest != null')" = "true" ]; then
+            gh pr merge --repo "$CHAT_REPO" --disable-auto "$pr"
+          fi
+
+          body_file="$(mktemp)"
+          trap 'rm -f "$tmp" "$body_file"' EXIT
+          docs_status=0
+          python3 "$GITHUB_WORKSPACE/.external/wxk-support/scripts/user_documentation_pr.py" propagate-pr \
+            --repo "$CHAT_REPO" \
+            --pr-number "$pr" \
+            --source-repo "$GITHUB_REPOSITORY" \
+            --source-merge-sha "$SOURCE_SHA" \
+            --output "$body_file" \
+            --gh-command gh || docs_status=$?
+          if [ ! -s "$body_file" ]; then
+            echo "Documentation propagation produced no pull-request body for ${CHAT_REPO}#${pr}" >&2
+            exit 1
+          fi
+          gh pr edit --repo "$CHAT_REPO" "$pr" --body-file "$body_file"
+          if [ "$docs_status" -ne 0 ]; then
+            echo "Documentation evidence is unresolved on ${CHAT_REPO}#${pr}; refusing automatic merge." >&2
+            exit "$docs_status"
+          fi
+
+          python3 "$GITHUB_WORKSPACE/.external/wxk-support/scripts/user_documentation_pr.py" check-pr \
+            --repo "$CHAT_REPO" \
+            --pr-number "$pr" \
+            --gh-command gh
+          current_head="$(gh pr view --repo "$CHAT_REPO" "$pr" --json headRefOid --jq .headRefOid)"
+          if [ "$current_head" != "$pr_head" ]; then
+            echo "Pull request head moved from ${pr_head} to ${current_head} during documentation validation" >&2
+            exit 1
+          fi
+          gh pr merge --repo "$CHAT_REPO" --auto --merge --match-head-commit "$pr_head" "$pr"
 
           {
             echo "## chat-runtime pin"
