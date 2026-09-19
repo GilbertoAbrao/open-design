@@ -262,22 +262,20 @@ The daemon writes `.od/` by default: SQLite at `.od/app.sqlite`, agent CWDs unde
 
 Default precedence is OD_MEDIA_CONFIG_DIR > OD_DATA_DIR > `<projectRoot>/.od`.
 
-## User-documentation delivery
+## User-documentation context
 
-For every implementation task, read the canonical
-[User-Documentation contract in wxk-support](https://github.com/GilbertoAbrao/wxk-support/blob/main/documentation/README.md)
-and follow its
-[executable dev-time procedure](https://github.com/GilbertoAbrao/wxk-support/blob/main/documentation/dev-time.md).
-Do this before implementation, even when the task was not preclassified as user-visible.
+The User-Documentation manager reviews merged product pull-request diffs,
+verifies relevant source and UI behavior, and owns Help content, editorial
+decisions, and the documentation backlog. Development sessions do not need to
+run documentation tools, create evidence JSON, open paired documentation pull
+requests, or access the private `wxk-support` repository to deliver product work.
 
-Run `user_documentation.py begin` before implementation. When documentation is
-required, update the paired central documentation during the task. Before the final
-handoff or PR, run `user_documentation.py check` and include its generated evidence
-in the PR's User documentation section. An already-running session must reread both
-central documents and run `user_documentation.py begin` before its next delivery.
-
-Keep this entry as a pointer. The rules and executable procedure remain central;
-do not copy them into this repository.
+When useful, a session can add a brief note to the ordinary handoff or pull
+request with changed behavior, exact English UI labels, and known limitations.
+This context is optional and is not a delivery gate. The central
+[User-Documentation contract](https://github.com/GilbertoAbrao/wxk-support/blob/main/documentation/README.md)
+remains the manager's reference. This policy supersedes the previous
+`begin`/`check` session gates, including for sessions already in progress.
 
 ## When is `pnpm install` required?
 
