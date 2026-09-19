@@ -69,10 +69,10 @@ Fixes #
 
 -
 
-## User documentation
-- Impact: new user task / changed user task / no impact (explain).
-- Canonical contract revision consulted:
-- Topics added or updated, or linked documentation PR and delivery coordinator:
-- Behavior verification: product revision, exercised path and result:
-- Language status: English revision, affected translations and fallback:
-- Editorial review: routine / first example / high impact; reviewer and result:
+## User-facing documentation context (optional)
+
+<!-- If this PR changes user-visible behavior, briefly note the behavior, exact
+English UI labels, and known limitations when relevant. The User-Documentation
+manager reviews merged changes centrally and owns Help content and the backlog;
+no documentation evidence, paired documentation PR, or private wxk-support
+access is required for delivery. -->
